@@ -4,6 +4,7 @@ import type { AppEnv } from "../env";
 import { badRequest, unauthorized } from "../lib/errors";
 import { jsonResponse, clientIp, hashIp, readBodyText } from "../lib/http";
 import { enforceRateLimit } from "../lib/rate-limit";
+import { log } from "../lib/logger";
 import {
   activePublicKeys,
   ensureSigningKey,
@@ -38,10 +39,15 @@ function parseBody<T>(text: string, schema: z.ZodType<T>): T {
   }
   const result = schema.safeParse(value);
   if (!result.success) {
-    throw badRequest("invalid request body", result.error.issues.slice(0, 8).map((issue) => ({
+    const issues = result.error.issues.slice(0, 8).map((issue) => ({
       path: issue.path.join("."),
       message: issue.message,
-    })));
+    }));
+    log("warn", "api.invalid_body", {
+      issues,
+      keys: value && typeof value === "object" ? Object.keys(value as Record<string, unknown>) : [],
+    });
+    throw badRequest("invalid request body", issues);
   }
   return result.data;
 }

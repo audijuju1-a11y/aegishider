@@ -326,6 +326,25 @@ describe("licensing and signed requests", () => {
     expect(response.status).toBe(403);
   });
 
+  it("accepts a Paper floating-point TPS overshoot in heartbeats", async () => {
+    await seedProduct();
+    const user = await seedUser({ email: "tps-overshoot@example.com" });
+    const licenseId = await issueLicenseFor(user);
+    const installation = await seedInstallation({ user, licenseId });
+    const body = JSON.stringify({
+      schema_version: 1,
+      plugin_version: "4.0.2",
+      minecraft_version: "1.21.1",
+      platform: "Paper",
+      java_version: "21.0.13.1",
+      enabled_modules: ["block-protection", "item-protection"],
+      metrics: { tps: 20.000000000000004, players_online: 0, errors: 0 },
+      occurred_at: Math.floor(Date.now() / 1000),
+    });
+    const response = await signedPost("/api/v1/installations/heartbeat", body, installation, "x-ag");
+    expect(response.status).toBe(202);
+  });
+
   it("accepts the Aegishider x-ag signed header set", async () => {
     await seedProduct();
     const user = await seedUser({ email: "ag-headers@example.com" });

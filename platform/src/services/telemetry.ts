@@ -26,7 +26,9 @@ export const heartbeatSchema = z
     enabled_modules: z.array(z.string().trim().max(40)).max(20).default([]),
     metrics: z
       .object({
-        tps: z.number().min(0).max(20),
+        // Paper can report a floating-point overshoot such as 20.000000000000004;
+        // accepting a wider bound keeps a valid heartbeat from failing validation.
+        tps: z.number().min(0).max(100),
         mspt_p50: z.number().min(0).max(10_000).nullish(),
         mspt_p95: z.number().min(0).max(10_000).nullish(),
         mspt_p99: z.number().min(0).max(10_000).nullish(),
