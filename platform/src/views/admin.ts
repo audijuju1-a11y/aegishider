@@ -8,6 +8,7 @@ import type {
   CustomerRow,
 } from "../services/admin";
 import type { GuardSummary } from "../services/activation-guard";
+import type { RollupRow } from "../services/telemetry";
 import type { AlertStateRow } from "../services/observability";
 import type { ProductRow, PlanRow, ReleaseRow } from "../services/catalog";
 import type { TicketMessageRow, TicketView } from "../services/support";
@@ -595,13 +596,154 @@ export function adminServersPage(rows: AdminInstallationRow[], q: string): SafeH
     )}`;
 }
 
+type HealthRecord = Record<string, unknown>;
+type HealthAlert = { level: "error" | "warning" | "info"; text: string };
+
+function asRecord(value: unknown): HealthRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as HealthRecord)
+    : null;
+}
+
+function numberField(record: HealthRecord | null, key: string): number | null {
+  const value = record?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function stringField(record: HealthRecord | null, key: string): string | null {
+  const value = record?.[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function boolField(record: HealthRecord | null, key: string): boolean | null {
+  const value = record?.[key];
+  return typeof value === "boolean" ? value : null;
+}
+
+function fmtNumber(value: number | null, digits = 1, suffix = ""): string {
+  return value === null ? "—" : `${value.toFixed(digits)}${suffix}`;
+}
+
+function fmtInteger(value: number | null, suffix = ""): string {
+  return value === null ? "—" : `${Math.round(value)}${suffix}`;
+}
+
+function fmtUptime(seconds: number | null): string {
+  if (seconds === null) return "—";
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return days > 0 ? `${days}d ${hours}h` : `${hours}h ${minutes}m`;
+}
+
+function parseHeartbeat(heartbeat: { payload: string } | null): HealthRecord | null {
+  if (!heartbeat) return null;
+  try {
+    return asRecord(JSON.parse(heartbeat.payload));
+  } catch {
+    return null;
+  }
+}
+
+function buildHealthAlerts(
+  installation: AdminInstallationRow,
+  heartbeat: { received_at: number } | null,
+  server: HealthRecord | null,
+  aegishider: HealthRecord | null,
+): HealthAlert[] {
+  const alerts: HealthAlert[] = [];
+  const now = Date.now();
+  if (!heartbeat) {
+    alerts.push({ level: "error", text: "ยังไม่มี heartbeat — ตรวจสอบว่า telemetry เปิดและ lease ยังใช้งานได้" });
+  } else if (now - heartbeat.received_at > 10 * 60_000) {
+    alerts.push({ level: "warning", text: `Heartbeat ล่าสุด ${timeAgo(heartbeat.received_at)} — อาจไม่ส่งหรือเซิร์ฟเวอร์ออฟไลน์` });
+  }
+  const tps = numberField(server, "tps_1m");
+  if (tps !== null && tps < 10) alerts.push({ level: "error", text: `TPS 1 นาทีต่ำมาก: ${fmtNumber(tps, 2)}` });
+  else if (tps !== null && tps < 15) alerts.push({ level: "warning", text: `TPS 1 นาทีต่ำ: ${fmtNumber(tps, 2)}` });
+  const mspt = numberField(server, "mspt_avg");
+  if (mspt !== null && mspt > 100) alerts.push({ level: "error", text: `MSPT สูงมาก: ${fmtNumber(mspt, 1, " ms")}` });
+  else if (mspt !== null && mspt > 50) alerts.push({ level: "warning", text: `MSPT สูง: ${fmtNumber(mspt, 1, " ms")}` });
+  const heapUsed = numberField(server, "heap_used_mb");
+  const heapMax = numberField(server, "heap_max_mb");
+  if (heapUsed !== null && heapMax !== null && heapMax > 0) {
+    const ratio = heapUsed / heapMax;
+    if (ratio > 0.95) alerts.push({ level: "error", text: `Heap ใกล้เต็ม: ${(ratio * 100).toFixed(0)}%` });
+    else if (ratio > 0.9) alerts.push({ level: "warning", text: `Heap ใช้งานสูง: ${(ratio * 100).toFixed(0)}%` });
+  }
+  const cpu = numberField(server, "process_cpu_load");
+  if (cpu !== null && cpu > 85) alerts.push({ level: "warning", text: `Process CPU สูง: ${fmtNumber(cpu, 0, "%")}` });
+  const diskUsable = numberField(server, "disk_usable_mb");
+  const diskTotal = numberField(server, "disk_total_mb");
+  if (diskUsable !== null && diskTotal !== null && diskTotal > 0 && diskUsable / diskTotal < 0.1) {
+    alerts.push({ level: "warning", text: `พื้นที่ดิสก์เหลือน้อย: ${(diskUsable / diskTotal * 100).toFixed(0)}%` });
+  }
+  const gateway = stringField(aegishider, "gateway_state");
+  if (gateway && gateway !== "ACTIVE") alerts.push({ level: "error", text: `Packet gateway ไม่ทำงาน: ${gateway}` });
+  const protection = stringField(aegishider, "protection");
+  if (protection && protection !== "ACTIVE") alerts.push({ level: "warning", text: `Protection ไม่ได้ ACTIVE: ${protection}` });
+  const licenseState = stringField(aegishider, "license_state");
+  if (licenseState && !licenseState.startsWith("ACTIVE")) {
+    alerts.push({ level: "warning", text: `สถานะไลเซนส์: ${licenseState}` });
+  }
+  if (installation.status !== "active") {
+    alerts.push({ level: "warning", text: `installation status: ${installation.status}` });
+  }
+  return alerts;
+}
+
 export function adminServerDetailPage(
   installation: AdminInstallationRow,
   heartbeat: { received_at: number; payload: string } | null,
   events: Array<{ id: string; event_type: string; severity: string; occurred_at: number; payload: string }>,
+  rollups: RollupRow[] = [],
 ): SafeHtml {
+  const payload = parseHeartbeat(heartbeat);
+  const server = asRecord(payload?.server);
+  const aegishider = asRecord(payload?.aegishider);
+  const alerts = buildHealthAlerts(installation, heartbeat, server, aegishider);
+  const worlds = Array.isArray(server?.worlds)
+    ? (server?.worlds as unknown[]).map(asRecord).filter((row): row is HealthRecord => row !== null)
+    : [];
+  const recent = [...rollups].reverse();
+  const labels = recent.map((row) =>
+    new Date(row.bucket_start).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }));
+  const tps = numberField(server, "tps_1m");
+  const mspt = numberField(server, "mspt_avg");
+  const players = numberField(server, "players_online");
+  const maxPlayers = numberField(server, "max_players");
+  const ping = numberField(server, "avg_ping_ms");
+  const uptime = numberField(server, "uptime_seconds");
+  const heapUsed = numberField(server, "heap_used_mb");
+  const heapMax = numberField(server, "heap_max_mb");
+  const cpu = numberField(server, "process_cpu_load");
+  const entities = numberField(server, "entity_count");
+  const chunks = numberField(server, "chunk_count");
+  const gatewayState = stringField(aegishider, "gateway_state");
+  const protection = stringField(aegishider, "protection");
+
   return html`
-    <div class="grid-2" style="align-items:start">
+    <div class="stat-grid">
+      ${stat("TPS 1m", fmtNumber(tps, 2), "เป้าหมาย ≥ 19.5")}
+      ${stat("MSPT เฉลี่ย", fmtNumber(mspt, 1, " ms"), "เป้าหมาย ≤ 50 ms")}
+      ${stat("ผู้เล่น", players !== null ? `${Math.round(players)}${maxPlayers !== null ? ` / ${Math.round(maxPlayers)}` : ""}` : "—", "ออนไลน์ / สูงสุด")}
+      ${stat("Ping เฉลี่ย", fmtNumber(ping, 0, " ms"), "ผู้เล่นออนไลน์")}
+      ${stat("Uptime", fmtUptime(uptime), "JVM runtime")}
+      ${stat("Heap", heapUsed !== null && heapMax !== null && heapMax > 0 ? `${heapUsed} / ${heapMax} MB` : fmtInteger(heapUsed, " MB"), "used / max")}
+      ${stat("CPU process", fmtNumber(cpu, 0, "%"), "ของ process")}
+      ${stat("Entities / Chunks", `${fmtInteger(entities)} / ${fmtInteger(chunks)}`, "โหลดอยู่")}
+    </div>
+
+    ${alerts.length
+      ? html`<div class="card" style="margin-top:1rem">
+          <div class="card-head"><h3>การแจ้งเตือนสุขภาพ</h3><span class="mono" style="font-size:.55rem">${alerts.length} รายการ</span></div>
+          <div class="card-body stack" style="gap:.45rem">
+            ${alerts.map((alert) => html`<div class="alert ${alert.level === "error" ? "alert--error" : "alert--info"}" style="margin:0">${alert.text}</div>`)}
+          </div>
+        </div>`
+      : html`<div class="card" style="margin-top:1rem"><div class="card-head"><h3>การแจ้งเตือนสุขภาพ</h3></div><div class="card-body"><p class="muted" style="font-size:.8rem">ไม่พบความผิดปกติจากข้อมูล heartbeat ล่าสุด</p></div></div>`}
+
+    <div class="grid-2" style="margin-top:1rem;align-items:start">
       <div class="card">
         <div class="card-head"><h3>ข้อมูล installation</h3>${badge(installation.status)}</div>
         <div class="card-body">
@@ -613,26 +755,112 @@ export function adminServerDetailPage(
             { label: "องค์กร", value: installation.org_name ?? "—" },
             { label: "ไลเซนส์", value: installation.license_prefix ? `${installation.license_prefix}… (${installation.license_status})` : "—" },
             { label: "เวอร์ชัน", value: `${installation.plugin_version ?? "—"} · ${installation.minecraft_version ?? "—"}` },
-            { label: "Heartbeat", value: installation.last_heartbeat_at ? formatWhen(installation.last_heartbeat_at) : "ไม่เคย" },
+            { label: "Heartbeat", value: heartbeat ? `${timeAgo(heartbeat.received_at)} · ${formatWhen(heartbeat.received_at)}` : "ไม่เคย" },
           ])}
         </div>
       </div>
       <div class="card">
-        <div class="card-head"><h3>Heartbeat ล่าสุด</h3></div>
+        <div class="card-head"><h3>ภาพรวมเซิร์ฟเวอร์</h3></div>
         <div class="card-body">
-          ${heartbeat
-            ? html`<pre class="code-block">${JSON.stringify(JSON.parse(heartbeat.payload), null, 2)}</pre>`
-            : html`<p class="muted" style="font-size:.82rem">ยังไม่มี heartbeat</p>`}
+          ${server
+            ? detailList([
+                { label: "Server", value: stringField(server, "server_version") ?? "—" },
+                { label: "Java / OS", value: `${stringField(server, "java_version") ?? "—"} · ${stringField(server, "os_name") ?? "—"}` },
+                { label: "Java vendor", value: stringField(server, "java_vendor") ?? "—" },
+                { label: "Plugins", value: `${fmtInteger(numberField(server, "plugin_count"))} · PacketEvents ${stringField(server, "packet_events_version") ?? "?"}` },
+                { label: "Worlds", value: fmtInteger(numberField(server, "world_count")) },
+                { label: "Gateway / Protection", value: `${gatewayState ?? "—"} · ${protection ?? "—"}` },
+                { label: "License state", value: `${stringField(aegishider, "license_state") ?? "—"} · ${stringField(aegishider, "lease_source") ?? "—"}` },
+              ])
+            : html`<p class="muted" style="font-size:.8rem;line-height:1.7">Heartbeat นี้ยังไม่มีข้อมูล server health เชิงลึก — อัปเดตปลั๊กอินเป็น 4.0.3 ขึ้นไปเพื่อส่ง TPS/MSPT/CPU/Heap/Worlds/Entities และสถานะ protection</p>`}
         </div>
       </div>
     </div>
-    <div style="margin-top:1rem">
-      <h3 style="font-size:1rem;margin-bottom:.6rem">เหตุการณ์ล่าสุด</h3>
-      ${table(["เวลา", "ประเภท", "ระดับ"], events.map((event) => html`<tr>
-        <td class="muted">${formatWhen(event.occurred_at)}</td>
-        <td><code>${event.event_type}</code></td>
-        <td>${badge(event.severity)}</td>
-      </tr>`), "ยังไม่มีเหตุการณ์")}
+
+    ${server
+      ? html`<div class="grid-2" style="margin-top:1rem;align-items:start">
+          <div class="card">
+            <div class="card-head"><h3>ทรัพยากรเซิร์ฟเวอร์</h3></div>
+            <div class="card-body">
+              ${detailList([
+                { label: "Heap used / committed / max", value: `${fmtInteger(heapUsed, " MB")} / ${fmtInteger(numberField(server, "heap_committed_mb"), " MB")} / ${fmtInteger(heapMax, " MB")}` },
+                { label: "Process / System CPU", value: `${fmtNumber(cpu, 1, "%")} / ${fmtNumber(numberField(server, "system_cpu_load"), 1, "%")}` },
+                { label: "Load average / processors", value: `${fmtNumber(numberField(server, "system_load_average"), 2)} / ${fmtInteger(numberField(server, "available_processors"))}` },
+                { label: "Threads live / daemon / peak", value: `${fmtInteger(numberField(server, "threads_live"))} / ${fmtInteger(numberField(server, "threads_daemon"))} / ${fmtInteger(numberField(server, "threads_peak"))}` },
+                { label: "GC count / time", value: `${fmtInteger(numberField(server, "gc_count"))} · ${fmtInteger(numberField(server, "gc_time_ms"), " ms")}` },
+                { label: "Disk usable / total", value: `${fmtInteger(numberField(server, "disk_usable_mb"), " MB")} / ${fmtInteger(numberField(server, "disk_total_mb"), " MB")}` },
+                { label: "OS arch", value: stringField(server, "os_arch") ?? "—" },
+              ])}
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Aegishider health</h3></div>
+            <div class="card-body">
+              ${detailList([
+                { label: "Protection / gateway", value: `${protection ?? "—"} · ${gatewayState ?? "—"}` },
+                { label: "Block / item protection", value: `${boolField(aegishider, "block_protection") === true ? "ACTIVE" : "INACTIVE"} / ${boolField(aegishider, "item_protection") === true ? "ACTIVE" : "INACTIVE"}` },
+                { label: "Protected blocks / sensitive chunks", value: `${fmtInteger(numberField(aegishider, "protected_blocks"))} / ${fmtInteger(numberField(aegishider, "sensitive_chunks"))}` },
+                { label: "Tracked entities / revealed pairs", value: `${fmtInteger(numberField(aegishider, "tracked_entities"))} / ${fmtInteger(numberField(aegishider, "revealed_pairs"))}` },
+                { label: "Plugin tick p50 / p95 / p99", value: `${fmtInteger(numberField(aegishider, "plugin_tick_p50_us"), " µs")} / ${fmtInteger(numberField(aegishider, "plugin_tick_p95_us"), " µs")} / ${fmtInteger(numberField(aegishider, "plugin_tick_p99_us"), " µs")}` },
+                { label: "Tick overruns / errors", value: `${fmtInteger(numberField(aegishider, "tick_overruns"))} / ${fmtInteger(numberField(aegishider, "internal_errors"))}` },
+                { label: "Raycasts / deferred", value: `${fmtInteger(numberField(aegishider, "raycasts"))} / ${fmtInteger(numberField(aegishider, "ray_deferred"))}` },
+                { label: "Async queue / capacity", value: `${fmtInteger(numberField(aegishider, "async_queue"))} / ${fmtInteger(numberField(aegishider, "async_queue_capacity"))}` },
+                { label: "Sessions / config warnings", value: `${fmtInteger(numberField(aegishider, "online_sessions"))} / ${fmtInteger(numberField(aegishider, "config_warnings"))}` },
+              ])}
+            </div>
+          </div>
+        </div>` 
+      : raw("")}
+
+    ${worlds.length
+      ? html`<div class="card" style="margin-top:1rem">
+          <div class="card-head"><h3>โลกที่โหลดอยู่</h3><span class="mono" style="font-size:.55rem">${worlds.length} worlds</span></div>
+          <div class="card-body" style="padding:0">
+            ${table(["โลก", "Environment", "ผู้เล่น", "Chunks", "Entities"], worlds.map((world) => html`<tr>
+              <td><code>${stringField(world, "name") ?? "—"}</code></td>
+              <td class="muted">${stringField(world, "environment") ?? "—"}</td>
+              <td class="num">${fmtInteger(numberField(world, "players"))}</td>
+              <td class="num">${fmtInteger(numberField(world, "chunks"))}</td>
+              <td class="num">${fmtInteger(numberField(world, "entities"))}</td>
+            </tr>`), "ไม่มีข้อมูลโลก")}
+          </div>
+        </div>`
+      : raw("")}
+
+    ${recent.length
+      ? html`<div class="card" style="margin-top:1rem">
+          <div class="card-head"><h3>แนวโน้ม 5 นาที</h3><span class="mono" style="font-size:.55rem">${recent.length} buckets</span></div>
+          <div class="card-body grid-2">
+            ${miniChart("TPS เฉลี่ย", recent.map((row) => row.tps_avg ?? 0), labels, "var(--accent)", "จาก telemetry rollups")}
+            ${miniChart("ผู้เล่นออนไลน์", recent.map((row) => row.players_online ?? 0), labels, "#38bdf8", "aggregate")}
+            ${miniChart("Heap used (MB)", recent.map((row) => row.heap_used_mb ?? 0), labels, "#a78bfa", "process heap")}
+            ${miniChart("Process CPU (%)", recent.map((row) => row.process_cpu_load ?? 0), labels, "#f59e0b", "0–100")}
+          </div>
+        </div>`
+      : raw("")}
+
+    <div class="grid-2" style="margin-top:1rem;align-items:start">
+      <div class="card">
+        <div class="card-head"><h3>Heartbeat ล่าสุด</h3></div>
+        <div class="card-body">
+          ${payload
+            ? html`<details>
+                <summary class="muted" style="cursor:pointer;font-size:.78rem">แสดง JSON ทั้งหมด</summary>
+                <pre class="code-block" style="margin-top:.7rem">${JSON.stringify(payload, null, 2)}</pre>
+              </details>`
+            : html`<p class="muted" style="font-size:.82rem">ยังไม่มี heartbeat</p>`}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>เหตุการณ์ล่าสุด</h3></div>
+        <div class="card-body" style="padding:0">
+          ${table(["เวลา", "ประเภท", "ระดับ"], events.slice(0, 15).map((event) => html`<tr>
+            <td class="muted">${formatWhen(event.occurred_at)}</td>
+            <td><code>${event.event_type}</code></td>
+            <td>${badge(event.severity)}</td>
+          </tr>`), "ยังไม่มีเหตุการณ์")}
+        </div>
+      </div>
     </div>`;
 }
 

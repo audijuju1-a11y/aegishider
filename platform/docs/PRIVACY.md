@@ -10,8 +10,9 @@ Last updated: November 2026
 - Licensing: licence prefix (not full key), activations, installation UUID, public key, fingerprint, plugin and
   server versions, heartbeat timestamps, and HMAC-hashed client IPs used for rate limits and clone detection
   (no raw IP).
-- Telemetry: aggregate runtime metrics and bounded operational events. No player identifiers, chat, coordinates
-  or inventories.
+- Telemetry: aggregate runtime metrics and bounded operational events, plus aggregate server health (TPS/MSPT,
+  players online, per-world aggregate counts, heap/CPU/GC/threads/disk, JVM/OS, plugin/protection state).
+  No player identifiers, chat, coordinates, inventories or world seeds.
 - Support: ticket messages, contact form content, attachments not supported.
 - Audit: admin actions with actor, target, reason, request id and hashed IP.
 
@@ -31,6 +32,7 @@ consent where required (for example optional marketing email, which is not imple
 ## Retention
 
 - Raw telemetry: telemetry.retention_days (default 90), then deleted; rollups retained for trends.
+- Server-health rollups (aggregate TPS/players/heap/CPU/entities/chunks/worlds): retained with telemetry rollups.
 - Heartbeat hashed-IP history used for clone detection: 7 days.
 - Sessions: 14 days or until revoked; expired sessions cleaned hourly.
 - Login/email tokens and OTP records: 15 minutes to 1 day, then cleaned.

@@ -15,7 +15,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VERSION:-4.0.2}"
+VERSION="${VERSION:-4.0.3}"
 : "${JAVA21_HOME:?JAVA21_HOME is required}"
 : "${JAVA25_HOME:?JAVA25_HOME is required}"
 : "${MVN:?MVN is required}"

@@ -1,4 +1,4 @@
-# Aegishider 4.0.2
+# Aegishider 4.0.3
 
 Server-side **anti-ESP / anti-base-ESP / anti-storage-ESP** for **Paper 1.21.1 – 26.3**
 (Java 21; Paper 26.x runs on Java 25). Protected data is removed from outgoing packets
@@ -16,7 +16,7 @@ The licence is a separate product gate (see below).
 The shipped `platform.yml` uses `enforcement: enforce`. The plugin loads and exposes its
 commands, but **protection stays disabled until this server is activated on the platform**:
 
-1. Put the matching `Aegishider-4.0.2-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
+1. Put the matching `Aegishider-4.0.3-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
 2. Start the server. Protection is intentionally inactive.
 3. Run `/aegishider license link`; the server registers an Ed25519 installation identity
    and prints a 16-character activation code plus the portal URL.
@@ -103,7 +103,7 @@ without it the plugin still protects entities/items but block protection is repo
 Server-side gameplay is unchanged: pickups, merging, physics, despawn timers, containers
 and item stacks behave like vanilla. Hidden items can still be picked up.
 
-## Player-fair defaults (4.0.2)
+## Player-fair defaults (4.0.3)
 
 - **FOV is disabled (360°)** so F5 front view and fast turns never hide something that is
   visibly on screen.
@@ -139,6 +139,24 @@ Commands other than status/license/help are refused until protection is activate
 - Verified live on Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with PacketEvents
   2.14.0: before activation `protection=WAITING_FOR_LICENSE`, after activation
   `gateway=ACTIVE` and `protection=ACTIVE`.
+
+## Server health heartbeat (4.0.3)
+
+Every heartbeat now carries two optional, strictly bounded objects in addition to the
+existing metrics:
+
+- `server` — TPS (1/5/15 min), average MSPT, players/max, average ping, world summaries
+  (name, environment, players, loaded chunks, entities), heap used/committed/max, process
+  and system CPU, load average, processors, GC count/time, thread counts, uptime, disk
+  usable/total, server version, Java/OS, plugin count and PacketEvents version.
+- `aegishider` — protection/gateway/block/item state, tracked entities, protected blocks,
+  sensitive chunks, viewer sessions, plugin tick p50/p95/p99, overruns, raycasts/deferred,
+  async queue, internal errors, config revision, licence state and lease source/expiry.
+
+The values are aggregates from a main-thread sampler (30 s); no player names, UUIDs, IPs,
+chat or coordinates are sent. The admin server page renders a health dashboard with
+alerts (TPS/MSPT/heap/CPU/disk/gateway/licence) and 5-minute trend charts. Older plugin
+builds remain compatible; only the deep section is absent.
 
 ## Release protection layers
 
@@ -187,7 +205,7 @@ mvn -B -Pmc1211 -Dmaven.test.skip=true package
 # local hardened build: all six profiles + string encryption + ProGuard + SHA256SUMS
 JAVA21_HOME=... JAVA25_HOME=... MVN=... PROGUARD_JAR=... ASM_JAR=... \
   STRINGCRYPT_CLASSES=... bash ../scripts/harden-local.sh
-# artifacts: dist/obf/Aegishider-4.0.2-*.jar + dist/obf/SHA256SUMS
+# artifacts: dist/obf/Aegishider-4.0.3-*.jar + dist/obf/SHA256SUMS
 # or run the whole matrix + string encryption + ProGuard + manifests:
 cd ..
 SENTINEL_PY=/d/sentinel-shield/.venv/Scripts/python.exe bash scripts/release.sh
@@ -202,7 +220,7 @@ obfuscated; signed manifest sidecars only when using the Sentinel pipeline) and
 - 148 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
 - A–F packet harness PASS on Paper 1.21.4 (plain and ProGuard-obfuscated jar); the same
   harness detects A/C/D/E/F leaks in the legacy BaseHider 3.0.0 baseline.
-- 4.0.2 live verification: Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with
+- 4.0.3 live verification: Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with
   PacketEvents 2.14.0 and the obfuscated jars. Both start `protection=WAITING_FOR_LICENSE`,
   restore the cached signed lease after activation/restart, then report
   `gateway=ACTIVE` on `V_1_21_11` / `V_26_3` and `protection=ACTIVE`.

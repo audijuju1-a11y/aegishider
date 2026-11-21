@@ -313,7 +313,7 @@ export function productDetail(
           <div style="margin-top:1rem" class="card">
             <div class="card-head"><h3>เปิดใช้งานก่อนใช้งาน</h3></div>
             <div class="card-body">
-              <p class="muted" style="max-width:70ch">ไจาร์ 4.0.2 ถูก gate ด้วยไลเซนส์: protection จะเริ่มทำงานหลังยืนยันเซิร์ฟเวอร์บนเว็บนี้แล้วเท่านั้น (ฟรี 100%)</p>
+              <p class="muted" style="max-width:70ch">ไจาร์ 4.0.3 ถูก gate ด้วยไลเซนส์: protection จะเริ่มทำงานหลังยืนยันเซิร์ฟเวอร์บนเว็บนี้แล้วเท่านั้น (ฟรี 100%)</p>
               <ol style="margin:.8rem 0 0;padding-left:1.2rem;display:grid;gap:.45rem;font-size:.82rem;color:var(--text-2)">
                 <li>วางไจาร์และ <code>PacketEvents</code> ใน <code>plugins/</code> แล้วรีสตาร์ท</li>
                 <li>รัน <code>/aegishider license link</code> — จะได้รหัส 16 ตัวและ URL</li>
@@ -330,7 +330,7 @@ export function productDetail(
             <div class="card" style="margin-top:1rem">
               <div class="card-body">
                 <table class="evidence-table">
-                  <thead><tr><th>สถานการณ์</th><th>BaseHider 3.0.0</th><th>Aegishider 4.0.2</th></tr></thead>
+                  <thead><tr><th>สถานการณ์</th><th>BaseHider 3.0.0</th><th>Aegishider 4.0.3</th></tr></thead>
                   <tbody>
                     <tr><th>A · ไอเท็มไกลหลังกำแพง</th><td class="bad">LEAK · 1 spawn/client</td><td class="good">HIDDEN · 0 spawn</td></tr>
                     <tr><th>B · ไอเท็มใกล้ 3 บล็อก</th><td class="good">VISIBLE</td><td class="good">VISIBLE · 12–35 ms</td></tr>

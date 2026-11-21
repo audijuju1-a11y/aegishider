@@ -345,6 +345,126 @@ describe("licensing and signed requests", () => {
     expect(response.status).toBe(202);
   });
 
+  it("stores deep server health and renders it on the admin server page", async () => {
+    await seedProduct();
+    const user = await seedUser({ email: "health@example.com" });
+    const licenseId = await issueLicenseFor(user);
+    const installation = await seedInstallation({ user, licenseId });
+    const admin = await seedUser({ email: "health-admin@example.com", role: "super_admin" });
+    const adminCookie = await sessionCookie(admin.id);
+    const body = JSON.stringify({
+      schema_version: 1,
+      plugin_version: "4.0.3",
+      minecraft_version: "1.21.11",
+      platform: "Paper",
+      java_version: "21.0.13.1",
+      enabled_modules: ["block-protection", "item-protection"],
+      metrics: { tps: 19.98, players_online: 3, errors: 0 },
+      server: {
+        tps_1m: 19.98,
+        tps_5m: 19.99,
+        tps_15m: 20,
+        mspt_avg: 12.5,
+        players_online: 3,
+        max_players: 50,
+        avg_ping_ms: 42.5,
+        world_count: 1,
+        chunk_count: 1024,
+        entity_count: 500,
+        worlds: [{ name: "world", environment: "NORMAL", players: 3, chunks: 1024, entities: 500 }],
+        heap_used_mb: 512,
+        heap_committed_mb: 1024,
+        heap_max_mb: 2048,
+        process_cpu_load: 23.5,
+        system_cpu_load: 31.2,
+        system_load_average: 1.4,
+        available_processors: 8,
+        gc_count: 12,
+        gc_time_ms: 345,
+        threads_live: 80,
+        threads_daemon: 20,
+        threads_peak: 90,
+        uptime_seconds: 3600,
+        disk_usable_mb: 10_000,
+        disk_total_mb: 50_000,
+        server_version: "Paper 1.21.11",
+        java_version: "21.0.13.1",
+        java_vendor: "Corretto",
+        os_name: "Linux",
+        os_arch: "amd64",
+        plugin_count: 12,
+        packet_events_version: "2.14.0",
+      },
+      aegishider: {
+        protection: "ACTIVE",
+        license_gated: true,
+        gateway_state: "ACTIVE",
+        gateway_detail: "PacketEvents 2.14.0 active",
+        block_protection: true,
+        item_protection: true,
+        tracked_entities: 42,
+        revealed_pairs: 7,
+        protected_blocks: 1234,
+        sensitive_chunks: 88,
+        online_sessions: 3,
+        plugin_tick_p50_us: 120,
+        plugin_tick_p95_us: 240,
+        plugin_tick_p99_us: 310,
+        tick_overruns: 1,
+        raycasts: 10000,
+        ray_deferred: 12,
+        async_queue: 2,
+        async_queue_capacity: 64,
+        async_threads: 4,
+        async_rejections: 0,
+        internal_errors: 0,
+        config_warnings: 0,
+        config_revision: 3,
+        license_state: "ACTIVE",
+        lease_source: "live",
+        lease_expires_at: 1795279999,
+      },
+      occurred_at: Math.floor(Date.now() / 1000),
+    });
+    const response = await signedPost("/api/v1/installations/heartbeat", body, installation, "x-ag");
+    expect(response.status).toBe(202);
+    const heartbeatPayload = (await response.json()) as { data: { event_id: string; received_at: number } };
+    await processTelemetryMessage(env, {
+      kind: "heartbeat",
+      id: heartbeatPayload.data.event_id,
+      installationId: installation.installationId,
+      receivedAt: heartbeatPayload.data.received_at,
+    });
+    const latest = await env.DB.prepare(
+      `SELECT payload FROM heartbeat_latest WHERE installation_id = ?`,
+    ).bind(installation.installationId).first<{ payload: string }>();
+    expect(latest?.payload).toContain("\"tps_1m\":19.98");
+    expect(latest?.payload).toContain("\"worlds\"");
+    expect(latest?.payload).toContain("\"gateway_state\":\"ACTIVE\"");
+    const rollup = await env.DB.prepare(
+      `SELECT players_online, heap_used_mb, process_cpu_load, world_count
+         FROM telemetry_rollups WHERE installation_id = ?`,
+    ).bind(installation.installationId).first<{
+      players_online: number | null;
+      heap_used_mb: number | null;
+      process_cpu_load: number | null;
+      world_count: number | null;
+    }>();
+    expect(rollup?.players_online).toBe(3);
+    expect(rollup?.heap_used_mb).toBe(512);
+    expect(rollup?.process_cpu_load).toBe(23.5);
+    expect(rollup?.world_count).toBe(1);
+
+    const page = await request(`/admin/servers/${installation.installationId}`, {
+      headers: { cookie: adminCookie },
+    });
+    expect(page.status).toBe(200);
+    const htmlText = await page.text();
+    expect(htmlText).toContain("TPS 1m");
+    expect(htmlText).toContain("Aegishider health");
+    expect(htmlText).toContain("world");
+  });
+
   it("accepts the Aegishider x-ag signed header set", async () => {
     await seedProduct();
     const user = await seedUser({ email: "ag-headers@example.com" });

@@ -386,6 +386,18 @@ public final class PlatformService {
                     ? "" : currentIntegrity.actualSha256());
             payload.put("build_target", BuildInfo.target());
             payload.put("occurred_at", CanonicalRequest.nowSeconds());
+            ServerHealthSampler sampler = plugin.serverHealth();
+            if (sampler != null) {
+                Map<String, Object> health = sampler.snapshot();
+                Object server = health.get("server");
+                Object aegishider = health.get("aegishider");
+                if (server != null) {
+                    payload.put("server", server);
+                }
+                if (aegishider != null) {
+                    payload.put("aegishider", aegishider);
+                }
+            }
             client().heartbeat(payload);
             lastHeartbeatAt = CanonicalRequest.nowSeconds();
         } catch (Throwable throwable) {
@@ -595,6 +607,14 @@ public final class PlatformService {
 
     public String state() {
         return state;
+    }
+
+    public String leaseSource() {
+        return leaseSource;
+    }
+
+    public long leaseExpiresAt() {
+        return leaseExpiresAt;
     }
 
     public LeaseVerifier.Lease lease() {

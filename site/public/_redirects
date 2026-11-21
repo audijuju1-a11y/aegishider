@@ -15,7 +15,7 @@
 /status       https://basehider-platform.audijuju1.workers.dev/status       301
 /pricing      https://basehider-platform.audijuju1.workers.dev/pricing      301
 /changelog    https://basehider-platform.audijuju1.workers.dev/changelog    301
-/jar          https://basehider-platform.audijuju1.workers.dev/release/rel_ag_402_mc12111/download 301
-/latest.jar   https://basehider-platform.audijuju1.workers.dev/release/rel_ag_402_mc12111/download 301
+/jar          https://basehider-platform.audijuju1.workers.dev/release/rel_ag_403_mc12111/download 301
+/latest.jar   https://basehider-platform.audijuju1.workers.dev/release/rel_ag_403_mc12111/download 301
 /download     https://basehider-platform.audijuju1.workers.dev/plugins/aegishider 301
 /download/    https://basehider-platform.audijuju1.workers.dev/plugins/aegishider 301

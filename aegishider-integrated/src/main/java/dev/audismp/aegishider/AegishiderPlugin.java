@@ -32,6 +32,7 @@ import dev.audismp.aegishider.player.PlayerShield;
 import dev.audismp.aegishider.tunnel.TunnelShield;
 import dev.audismp.aegishider.packet.PacketGatewayFactory;
 import dev.audismp.aegishider.platform.PlatformService;
+import dev.audismp.aegishider.platform.ServerHealthSampler;
 import dev.audismp.aegishider.util.BlockPosUtil;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -95,6 +96,7 @@ public final class AegishiderPlugin extends JavaPlugin {
     private GatewayWatchdog gatewayWatchdog;
     private DiagnosticsExporter diagnosticsExporter;
     private PlatformService platformService;
+    private ServerHealthSampler serverHealth;
 
     private final List<Listener> registeredListeners = new ArrayList<>(8);
     private volatile boolean blockProtectionActive;
@@ -157,6 +159,9 @@ public final class AegishiderPlugin extends JavaPlugin {
                 getLogger().log(Level.WARNING,
                         "Platform licensing client disabled: " + throwable.getMessage(), throwable);
             }
+
+            serverHealth = new ServerHealthSampler(this);
+            serverHealth.start();
 
             if (platformService == null) {
                 // Fail closed: never run unlimited protection when the licence client
@@ -300,6 +305,9 @@ public final class AegishiderPlugin extends JavaPlugin {
     public void onDisable() {
         if (platformService != null) {
             platformService.stop();
+        }
+        if (serverHealth != null) {
+            serverHealth.stop();
         }
         try {
             if (getServer().getScheduler() != null) {
@@ -932,6 +940,7 @@ public final class AegishiderPlugin extends JavaPlugin {
     public long configRevision() { return configRevision; }
     public BoundedTaskExecutor asyncPool() { return asyncPool; }
     public PlatformService platformService() { return platformService; }
+    public ServerHealthSampler serverHealth() { return serverHealth; }
 
     public GatewayWatchdog gatewayWatchdog() { return gatewayWatchdog; }
 

@@ -45,7 +45,7 @@ build() {
     (cd "$ROOT/aegishider-integrated" && \
         JAVA_HOME="$home" PATH="$home/bin:$ROOT/.tools/apache-maven-3.9.9/bin:$PATH" \
         "$MVN" -B -o -P"$profile" -Dmaven.test.skip=true clean package)
-    cp "$ROOT/aegishider-integrated/target/Aegishider-4.0.2-$suffix.jar" "$ROOT/dist/plain/"
+    cp "$ROOT/aegishider-integrated/target/Aegishider-4.0.3-$suffix.jar" "$ROOT/dist/plain/"
 }
 
 paper_api_jar() {
@@ -58,12 +58,12 @@ obfuscate() {
     local suffix="$1" paper_api="$2"
     echo "== string-encrypt $suffix =="
     "$JDK21/bin/java" -cp "$ASM_WIN;$STRINGCRYPT_WIN" StringEncryptor \
-        "$(cygpath -m "$ROOT/dist/plain/Aegishider-4.0.2-$suffix.jar")" \
-        "$(cygpath -m "$ROOT/dist/pre/Aegishider-4.0.2-$suffix.jar")"
+        "$(cygpath -m "$ROOT/dist/plain/Aegishider-4.0.3-$suffix.jar")" \
+        "$(cygpath -m "$ROOT/dist/pre/Aegishider-4.0.3-$suffix.jar")"
     echo "== obfuscate $suffix =="
     "$SENTINEL_PY" -m sentinel_shield.cli jar obfuscate \
-        "$ROOT/dist/pre/Aegishider-4.0.2-$suffix.jar" \
-        --out "$ROOT/dist/obf/Aegishider-4.0.2-$suffix.jar" \
+        "$ROOT/dist/pre/Aegishider-4.0.3-$suffix.jar" \
+        --out "$ROOT/dist/obf/Aegishider-4.0.3-$suffix.jar" \
         --profile balanced \
         --proguard "$PROGUARD" \
         --jdk-home "$JDK21" \

@@ -19,8 +19,8 @@ It ships as six separate builds so each Paper line gets a matching jar:
 - Pages mirror of the platform homepage: **https://aegishider.pages.dev/**
 - Product page: **https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider**
 
-The 4.0.2 jars are hardened with ProGuard 7.10 and string-constant encryption and are
-listed in [`docs/releases/Aegishider-4.0.2-SHA256SUMS`](docs/releases/Aegishider-4.0.2-SHA256SUMS); the platform also stores the
+The 4.0.3 jars are hardened with ProGuard 7.10 and string-constant encryption and are
+listed in [`docs/releases/Aegishider-4.0.3-SHA256SUMS`](docs/releases/Aegishider-4.0.3-SHA256SUMS); the platform also stores the
 SHA-256 on every published release record. The signed Sentinel pipeline can add Ed25519
 per-entry manifests when the release key is available; the current local build is
 SHA-256-verified only. Verify the SHA-256 before installing.

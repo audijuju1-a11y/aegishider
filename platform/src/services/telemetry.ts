@@ -12,6 +12,91 @@ import { recordSecurityEventOnce, setSetting } from "./audit";
 
 const shortText = z.string().trim().min(1).max(32);
 
+const finiteNumber = (min: number, max: number) =>
+  z.number().min(min).max(max).refine(Number.isFinite, "must be finite");
+const optFloat = (min: number, max: number) => finiteNumber(min, max).optional();
+const optInt = (min: number, max: number) => z.number().int().min(min).max(max).optional();
+
+const serverWorldSchema = z
+  .object({
+    name: z.string().trim().min(1).max(64),
+    environment: z.string().trim().max(32).optional(),
+    players: optInt(0, 100_000),
+    chunks: optInt(0, 10_000_000),
+    entities: optInt(0, 10_000_000),
+  })
+  .strict();
+
+export const serverHealthSchema = z
+  .object({
+    tps_1m: optFloat(0, 100),
+    tps_5m: optFloat(0, 100),
+    tps_15m: optFloat(0, 100),
+    mspt_avg: optFloat(0, 10_000),
+    players_online: optInt(0, 100_000),
+    max_players: optInt(0, 100_000),
+    avg_ping_ms: optFloat(0, 100_000),
+    world_count: optInt(0, 1_000),
+    chunk_count: optInt(0, 10_000_000),
+    entity_count: optInt(0, 10_000_000),
+    worlds: z.array(serverWorldSchema).max(32).optional(),
+    heap_used_mb: optInt(0, 1_000_000_000),
+    heap_committed_mb: optInt(0, 1_000_000_000),
+    heap_max_mb: optInt(0, 1_000_000_000),
+    process_cpu_load: optFloat(0, 100),
+    system_cpu_load: optFloat(0, 100),
+    system_load_average: optFloat(0, 10_000),
+    available_processors: optInt(1, 1_024),
+    gc_count: optInt(0, 1_000_000_000_000),
+    gc_time_ms: optInt(0, 1_000_000_000_000),
+    threads_live: optInt(0, 100_000),
+    threads_daemon: optInt(0, 100_000),
+    threads_peak: optInt(0, 100_000),
+    uptime_seconds: optInt(0, 1_000_000_000_000),
+    disk_usable_mb: optInt(0, Number.MAX_SAFE_INTEGER),
+    disk_total_mb: optInt(0, Number.MAX_SAFE_INTEGER),
+    server_version: z.string().trim().max(160).optional(),
+    java_version: z.string().trim().max(80).optional(),
+    java_vendor: z.string().trim().max(80).optional(),
+    os_name: z.string().trim().max(80).optional(),
+    os_arch: z.string().trim().max(40).optional(),
+    plugin_count: optInt(0, 1_000),
+    packet_events_version: z.string().trim().max(40).optional(),
+  })
+  .strict();
+
+export const aegishiderHealthSchema = z
+  .object({
+    protection: z.string().trim().max(32).optional(),
+    license_gated: z.boolean().optional(),
+    gateway_state: z.string().trim().max(32).optional(),
+    gateway_detail: z.string().trim().max(160).optional(),
+    block_protection: z.boolean().optional(),
+    item_protection: z.boolean().optional(),
+    tracked_entities: optInt(0, 100_000_000),
+    revealed_pairs: optInt(0, 100_000_000),
+    protected_blocks: optInt(0, 100_000_000),
+    sensitive_chunks: optInt(0, 100_000_000),
+    online_sessions: optInt(0, 100_000),
+    plugin_tick_p50_us: optInt(0, 1_000_000_000),
+    plugin_tick_p95_us: optInt(0, 1_000_000_000),
+    plugin_tick_p99_us: optInt(0, 1_000_000_000),
+    tick_overruns: optInt(0, 1_000_000_000_000),
+    raycasts: optInt(0, 1_000_000_000_000),
+    ray_deferred: optInt(0, 1_000_000_000_000),
+    async_queue: optInt(0, 100_000),
+    async_queue_capacity: optInt(0, 100_000),
+    async_threads: optInt(0, 1_000),
+    async_rejections: optInt(0, 1_000_000_000_000),
+    internal_errors: optInt(0, 1_000_000_000_000),
+    config_warnings: optInt(0, 1_000_000_000_000),
+    config_revision: optInt(0, 1_000_000_000),
+    license_state: z.string().trim().max(32).optional(),
+    lease_source: z.string().trim().max(32).optional(),
+    lease_expires_at: optInt(0, 1_000_000_000_000),
+  })
+  .strict();
+
 export const heartbeatSchema = z
   .object({
     schema_version: z.literal(1),
@@ -37,6 +122,9 @@ export const heartbeatSchema = z
         players_online: z.number().int().min(0).max(100_000).optional(),
       })
       .strict(),
+    // Deep server health is optional so older plugin builds keep working.
+    server: serverHealthSchema.optional(),
+    aegishider: aegishiderHealthSchema.optional(),
     occurred_at: z.number().int().positive().optional(),
   })
   .strict();
@@ -347,11 +435,14 @@ export async function processTelemetryMessage(env: Env, message: TelemetryQueueM
     try {
       const payload = JSON.parse(event.payload) as HeartbeatPayload;
       const bucket = startOfBucket(event.occurred_at, 5 * MINUTE);
+      const health = payload.server;
       await run(
         env.DB,
         `INSERT INTO telemetry_rollups
-          (installation_id, bucket_start, samples, tps_avg, mspt_p50, mspt_p95, mspt_p99, plugin_ms_avg, errors, payload, updated_at)
-         VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
+          (installation_id, bucket_start, samples, tps_avg, mspt_p50, mspt_p95, mspt_p99,
+           plugin_ms_avg, errors, players_online, avg_ping_ms, heap_used_mb, heap_max_mb,
+           process_cpu_load, entity_count, chunk_count, world_count, payload, updated_at)
+         VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(installation_id, bucket_start) DO UPDATE SET
            samples = samples + 1,
            tps_avg = ((COALESCE(tps_avg, 0) * samples) + COALESCE(excluded.tps_avg, 0)) / (samples + 1),
@@ -360,6 +451,14 @@ export async function processTelemetryMessage(env: Env, message: TelemetryQueueM
            mspt_p99 = COALESCE(excluded.mspt_p99, mspt_p99),
            plugin_ms_avg = COALESCE(excluded.plugin_ms_avg, plugin_ms_avg),
            errors = errors + excluded.errors,
+           players_online = COALESCE(excluded.players_online, players_online),
+           avg_ping_ms = COALESCE(excluded.avg_ping_ms, avg_ping_ms),
+           heap_used_mb = COALESCE(excluded.heap_used_mb, heap_used_mb),
+           heap_max_mb = COALESCE(excluded.heap_max_mb, heap_max_mb),
+           process_cpu_load = COALESCE(excluded.process_cpu_load, process_cpu_load),
+           entity_count = COALESCE(excluded.entity_count, entity_count),
+           chunk_count = COALESCE(excluded.chunk_count, chunk_count),
+           world_count = COALESCE(excluded.world_count, world_count),
            updated_at = excluded.updated_at`,
         event.installation_id,
         bucket,
@@ -369,6 +468,14 @@ export async function processTelemetryMessage(env: Env, message: TelemetryQueueM
         payload.metrics.mspt_p99 ?? null,
         payload.metrics.plugin_ms_avg ?? null,
         payload.metrics.errors ?? 0,
+        health?.players_online ?? null,
+        health?.avg_ping_ms ?? null,
+        health?.heap_used_mb ?? null,
+        health?.heap_max_mb ?? null,
+        health?.process_cpu_load ?? null,
+        health?.entity_count ?? null,
+        health?.chunk_count ?? null,
+        health?.world_count ?? null,
         JSON.stringify({ sample_tps: payload.metrics.tps }),
         now(),
       );
@@ -453,14 +560,32 @@ export async function getLatestHeartbeat(
   );
 }
 
+export interface RollupRow {
+  bucket_start: number;
+  samples: number;
+  tps_avg: number | null;
+  mspt_p95: number | null;
+  errors: number;
+  players_online: number | null;
+  avg_ping_ms: number | null;
+  heap_used_mb: number | null;
+  heap_max_mb: number | null;
+  process_cpu_load: number | null;
+  entity_count: number | null;
+  chunk_count: number | null;
+  world_count: number | null;
+}
+
 export async function listRollups(
   env: Env,
   installationId: string,
   limit = 48,
-): Promise<Array<{ bucket_start: number; samples: number; tps_avg: number | null; mspt_p95: number | null; errors: number }>> {
+): Promise<RollupRow[]> {
   return all(
     env.DB,
-    `SELECT bucket_start, samples, tps_avg, mspt_p95, errors FROM telemetry_rollups
+    `SELECT bucket_start, samples, tps_avg, mspt_p95, errors, players_online, avg_ping_ms,
+            heap_used_mb, heap_max_mb, process_cpu_load, entity_count, chunk_count, world_count
+       FROM telemetry_rollups
       WHERE installation_id = ? ORDER BY bucket_start DESC LIMIT ?`,
     installationId,
     limit,

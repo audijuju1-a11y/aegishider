@@ -52,7 +52,7 @@ import {
   listTicketsAdmin,
   setTicketStatus,
 } from "../services/support";
-import { getLatestHeartbeat, listInstallationEvents, telemetryHealth } from "../services/telemetry";
+import { getLatestHeartbeat, listInstallationEvents, listRollups, telemetryHealth } from "../services/telemetry";
 import { deadLetterSummary, listDeadLetters, resolveDeadLetter } from "../services/dlq";
 import { listAlertStates } from "../services/observability";
 import { recordAudit, setSetting } from "../services/audit";
@@ -645,16 +645,17 @@ adminRoutes.get("/servers/:id", async (c) => {
   guard(c, "servers.read");
   const installation = await getAdminInstallation(c.env, c.req.param("id"));
   if (!installation) return notFoundPage(c, "ไม่พบเซิร์ฟเวอร์", "installation นี้อาจถูกลบ");
-  const [heartbeat, events] = await Promise.all([
+  const [heartbeat, events, rollups] = await Promise.all([
     getLatestHeartbeat(c.env, installation.id),
     listInstallationEvents(c.env, installation.id, { limit: 30 }),
+    listRollups(c.env, installation.id, 48),
   ]);
   return appPage(c, {
     title: installation.display_name ?? installation.installation_uuid.slice(0, 8),
     subtitle: installation.product_name,
     active: "/admin/servers",
     admin: true,
-    body: adminServerDetailPage(installation, heartbeat, events),
+    body: adminServerDetailPage(installation, heartbeat, events, rollups),
   });
 });
 

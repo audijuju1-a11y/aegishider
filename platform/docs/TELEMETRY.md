@@ -7,6 +7,14 @@ Heartbeats (default every 3 minutes, jittered):
 - plugin, Minecraft, platform and Java versions;
 - enabled module names;
 - aggregate TPS, MSPT p50/p95/p99, plugin processing time, error counter, players online;
+- **server health (4.0.3+)**: TPS 1/5/15, average MSPT, players/max, average ping, per-world
+  name/environment/players/loaded chunks/entities, heap used/committed/max, process/system
+  CPU, load average, processors, GC count/time, thread counts, uptime, disk usable/total,
+  server version, Java/OS, plugin count and PacketEvents version;
+- **Aegishider health (4.0.3+)**: protection/gateway states, block/item protection, tracked
+  entities, protected blocks, sensitive chunks, viewer sessions, plugin tick percentiles,
+  overruns, raycasts/deferred, async queue, internal errors, config revision, licence state
+  and lease source/expiry;
 - schema version and occurred_at.
 
 Events (batched, at most 50 per request):
@@ -18,7 +26,8 @@ Events (batched, at most 50 per request):
 
 - Player names, UUIDs, raw IP addresses or inventories. Hashed IPs are kept separately for
   licence rate limits and clone detection; they are never part of the heartbeat payload.
-- Chat, coordinates, world seeds or base locations.
+- Chat, coordinates, world seeds or base locations. Server health includes aggregate world
+  names/counts only; no block coordinates or seeds.
 - Configuration files, stack traces containing PII, or arbitrary binary data.
 - Any data from servers that are not activated.
 

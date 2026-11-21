@@ -108,7 +108,7 @@ email+password and admin access uses the same session with a staff role.
 
 ```bash
 pnpm typecheck          # strict TypeScript, no errors
-pnpm test               # 32 tests: crypto, auth, licensing, tenancy, admin, telemetry, free licence issuance
+pnpm test               # 34 tests: crypto, auth, licensing, tenancy, admin, telemetry, free licence issuance
 node scripts/e2e-license.mjs
 
 # plugin client (Java 21 / Maven)
