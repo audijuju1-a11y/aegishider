@@ -1,0 +1,59 @@
+{
+  "label": "baseline-idle",
+  "items": 0,
+  "startedAt": "2026-11-14T05:06:25.898Z",
+  "botPosition": {
+    "x": -3.5,
+    "y": -60,
+    "z": 7.5,
+    "yaw": 0,
+    "pitch": 0
+  },
+  "pluginPresent": false,
+  "idle": {
+    "mspt1": {
+      "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 3.1/1.5/6.4, 3.4/1.2/7.2, 4.3/0.3/318.7",
+      "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+      "samples": [
+        {
+          "avg": 3.1,
+          "min": 1.5,
+          "max": 6.4
+        },
+        {
+          "avg": 3.4,
+          "min": 1.2,
+          "max": 7.2
+        },
+        {
+          "avg": 4.3,
+          "min": 0.3,
+          "max": 318.7
+        }
+      ]
+    },
+    "mspt2": {
+      "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 3.1/1.5/6.4, 3.4/1.2/7.2, 4.3/0.3/318.7",
+      "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+      "samples": [
+        {
+          "avg": 3.1,
+          "min": 1.5,
+          "max": 6.4
+        },
+        {
+          "avg": 3.4,
+          "min": 1.2,
+          "max": 7.2
+        },
+        {
+          "avg": 4.3,
+          "min": 0.3,
+          "max": 318.7
+        }
+      ]
+    },
+    "diag": null
+  },
+  "finishedAt": "2026-11-14T05:06:46.161Z"
+}

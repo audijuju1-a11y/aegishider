@@ -1,0 +1,2916 @@
+{
+  "harness": "load-bench.js",
+  "harnessVersion": "1.0.0",
+  "label": "smoke10-200",
+  "argv": [
+    "--bots",
+    "10",
+    "--items",
+    "200",
+    "--label",
+    "smoke10-200"
+  ],
+  "runAt": "2026-11-14T05:36:26.741Z",
+  "env": {
+    "hostname": "Audi",
+    "platform": "win32",
+    "release": "10.0.26300",
+    "cpuModel": "Intel(R) Core(TM) i3-10105F CPU @ 3.70GHz",
+    "cpuCores": 8,
+    "totalMemoryMB": 16233.887,
+    "freeMemoryMBAtStart": 8235.664,
+    "node": "v24.21.0",
+    "nodeExec": "C:\\Users\\audim_r0h5i\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\node\\bin\\node.exe",
+    "java": "C:/Users/audim_r0h5i/.jdks/jdk-21.0.13+9/bin/java.exe",
+    "javaVersion": "openjdk version \"21.0.13\" 2026-10-20 LTS\r\nOpenJDK Runtime Environment Temurin-21.0.13+9 (build 21.0.13+9-LTS)\r\nOpenJDK 64-Bit Server VM Temurin-21.0.13+9 (build 21.0.13+9-LTS, mixed mode, sharing)",
+    "pid": 18304
+  },
+  "params": {
+    "bots": 10,
+    "items": 200,
+    "soakSeconds": 0,
+    "serverPort": 25601,
+    "rconPort": 25600,
+    "staggerMs": 75,
+    "joinTimeoutMs": 180000,
+    "warmupMs": 5000,
+    "sampleCount": 6,
+    "sampleIntervalMs": 10000,
+    "churnIntervalMs": 20000,
+    "workers": "auto",
+    "xms": "1G",
+    "xmx": "2G",
+    "paperHeapProbe": false
+  },
+  "paths": {
+    "result": "D:\\Aegishider\\bench\\load-smoke10-200.json",
+    "serverLog": "D:\\Aegishider\\bench\\load-server-smoke10-200.log",
+    "consoleLog": "D:\\Aegishider\\bench\\load-console-smoke10-200.log"
+  },
+  "status": "ok",
+  "join": {
+    "reached": true,
+    "target": 10,
+    "spawned": 10,
+    "waitedMs": 3663,
+    "timedOut": false
+  },
+  "datapack": {
+    "generatedAt": "2026-11-14T05:36:27.480Z",
+    "serverDir": "D:\\Aegishider\\bench\\load-server",
+    "worldDir": "D:\\Aegishider\\bench\\load-server\\world",
+    "datapackDir": "D:\\Aegishider\\bench\\load-server\\world\\datapacks\\bhload",
+    "datapackName": "bhload",
+    "packFormat": 57,
+    "functionId": "bhload:summon_items",
+    "packMcmetaPath": "D:\\Aegishider\\bench\\load-server\\world\\datapacks\\bhload\\pack.mcmeta",
+    "functionPath": "D:\\Aegishider\\bench\\load-server\\world\\datapacks\\bhload\\data\\bhload\\function\\summon_items.mcfunction",
+    "commandCount": 200,
+    "layout": {
+      "cols": 15,
+      "rows": 14,
+      "layers": 1,
+      "perLayer": 200,
+      "spacing": 1.5,
+      "layerYStep": 0,
+      "spanX": 21,
+      "spanZ": 19.5,
+      "xMin": -10,
+      "xMax": 11,
+      "zMin": -9.25,
+      "zMax": 10.25,
+      "yMin": -59,
+      "yMax": -59,
+      "maxDistanceFromCenter": 14.329,
+      "baseY": -59,
+      "centerX": 0.5,
+      "centerZ": 0.5
+    },
+    "sampleCommands": [
+      "summon minecraft:item -10 -59 -9.25 {NoGravity:1b,PickupDelay:32767s,Age:-32768s,Item:{id:\"minecraft:diamond\",count:1}}",
+      "summon minecraft:item 5 -59 -0.25 {NoGravity:1b,PickupDelay:32767s,Age:-32768s,Item:{id:\"minecraft:diamond\",count:1}}",
+      "summon minecraft:item -4 -59 10.25 {NoGravity:1b,PickupDelay:32767s,Age:-32768s,Item:{id:\"minecraft:diamond\",count:1}}"
+    ]
+  },
+  "itemsVerification": {
+    "functionId": "bhload:summon_items",
+    "commands": {
+      "datapackList": {
+        "ok": true,
+        "command": "datapack list",
+        "raw": "There are 4 data pack(s) enabled: [vanilla (built-in)], [file/bhload (world)], [file/bukkit (world)], [paper (built-in)]There are no more data packs available",
+        "latencyMs": 149
+      },
+      "executeIfSay": {
+        "ok": true,
+        "command": "execute if entity @e[type=minecraft:item,limit=1] run say ITEM_OK",
+        "raw": "",
+        "latencyMs": 148
+      },
+      "executeIf": {
+        "ok": true,
+        "command": "execute if entity @e[type=minecraft:item]",
+        "raw": "Test passed, count: 200",
+        "latencyMs": 124
+      }
+    },
+    "datapackEnabled": true,
+    "summon": {
+      "ok": true,
+      "command": "function bhload:summon_items",
+      "raw": "Running function bhload:summon_items",
+      "latencyMs": 214
+    },
+    "summonDurationMs": 217,
+    "summonAccepted": true,
+    "itemOk": true,
+    "entityCountFromExecuteIf": 200,
+    "expectedItems": 200,
+    "note": "entity count verified by /aegishider diag trackedItems after bots connect; /execute if entity proves existence"
+  },
+  "bots": {
+    "requested": 10,
+    "spawned": 10,
+    "spawnedPct": 100,
+    "joinLatencyMs": {
+      "count": 10,
+      "min": 1210,
+      "median": 1436.5,
+      "p95": 1493.45,
+      "max": 1520,
+      "avg": 1367.9
+    },
+    "failures": [],
+    "failureCount": 0,
+    "workers": [
+      {
+        "worker": 1,
+        "bots": 10,
+        "spawned": 10,
+        "failed": 0,
+        "exitCode": null,
+        "exitAt": null,
+        "fatal": null,
+        "unparsedLines": 0,
+        "stderrTail": []
+      }
+    ],
+    "final": {
+      "ok": true,
+      "aggregate": {
+        "workers": 1,
+        "workersResponded": 1,
+        "bots": 10,
+        "spawned": 10,
+        "alive": 10,
+        "failed": 0,
+        "totalPackets": 18149,
+        "totalBytes": 9645087
+      },
+      "workers": [
+        {
+          "worker": 1,
+          "workerBots": 10,
+          "spawned": 10,
+          "alive": 10,
+          "failed": 0,
+          "totalPackets": 18149,
+          "totalBytes": 9645087
+        }
+      ]
+    },
+    "perBot": [
+      {
+        "i": 1,
+        "u": "LoadBot1",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          9.5,
+          -60,
+          -7.5
+        ],
+        "pk": 1762,
+        "kb": 965545,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 79,
+        "aliveMs": 55434,
+        "spawnMs": 1520,
+        "kick": null
+      },
+      {
+        "i": 2,
+        "u": "LoadBot2",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          10.5,
+          -60,
+          -3.5
+        ],
+        "pk": 1790,
+        "kb": 965655,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54932,
+        "spawnMs": 1434,
+        "kick": null
+      },
+      {
+        "i": 3,
+        "u": "LoadBot3",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          8.5,
+          -60,
+          10.5
+        ],
+        "pk": 1844,
+        "kb": 965933,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54743,
+        "spawnMs": 1254,
+        "kick": null
+      },
+      {
+        "i": 4,
+        "u": "LoadBot4",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          9.5,
+          -60,
+          1.5
+        ],
+        "pk": 1839,
+        "kb": 965485,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54673,
+        "spawnMs": 1218,
+        "kick": null
+      },
+      {
+        "i": 5,
+        "u": "LoadBot5",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          -0.5,
+          -60,
+          10.5
+        ],
+        "pk": 1835,
+        "kb": 965075,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54619,
+        "spawnMs": 1210,
+        "kick": null
+      },
+      {
+        "i": 6,
+        "u": "LoadBot6",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          -2.5,
+          -60,
+          5.5
+        ],
+        "pk": 1833,
+        "kb": 964781,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54568,
+        "spawnMs": 1222,
+        "kick": null
+      },
+      {
+        "i": 7,
+        "u": "LoadBot7",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          6.5,
+          -60,
+          7.5
+        ],
+        "pk": 1832,
+        "kb": 964543,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54517,
+        "spawnMs": 1439,
+        "kick": null
+      },
+      {
+        "i": 8,
+        "u": "LoadBot8",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          -0.5,
+          -60,
+          9.5
+        ],
+        "pk": 1814,
+        "kb": 963387,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54373,
+        "spawnMs": 1461,
+        "kick": null
+      },
+      {
+        "i": 9,
+        "u": "LoadBot9",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          -9.5,
+          -60,
+          5.5
+        ],
+        "pk": 1806,
+        "kb": 962775,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54246,
+        "spawnMs": 1460,
+        "kick": null
+      },
+      {
+        "i": 10,
+        "u": "LoadBot10",
+        "s": "spawned",
+        "spawned": true,
+        "pos": [
+          -5.5,
+          -60,
+          7.5
+        ],
+        "pk": 1794,
+        "kb": 961908,
+        "ch": 117,
+        "ka": 3,
+        "err": 0,
+        "sincePkMs": 29,
+        "aliveMs": 54148,
+        "spawnMs": 1461,
+        "kick": null
+      }
+    ]
+  },
+  "samples": [
+    {
+      "index": 0,
+      "phase": "baseline",
+      "at": "2026-11-14T05:38:17.735Z",
+      "sinceStartMs": 110994,
+      "sinceJoinMs": 8680,
+      "hostCpuPct": 71.4,
+      "commands": {
+        "mspt": {
+          "ok": true,
+          "command": "mspt",
+          "raw": "§6Server tick times §e(§7avg§e/§7min§e/§7max§e)§6 from last 5s§7,§6 10s§7,§6 1m§e:\n§6◴ §a6.4§7/§a1.8§7/§c79.5§e, §a13.9§7/§a0.9§7/§c240.8§e, §a2.6§7/§a0.4§7/§c240.8\n",
+          "latencyMs": 123
+        },
+        "tps": {
+          "ok": true,
+          "command": "tps",
+          "raw": "§6TPS from last 1m, 5m, 15m: §a20.0§r, §a20.0§r, §a20.0\n",
+          "latencyMs": 129
+        },
+        "aegishider diag": {
+          "ok": true,
+          "command": "aegishider diag",
+          "raw": "§6§l--- Aegishider diag ---\n§7Security tick last/avg/max: §f80 / 634 / 29734 us §7| p50/p95/p99: §f200/1100/3200 us §7| overruns: §f11\n§7Engine time (item/block) last: §f32/29 us §7max: §f17422/14862 us\n§7Raycasts: §f0 §7| deferred by budget: §f0 §7| budget remaining: §f300/300\n§7Item engine: §ftracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\n§7Block engine: §fviewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\n§7Discovery queue: §f85 §7| resync pending: §f0 §7| occlusion rev: §f0\n§7Async: §fsubmitted=0 rejected=0 queue=0/512 threads=4\n§7Errors/config warnings: §f0/0\n§7Gateway: §fstate=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\n§7Index: §fw=§f1 blocks=0 chunks=0 indexRevision=0\n§6§l-----------------------\n",
+          "latencyMs": 139
+        },
+        "spark health": {
+          "ok": true,
+          "command": "spark health",
+          "raw": "",
+          "latencyMs": 131
+        }
+      },
+      "mspt": {
+        "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 6.4/1.8/79.5, 13.9/0.9/240.8, 2.6/0.4/240.8",
+        "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+        "windows": [
+          {
+            "window": "5s",
+            "avg": 6.4,
+            "min": 1.8,
+            "max": 79.5
+          },
+          {
+            "window": "10s",
+            "avg": 13.9,
+            "min": 0.9,
+            "max": 240.8
+          },
+          {
+            "window": "1m",
+            "avg": 2.6,
+            "min": 0.4,
+            "max": 240.8
+          }
+        ]
+      },
+      "tps": {
+        "raw": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "line": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      },
+      "diag": {
+        "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 80 / 634 / 29734 us | p50/p95/p99: 200/1100/3200 us | overruns: 11\nEngine time (item/block) last: 32/29 us max: 17422/14862 us\nRaycasts: 0 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\nBlock engine: viewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\nDiscovery queue: 85 | resync pending: 0 | occlusion rev: 0\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=1 blocks=0 chunks=0 indexRevision=0\n-----------------------",
+        "available": true,
+        "tickLastUs": 80,
+        "tickAvgUs": 634,
+        "tickMaxUs": 29734,
+        "p50Us": 200,
+        "p95Us": 1100,
+        "p99Us": 3200,
+        "overruns": 11,
+        "itemDecisionLastUs": 32,
+        "blockDecisionLastUs": 29,
+        "itemDecisionMaxUs": 17422,
+        "blockDecisionMaxUs": 14862,
+        "raycasts": 0,
+        "raycastsDeferred": 0,
+        "budgetRemaining": 300,
+        "trackedItems": 200,
+        "revealedPairs": 0,
+        "dirtyQueue": 0,
+        "viewerIndexChunks": 3,
+        "itemChunks": 4,
+        "itemEvals": 0,
+        "blockEvals": 0,
+        "discoveryQueue": 85,
+        "resyncPending": 0,
+        "occlusionRevision": 0,
+        "asyncSubmitted": 0,
+        "asyncRejected": 0,
+        "asyncQueueSize": 0,
+        "asyncThreads": 4,
+        "errors": 0,
+        "configWarnings": 0,
+        "gatewayState": "ACTIVE",
+        "chunkSanitized": 0,
+        "chunkFailClosed": 0,
+        "blockFaked": 0,
+        "itemSpawnBlocked": 0,
+        "entityChosenCancelled": 0,
+        "gatewayErrors": 0,
+        "packetDetectedBlocks": 0,
+        "indexWorlds": 1,
+        "indexBlocks": 0,
+        "indexChunks": 0
+      },
+      "paperHeap": {
+        "invoked": false,
+        "available": false,
+        "reason": "Paper 1.21.4 /paper heap writes a .hprof heap dump to disk; it does not print used/max MB. Heap usage is measured with /spark health and jcmd GC.heap_info instead. See README-load-test.md."
+      },
+      "jvmHeap": {
+        "ok": true,
+        "raw": "23044:\r\n garbage-first heap   total 1048576K, used 408064K [0x0000000080000000, 0x0000000100000000)\n  region size 1024K, 39 young (39936K), 4 survivors (4096K)\n Metaspace       used 152525K, committed 153856K, reserved 1179648K\n  class space    used 24695K, committed 25280K, reserved 1048576K",
+        "heapTotalMB": 1024,
+        "heapUsedMB": 398.5,
+        "metaspaceUsedMB": 149
+      },
+      "serverProcess": {
+        "ok": true,
+        "pid": 23044,
+        "cpuSeconds": 158.047,
+        "workingSetMB": 1466.7,
+        "privateMB": 1503.1
+      },
+      "bots": {
+        "ok": true,
+        "aggregate": {
+          "workers": 1,
+          "workersResponded": 1,
+          "bots": 10,
+          "spawned": 10,
+          "alive": 10,
+          "failed": 0,
+          "totalPackets": 2791,
+          "totalBytes": 9488762
+        },
+        "workers": [
+          {
+            "worker": 1,
+            "workerBots": 10,
+            "spawned": 10,
+            "alive": 10,
+            "failed": 0,
+            "totalPackets": 2791,
+            "totalBytes": 9488762,
+            "bots": [
+              {
+                "i": 1,
+                "u": "LoadBot1",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  -7.5
+                ],
+                "pk": 292,
+                "kb": 950449,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 272,
+                "aliveMs": 9495,
+                "spawnMs": 1520,
+                "kick": null
+              },
+              {
+                "i": 2,
+                "u": "LoadBot2",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  10.5,
+                  -60,
+                  -3.5
+                ],
+                "pk": 294,
+                "kb": 950338,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 329,
+                "aliveMs": 8993,
+                "spawnMs": 1434,
+                "kick": null
+              },
+              {
+                "i": 3,
+                "u": "LoadBot3",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  8.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 295,
+                "kb": 950194,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 374,
+                "aliveMs": 8804,
+                "spawnMs": 1254,
+                "kick": null
+              },
+              {
+                "i": 4,
+                "u": "LoadBot4",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  1.5
+                ],
+                "pk": 290,
+                "kb": 949746,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 438,
+                "aliveMs": 8734,
+                "spawnMs": 1218,
+                "kick": null
+              },
+              {
+                "i": 5,
+                "u": "LoadBot5",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 286,
+                "kb": 949336,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 487,
+                "aliveMs": 8680,
+                "spawnMs": 1210,
+                "kick": null
+              },
+              {
+                "i": 6,
+                "u": "LoadBot6",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -2.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 284,
+                "kb": 949042,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 539,
+                "aliveMs": 8629,
+                "spawnMs": 1222,
+                "kick": null
+              },
+              {
+                "i": 7,
+                "u": "LoadBot7",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  6.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 283,
+                "kb": 948804,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 589,
+                "aliveMs": 8578,
+                "spawnMs": 1439,
+                "kick": null
+              },
+              {
+                "i": 8,
+                "u": "LoadBot8",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  9.5
+                ],
+                "pk": 265,
+                "kb": 947648,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 626,
+                "aliveMs": 8434,
+                "spawnMs": 1461,
+                "kick": null
+              },
+              {
+                "i": 9,
+                "u": "LoadBot9",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -9.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 257,
+                "kb": 947036,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 672,
+                "aliveMs": 8307,
+                "spawnMs": 1460,
+                "kick": null
+              },
+              {
+                "i": 10,
+                "u": "LoadBot10",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -5.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 245,
+                "kb": 946169,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 736,
+                "aliveMs": 8209,
+                "spawnMs": 1461,
+                "kick": null
+              }
+            ]
+          }
+        ]
+      },
+      "sparkHealth": {
+        "raw": "",
+        "available": false,
+        "line": null,
+        "usedMB": null,
+        "maxMB": null,
+        "cpuPct": null
+      },
+      "durationMs": 2088
+    },
+    {
+      "index": 1,
+      "phase": "baseline",
+      "at": "2026-11-14T05:38:24.058Z",
+      "sinceStartMs": 117317,
+      "sinceJoinMs": 15003,
+      "hostCpuPct": 53.3,
+      "commands": {
+        "mspt": {
+          "ok": true,
+          "command": "mspt",
+          "raw": "§6Server tick times §e(§7avg§e/§7min§e/§7max§e)§6 from last 5s§7,§6 10s§7,§6 1m§e:\n§6◴ §a4.7§7/§a1.6§7/§c79.5§e, §a5.2§7/§a1.6§7/§c79.5§e, §a3.0§7/§a0.4§7/§c240.8\n",
+          "latencyMs": 134
+        },
+        "tps": {
+          "ok": true,
+          "command": "tps",
+          "raw": "§6TPS from last 1m, 5m, 15m: §a20.0§r, §a20.0§r, §a20.0\n",
+          "latencyMs": 129
+        },
+        "aegishider diag": {
+          "ok": true,
+          "command": "aegishider diag",
+          "raw": "§6§l--- Aegishider diag ---\n§7Security tick last/avg/max: §f3203 / 507 / 29734 us §7| p50/p95/p99: §f200/750/3200 us §7| overruns: §f12\n§7Engine time (item/block) last: §f56/23 us §7max: §f17422/14862 us\n§7Raycasts: §f0 §7| deferred by budget: §f0 §7| budget remaining: §f300/300\n§7Item engine: §ftracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\n§7Block engine: §fviewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\n§7Discovery queue: §f73 §7| resync pending: §f0 §7| occlusion rev: §f0\n§7Async: §fsubmitted=0 rejected=0 queue=0/512 threads=4\n§7Errors/config warnings: §f0/0\n§7Gateway: §fstate=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\n§7Index: §fw=§f1 blocks=0 chunks=0 indexRevision=0\n§6§l-----------------------\n",
+          "latencyMs": 124
+        },
+        "spark health": {
+          "ok": true,
+          "command": "spark health",
+          "raw": "",
+          "latencyMs": 130
+        }
+      },
+      "mspt": {
+        "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 4.7/1.6/79.5, 5.2/1.6/79.5, 3.0/0.4/240.8",
+        "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+        "windows": [
+          {
+            "window": "5s",
+            "avg": 4.7,
+            "min": 1.6,
+            "max": 79.5
+          },
+          {
+            "window": "10s",
+            "avg": 5.2,
+            "min": 1.6,
+            "max": 79.5
+          },
+          {
+            "window": "1m",
+            "avg": 3,
+            "min": 0.4,
+            "max": 240.8
+          }
+        ]
+      },
+      "tps": {
+        "raw": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "line": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      },
+      "diag": {
+        "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 3203 / 507 / 29734 us | p50/p95/p99: 200/750/3200 us | overruns: 12\nEngine time (item/block) last: 56/23 us max: 17422/14862 us\nRaycasts: 0 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\nBlock engine: viewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\nDiscovery queue: 73 | resync pending: 0 | occlusion rev: 0\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=1 blocks=0 chunks=0 indexRevision=0\n-----------------------",
+        "available": true,
+        "tickLastUs": 3203,
+        "tickAvgUs": 507,
+        "tickMaxUs": 29734,
+        "p50Us": 200,
+        "p95Us": 750,
+        "p99Us": 3200,
+        "overruns": 12,
+        "itemDecisionLastUs": 56,
+        "blockDecisionLastUs": 23,
+        "itemDecisionMaxUs": 17422,
+        "blockDecisionMaxUs": 14862,
+        "raycasts": 0,
+        "raycastsDeferred": 0,
+        "budgetRemaining": 300,
+        "trackedItems": 200,
+        "revealedPairs": 0,
+        "dirtyQueue": 0,
+        "viewerIndexChunks": 3,
+        "itemChunks": 4,
+        "itemEvals": 0,
+        "blockEvals": 0,
+        "discoveryQueue": 73,
+        "resyncPending": 0,
+        "occlusionRevision": 0,
+        "asyncSubmitted": 0,
+        "asyncRejected": 0,
+        "asyncQueueSize": 0,
+        "asyncThreads": 4,
+        "errors": 0,
+        "configWarnings": 0,
+        "gatewayState": "ACTIVE",
+        "chunkSanitized": 0,
+        "chunkFailClosed": 0,
+        "blockFaked": 0,
+        "itemSpawnBlocked": 0,
+        "entityChosenCancelled": 0,
+        "gatewayErrors": 0,
+        "packetDetectedBlocks": 0,
+        "indexWorlds": 1,
+        "indexBlocks": 0,
+        "indexChunks": 0
+      },
+      "paperHeap": {
+        "invoked": false,
+        "available": false,
+        "reason": "Paper 1.21.4 /paper heap writes a .hprof heap dump to disk; it does not print used/max MB. Heap usage is measured with /spark health and jcmd GC.heap_info instead. See README-load-test.md."
+      },
+      "jvmHeap": {
+        "ok": true,
+        "raw": "23044:\r\n garbage-first heap   total 1048576K, used 454144K [0x0000000080000000, 0x0000000100000000)\n  region size 1024K, 84 young (86016K), 4 survivors (4096K)\n Metaspace       used 152824K, committed 154304K, reserved 1179648K\n  class space    used 24768K, committed 25408K, reserved 1048576K",
+        "heapTotalMB": 1024,
+        "heapUsedMB": 443.5,
+        "metaspaceUsedMB": 149.2
+      },
+      "serverProcess": {
+        "ok": true,
+        "pid": 23044,
+        "cpuSeconds": 159.703,
+        "workingSetMB": 1467.2,
+        "privateMB": 1503.2
+      },
+      "bots": {
+        "ok": true,
+        "aggregate": {
+          "workers": 1,
+          "workersResponded": 1,
+          "bots": 10,
+          "spawned": 10,
+          "alive": 10,
+          "failed": 0,
+          "totalPackets": 3026,
+          "totalBytes": 9491552
+        },
+        "workers": [
+          {
+            "worker": 1,
+            "workerBots": 10,
+            "spawned": 10,
+            "alive": 10,
+            "failed": 0,
+            "totalPackets": 3026,
+            "totalBytes": 9491552,
+            "bots": [
+              {
+                "i": 1,
+                "u": "LoadBot1",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  -7.5
+                ],
+                "pk": 315,
+                "kb": 950719,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 741,
+                "aliveMs": 14964,
+                "spawnMs": 1520,
+                "kick": null
+              },
+              {
+                "i": 2,
+                "u": "LoadBot2",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  10.5,
+                  -60,
+                  -3.5
+                ],
+                "pk": 317,
+                "kb": 950608,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 808,
+                "aliveMs": 14462,
+                "spawnMs": 1434,
+                "kick": null
+              },
+              {
+                "i": 3,
+                "u": "LoadBot3",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  8.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 318,
+                "kb": 950464,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 859,
+                "aliveMs": 14273,
+                "spawnMs": 1254,
+                "kick": null
+              },
+              {
+                "i": 4,
+                "u": "LoadBot4",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  1.5
+                ],
+                "pk": 313,
+                "kb": 950016,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 908,
+                "aliveMs": 14203,
+                "spawnMs": 1218,
+                "kick": null
+              },
+              {
+                "i": 5,
+                "u": "LoadBot5",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 309,
+                "kb": 949606,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 956,
+                "aliveMs": 14149,
+                "spawnMs": 1210,
+                "kick": null
+              },
+              {
+                "i": 6,
+                "u": "LoadBot6",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -2.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 308,
+                "kb": 949330,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 11,
+                "aliveMs": 14098,
+                "spawnMs": 1222,
+                "kick": null
+              },
+              {
+                "i": 7,
+                "u": "LoadBot7",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  6.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 307,
+                "kb": 949092,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 43,
+                "aliveMs": 14047,
+                "spawnMs": 1439,
+                "kick": null
+              },
+              {
+                "i": 8,
+                "u": "LoadBot8",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  9.5
+                ],
+                "pk": 289,
+                "kb": 947936,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 109,
+                "aliveMs": 13903,
+                "spawnMs": 1461,
+                "kick": null
+              },
+              {
+                "i": 9,
+                "u": "LoadBot9",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -9.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 281,
+                "kb": 947324,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 140,
+                "aliveMs": 13776,
+                "spawnMs": 1460,
+                "kick": null
+              },
+              {
+                "i": 10,
+                "u": "LoadBot10",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -5.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 269,
+                "kb": 946457,
+                "ch": 117,
+                "ka": 0,
+                "err": 0,
+                "sincePkMs": 205,
+                "aliveMs": 13678,
+                "spawnMs": 1461,
+                "kick": null
+              }
+            ]
+          }
+        ]
+      },
+      "sparkHealth": {
+        "raw": "",
+        "available": false,
+        "line": null,
+        "usedMB": null,
+        "maxMB": null,
+        "cpuPct": null
+      },
+      "durationMs": 1227
+    },
+    {
+      "index": 2,
+      "phase": "baseline",
+      "at": "2026-11-14T05:38:34.065Z",
+      "sinceStartMs": 127324,
+      "sinceJoinMs": 25010,
+      "hostCpuPct": 51.1,
+      "commands": {
+        "mspt": {
+          "ok": true,
+          "command": "mspt",
+          "raw": "§6Server tick times §e(§7avg§e/§7min§e/§7max§e)§6 from last 5s§7,§6 10s§7,§6 1m§e:\n§6◴ §a4.6§7/§a1.7§7/§a15.3§e, §a6.0§7/§a1.6§7/§c109.1§e, §a4.0§7/§a0.4§7/§c240.8\n",
+          "latencyMs": 131
+        },
+        "tps": {
+          "ok": true,
+          "command": "tps",
+          "raw": "§6TPS from last 1m, 5m, 15m: §a20.0§r, §a20.0§r, §a20.0\n",
+          "latencyMs": 133
+        },
+        "aegishider diag": {
+          "ok": true,
+          "command": "aegishider diag",
+          "raw": "§6§l--- Aegishider diag ---\n§7Security tick last/avg/max: §f94 / 403 / 29734 us §7| p50/p95/p99: §f200/700/3200 us §7| overruns: §f14\n§7Engine time (item/block) last: §f52/20 us §7max: §f17422/14862 us\n§7Raycasts: §f0 §7| deferred by budget: §f0 §7| budget remaining: §f300/300\n§7Item engine: §ftracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\n§7Block engine: §fviewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\n§7Discovery queue: §f83 §7| resync pending: §f0 §7| occlusion rev: §f0\n§7Async: §fsubmitted=0 rejected=0 queue=0/512 threads=4\n§7Errors/config warnings: §f0/0\n§7Gateway: §fstate=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\n§7Index: §fw=§f2 blocks=0 chunks=0 indexRevision=0\n§6§l-----------------------\n",
+          "latencyMs": 126
+        },
+        "spark health": {
+          "ok": true,
+          "command": "spark health",
+          "raw": "",
+          "latencyMs": 128
+        }
+      },
+      "mspt": {
+        "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 4.6/1.7/15.3, 6.0/1.6/109.1, 4.0/0.4/240.8",
+        "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+        "windows": [
+          {
+            "window": "5s",
+            "avg": 4.6,
+            "min": 1.7,
+            "max": 15.3
+          },
+          {
+            "window": "10s",
+            "avg": 6,
+            "min": 1.6,
+            "max": 109.1
+          },
+          {
+            "window": "1m",
+            "avg": 4,
+            "min": 0.4,
+            "max": 240.8
+          }
+        ]
+      },
+      "tps": {
+        "raw": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "line": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      },
+      "diag": {
+        "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 94 / 403 / 29734 us | p50/p95/p99: 200/700/3200 us | overruns: 14\nEngine time (item/block) last: 52/20 us max: 17422/14862 us\nRaycasts: 0 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\nBlock engine: viewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\nDiscovery queue: 83 | resync pending: 0 | occlusion rev: 0\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=2 blocks=0 chunks=0 indexRevision=0\n-----------------------",
+        "available": true,
+        "tickLastUs": 94,
+        "tickAvgUs": 403,
+        "tickMaxUs": 29734,
+        "p50Us": 200,
+        "p95Us": 700,
+        "p99Us": 3200,
+        "overruns": 14,
+        "itemDecisionLastUs": 52,
+        "blockDecisionLastUs": 20,
+        "itemDecisionMaxUs": 17422,
+        "blockDecisionMaxUs": 14862,
+        "raycasts": 0,
+        "raycastsDeferred": 0,
+        "budgetRemaining": 300,
+        "trackedItems": 200,
+        "revealedPairs": 0,
+        "dirtyQueue": 0,
+        "viewerIndexChunks": 3,
+        "itemChunks": 4,
+        "itemEvals": 0,
+        "blockEvals": 0,
+        "discoveryQueue": 83,
+        "resyncPending": 0,
+        "occlusionRevision": 0,
+        "asyncSubmitted": 0,
+        "asyncRejected": 0,
+        "asyncQueueSize": 0,
+        "asyncThreads": 4,
+        "errors": 0,
+        "configWarnings": 0,
+        "gatewayState": "ACTIVE",
+        "chunkSanitized": 0,
+        "chunkFailClosed": 0,
+        "blockFaked": 0,
+        "itemSpawnBlocked": 0,
+        "entityChosenCancelled": 0,
+        "gatewayErrors": 0,
+        "packetDetectedBlocks": 0,
+        "indexWorlds": 2,
+        "indexBlocks": 0,
+        "indexChunks": 0
+      },
+      "paperHeap": {
+        "invoked": false,
+        "available": false,
+        "reason": "Paper 1.21.4 /paper heap writes a .hprof heap dump to disk; it does not print used/max MB. Heap usage is measured with /spark health and jcmd GC.heap_info instead. See README-load-test.md."
+      },
+      "jvmHeap": {
+        "ok": true,
+        "raw": "23044:\r\n garbage-first heap   total 1048576K, used 541184K [0x0000000080000000, 0x0000000100000000)\n  region size 1024K, 169 young (173056K), 4 survivors (4096K)\n Metaspace       used 153448K, committed 154944K, reserved 1179648K\n  class space    used 24821K, committed 25472K, reserved 1048576K",
+        "heapTotalMB": 1024,
+        "heapUsedMB": 528.5,
+        "metaspaceUsedMB": 149.9
+      },
+      "serverProcess": {
+        "ok": true,
+        "pid": 23044,
+        "cpuSeconds": 166.016,
+        "workingSetMB": 1472.2,
+        "privateMB": 1506.6
+      },
+      "bots": {
+        "ok": true,
+        "aggregate": {
+          "workers": 1,
+          "workersResponded": 1,
+          "bots": 10,
+          "spawned": 10,
+          "alive": 10,
+          "failed": 0,
+          "totalPackets": 8608,
+          "totalBytes": 9555468
+        },
+        "workers": [
+          {
+            "worker": 1,
+            "workerBots": 10,
+            "spawned": 10,
+            "alive": 10,
+            "failed": 0,
+            "totalPackets": 8608,
+            "totalBytes": 9555468,
+            "bots": [
+              {
+                "i": 1,
+                "u": "LoadBot1",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  -7.5
+                ],
+                "pk": 864,
+                "kb": 957026,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 54,
+                "aliveMs": 25118,
+                "spawnMs": 1520,
+                "kick": null
+              },
+              {
+                "i": 2,
+                "u": "LoadBot2",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  10.5,
+                  -60,
+                  -3.5
+                ],
+                "pk": 876,
+                "kb": 957005,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 54,
+                "aliveMs": 24616,
+                "spawnMs": 1434,
+                "kick": null
+              },
+              {
+                "i": 3,
+                "u": "LoadBot3",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  8.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 877,
+                "kb": 956861,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 55,
+                "aliveMs": 24427,
+                "spawnMs": 1254,
+                "kick": null
+              },
+              {
+                "i": 4,
+                "u": "LoadBot4",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  1.5
+                ],
+                "pk": 873,
+                "kb": 956431,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 54,
+                "aliveMs": 24357,
+                "spawnMs": 1218,
+                "kick": null
+              },
+              {
+                "i": 5,
+                "u": "LoadBot5",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 869,
+                "kb": 956021,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 54,
+                "aliveMs": 24303,
+                "spawnMs": 1210,
+                "kick": null
+              },
+              {
+                "i": 6,
+                "u": "LoadBot6",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -2.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 867,
+                "kb": 955727,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 54,
+                "aliveMs": 24252,
+                "spawnMs": 1222,
+                "kick": null
+              },
+              {
+                "i": 7,
+                "u": "LoadBot7",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  6.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 866,
+                "kb": 955489,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 54,
+                "aliveMs": 24201,
+                "spawnMs": 1439,
+                "kick": null
+              },
+              {
+                "i": 8,
+                "u": "LoadBot8",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  9.5
+                ],
+                "pk": 848,
+                "kb": 954333,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 54,
+                "aliveMs": 24057,
+                "spawnMs": 1461,
+                "kick": null
+              },
+              {
+                "i": 9,
+                "u": "LoadBot9",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -9.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 840,
+                "kb": 953721,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 53,
+                "aliveMs": 23930,
+                "spawnMs": 1460,
+                "kick": null
+              },
+              {
+                "i": 10,
+                "u": "LoadBot10",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -5.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 828,
+                "kb": 952854,
+                "ch": 117,
+                "ka": 1,
+                "err": 0,
+                "sincePkMs": 53,
+                "aliveMs": 23832,
+                "spawnMs": 1461,
+                "kick": null
+              }
+            ]
+          }
+        ]
+      },
+      "sparkHealth": {
+        "raw": "",
+        "available": false,
+        "line": null,
+        "usedMB": null,
+        "maxMB": null,
+        "cpuPct": null
+      },
+      "durationMs": 1375
+    },
+    {
+      "index": 3,
+      "phase": "baseline",
+      "at": "2026-11-14T05:38:44.072Z",
+      "sinceStartMs": 137330,
+      "sinceJoinMs": 35016,
+      "hostCpuPct": 47.6,
+      "commands": {
+        "mspt": {
+          "ok": true,
+          "command": "mspt",
+          "raw": "§6Server tick times §e(§7avg§e/§7min§e/§7max§e)§6 from last 5s§7,§6 10s§7,§6 1m§e:\n§6◴ §a4.6§7/§a1.5§7/§c70.3§e, §a4.6§7/§a1.5§7/§c70.3§e, §a4.8§7/§a0.4§7/§c240.8\n",
+          "latencyMs": 132
+        },
+        "tps": {
+          "ok": true,
+          "command": "tps",
+          "raw": "§6TPS from last 1m, 5m, 15m: §a20.0§r, §a20.0§r, §a20.0\n",
+          "latencyMs": 123
+        },
+        "aegishider diag": {
+          "ok": true,
+          "command": "aegishider diag",
+          "raw": "§6§l--- Aegishider diag ---\n§7Security tick last/avg/max: §f48 / 352 / 29734 us §7| p50/p95/p99: §f200/600/3200 us §7| overruns: §f17\n§7Engine time (item/block) last: §f30/10 us §7max: §f17422/14862 us\n§7Raycasts: §f0 §7| deferred by budget: §f0 §7| budget remaining: §f300/300\n§7Item engine: §ftracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\n§7Block engine: §fviewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\n§7Discovery queue: §f65 §7| resync pending: §f0 §7| occlusion rev: §f0\n§7Async: §fsubmitted=0 rejected=0 queue=0/512 threads=4\n§7Errors/config warnings: §f0/0\n§7Gateway: §fstate=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\n§7Index: §fw=§f2 blocks=0 chunks=0 indexRevision=0\n§6§l-----------------------\n",
+          "latencyMs": 133
+        },
+        "spark health": {
+          "ok": true,
+          "command": "spark health",
+          "raw": "",
+          "latencyMs": 121
+        }
+      },
+      "mspt": {
+        "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 4.6/1.5/70.3, 4.6/1.5/70.3, 4.8/0.4/240.8",
+        "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+        "windows": [
+          {
+            "window": "5s",
+            "avg": 4.6,
+            "min": 1.5,
+            "max": 70.3
+          },
+          {
+            "window": "10s",
+            "avg": 4.6,
+            "min": 1.5,
+            "max": 70.3
+          },
+          {
+            "window": "1m",
+            "avg": 4.8,
+            "min": 0.4,
+            "max": 240.8
+          }
+        ]
+      },
+      "tps": {
+        "raw": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "line": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      },
+      "diag": {
+        "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 48 / 352 / 29734 us | p50/p95/p99: 200/600/3200 us | overruns: 17\nEngine time (item/block) last: 30/10 us max: 17422/14862 us\nRaycasts: 0 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\nBlock engine: viewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\nDiscovery queue: 65 | resync pending: 0 | occlusion rev: 0\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=2 blocks=0 chunks=0 indexRevision=0\n-----------------------",
+        "available": true,
+        "tickLastUs": 48,
+        "tickAvgUs": 352,
+        "tickMaxUs": 29734,
+        "p50Us": 200,
+        "p95Us": 600,
+        "p99Us": 3200,
+        "overruns": 17,
+        "itemDecisionLastUs": 30,
+        "blockDecisionLastUs": 10,
+        "itemDecisionMaxUs": 17422,
+        "blockDecisionMaxUs": 14862,
+        "raycasts": 0,
+        "raycastsDeferred": 0,
+        "budgetRemaining": 300,
+        "trackedItems": 200,
+        "revealedPairs": 0,
+        "dirtyQueue": 0,
+        "viewerIndexChunks": 3,
+        "itemChunks": 4,
+        "itemEvals": 0,
+        "blockEvals": 0,
+        "discoveryQueue": 65,
+        "resyncPending": 0,
+        "occlusionRevision": 0,
+        "asyncSubmitted": 0,
+        "asyncRejected": 0,
+        "asyncQueueSize": 0,
+        "asyncThreads": 4,
+        "errors": 0,
+        "configWarnings": 0,
+        "gatewayState": "ACTIVE",
+        "chunkSanitized": 0,
+        "chunkFailClosed": 0,
+        "blockFaked": 0,
+        "itemSpawnBlocked": 0,
+        "entityChosenCancelled": 0,
+        "gatewayErrors": 0,
+        "packetDetectedBlocks": 0,
+        "indexWorlds": 2,
+        "indexBlocks": 0,
+        "indexChunks": 0
+      },
+      "paperHeap": {
+        "invoked": false,
+        "available": false,
+        "reason": "Paper 1.21.4 /paper heap writes a .hprof heap dump to disk; it does not print used/max MB. Heap usage is measured with /spark health and jcmd GC.heap_info instead. See README-load-test.md."
+      },
+      "jvmHeap": {
+        "ok": true,
+        "raw": "23044:\r\n garbage-first heap   total 1048576K, used 619520K [0x0000000080000000, 0x0000000100000000)\n  region size 1024K, 245 young (250880K), 4 survivors (4096K)\n Metaspace       used 153537K, committed 155008K, reserved 1179648K\n  class space    used 24822K, committed 25472K, reserved 1048576K",
+        "heapTotalMB": 1024,
+        "heapUsedMB": 605,
+        "metaspaceUsedMB": 149.9
+      },
+      "serverProcess": {
+        "ok": true,
+        "pid": 23044,
+        "cpuSeconds": 168.656,
+        "workingSetMB": 1474.1,
+        "privateMB": 1508.4
+      },
+      "bots": {
+        "ok": true,
+        "aggregate": {
+          "workers": 1,
+          "workersResponded": 1,
+          "bots": 10,
+          "spawned": 10,
+          "alive": 10,
+          "failed": 0,
+          "totalPackets": 11224,
+          "totalBytes": 9580475
+        },
+        "workers": [
+          {
+            "worker": 1,
+            "workerBots": 10,
+            "spawned": 10,
+            "alive": 10,
+            "failed": 0,
+            "totalPackets": 11224,
+            "totalBytes": 9580475,
+            "bots": [
+              {
+                "i": 1,
+                "u": "LoadBot1",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  -7.5
+                ],
+                "pk": 1086,
+                "kb": 959184,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 34881,
+                "spawnMs": 1520,
+                "kick": null
+              },
+              {
+                "i": 2,
+                "u": "LoadBot2",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  10.5,
+                  -60,
+                  -3.5
+                ],
+                "pk": 1113,
+                "kb": 959284,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 21,
+                "aliveMs": 34379,
+                "spawnMs": 1434,
+                "kick": null
+              },
+              {
+                "i": 3,
+                "u": "LoadBot3",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  8.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 1147,
+                "kb": 959440,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 34190,
+                "spawnMs": 1254,
+                "kick": null
+              },
+              {
+                "i": 4,
+                "u": "LoadBot4",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  1.5
+                ],
+                "pk": 1142,
+                "kb": 958992,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 34120,
+                "spawnMs": 1218,
+                "kick": null
+              },
+              {
+                "i": 5,
+                "u": "LoadBot5",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 1138,
+                "kb": 958582,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 34066,
+                "spawnMs": 1210,
+                "kick": null
+              },
+              {
+                "i": 6,
+                "u": "LoadBot6",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -2.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 1136,
+                "kb": 958288,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 34015,
+                "spawnMs": 1222,
+                "kick": null
+              },
+              {
+                "i": 7,
+                "u": "LoadBot7",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  6.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 1135,
+                "kb": 958050,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 33964,
+                "spawnMs": 1439,
+                "kick": null
+              },
+              {
+                "i": 8,
+                "u": "LoadBot8",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  9.5
+                ],
+                "pk": 1118,
+                "kb": 956912,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 33820,
+                "spawnMs": 1461,
+                "kick": null
+              },
+              {
+                "i": 9,
+                "u": "LoadBot9",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -9.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 1110,
+                "kb": 956300,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 67,
+                "aliveMs": 33693,
+                "spawnMs": 1460,
+                "kick": null
+              },
+              {
+                "i": 10,
+                "u": "LoadBot10",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -5.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 1099,
+                "kb": 955443,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 20,
+                "aliveMs": 33595,
+                "spawnMs": 1461,
+                "kick": null
+              }
+            ]
+          }
+        ]
+      },
+      "sparkHealth": {
+        "raw": "",
+        "available": false,
+        "line": null,
+        "usedMB": null,
+        "maxMB": null,
+        "cpuPct": null
+      },
+      "durationMs": 1123
+    },
+    {
+      "index": 4,
+      "phase": "baseline",
+      "at": "2026-11-14T05:38:54.056Z",
+      "sinceStartMs": 147315,
+      "sinceJoinMs": 45001,
+      "hostCpuPct": 38.1,
+      "commands": {
+        "mspt": {
+          "ok": true,
+          "command": "mspt",
+          "raw": "§6Server tick times §e(§7avg§e/§7min§e/§7max§e)§6 from last 5s§7,§6 10s§7,§6 1m§e:\n§6◴ §a4.0§7/§a1.4§7/§a18.1§e, §a3.4§7/§a1.4§7/§a25.4§e, §a5.3§7/§a0.4§7/§c240.8\n",
+          "latencyMs": 124
+        },
+        "tps": {
+          "ok": true,
+          "command": "tps",
+          "raw": "§6TPS from last 1m, 5m, 15m: §a20.0§r, §a20.0§r, §a20.0\n",
+          "latencyMs": 122
+        },
+        "aegishider diag": {
+          "ok": true,
+          "command": "aegishider diag",
+          "raw": "§6§l--- Aegishider diag ---\n§7Security tick last/avg/max: §f88 / 307 / 29734 us §7| p50/p95/p99: §f150/500/3200 us §7| overruns: §f17\n§7Engine time (item/block) last: §f52/16 us §7max: §f17422/14862 us\n§7Raycasts: §f0 §7| deferred by budget: §f0 §7| budget remaining: §f300/300\n§7Item engine: §ftracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\n§7Block engine: §fviewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\n§7Discovery queue: §f63 §7| resync pending: §f0 §7| occlusion rev: §f0\n§7Async: §fsubmitted=0 rejected=0 queue=0/512 threads=4\n§7Errors/config warnings: §f0/0\n§7Gateway: §fstate=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\n§7Index: §fw=§f2 blocks=0 chunks=0 indexRevision=0\n§6§l-----------------------\n",
+          "latencyMs": 123
+        },
+        "spark health": {
+          "ok": true,
+          "command": "spark health",
+          "raw": "",
+          "latencyMs": 123
+        }
+      },
+      "mspt": {
+        "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 4.0/1.4/18.1, 3.4/1.4/25.4, 5.3/0.4/240.8",
+        "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+        "windows": [
+          {
+            "window": "5s",
+            "avg": 4,
+            "min": 1.4,
+            "max": 18.1
+          },
+          {
+            "window": "10s",
+            "avg": 3.4,
+            "min": 1.4,
+            "max": 25.4
+          },
+          {
+            "window": "1m",
+            "avg": 5.3,
+            "min": 0.4,
+            "max": 240.8
+          }
+        ]
+      },
+      "tps": {
+        "raw": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "line": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      },
+      "diag": {
+        "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 88 / 307 / 29734 us | p50/p95/p99: 150/500/3200 us | overruns: 17\nEngine time (item/block) last: 52/16 us max: 17422/14862 us\nRaycasts: 0 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\nBlock engine: viewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\nDiscovery queue: 63 | resync pending: 0 | occlusion rev: 0\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=2 blocks=0 chunks=0 indexRevision=0\n-----------------------",
+        "available": true,
+        "tickLastUs": 88,
+        "tickAvgUs": 307,
+        "tickMaxUs": 29734,
+        "p50Us": 150,
+        "p95Us": 500,
+        "p99Us": 3200,
+        "overruns": 17,
+        "itemDecisionLastUs": 52,
+        "blockDecisionLastUs": 16,
+        "itemDecisionMaxUs": 17422,
+        "blockDecisionMaxUs": 14862,
+        "raycasts": 0,
+        "raycastsDeferred": 0,
+        "budgetRemaining": 300,
+        "trackedItems": 200,
+        "revealedPairs": 0,
+        "dirtyQueue": 0,
+        "viewerIndexChunks": 3,
+        "itemChunks": 4,
+        "itemEvals": 0,
+        "blockEvals": 0,
+        "discoveryQueue": 63,
+        "resyncPending": 0,
+        "occlusionRevision": 0,
+        "asyncSubmitted": 0,
+        "asyncRejected": 0,
+        "asyncQueueSize": 0,
+        "asyncThreads": 4,
+        "errors": 0,
+        "configWarnings": 0,
+        "gatewayState": "ACTIVE",
+        "chunkSanitized": 0,
+        "chunkFailClosed": 0,
+        "blockFaked": 0,
+        "itemSpawnBlocked": 0,
+        "entityChosenCancelled": 0,
+        "gatewayErrors": 0,
+        "packetDetectedBlocks": 0,
+        "indexWorlds": 2,
+        "indexBlocks": 0,
+        "indexChunks": 0
+      },
+      "paperHeap": {
+        "invoked": false,
+        "available": false,
+        "reason": "Paper 1.21.4 /paper heap writes a .hprof heap dump to disk; it does not print used/max MB. Heap usage is measured with /spark health and jcmd GC.heap_info instead. See README-load-test.md."
+      },
+      "jvmHeap": {
+        "ok": true,
+        "raw": "23044:\r\n garbage-first heap   total 1048576K, used 700928K [0x0000000080000000, 0x0000000100000000)\n  region size 1024K, 325 young (332800K), 4 survivors (4096K)\n Metaspace       used 153588K, committed 155072K, reserved 1179648K\n  class space    used 24823K, committed 25472K, reserved 1048576K",
+        "heapTotalMB": 1024,
+        "heapUsedMB": 684.5,
+        "metaspaceUsedMB": 150
+      },
+      "serverProcess": {
+        "ok": true,
+        "pid": 23044,
+        "cpuSeconds": 170.938,
+        "workingSetMB": 1474.7,
+        "privateMB": 1509
+      },
+      "bots": {
+        "ok": true,
+        "aggregate": {
+          "workers": 1,
+          "workersResponded": 1,
+          "bots": 10,
+          "spawned": 10,
+          "alive": 10,
+          "failed": 0,
+          "totalPackets": 15122,
+          "totalBytes": 9619797
+        },
+        "workers": [
+          {
+            "worker": 1,
+            "workerBots": 10,
+            "spawned": 10,
+            "alive": 10,
+            "failed": 0,
+            "totalPackets": 15122,
+            "totalBytes": 9619797,
+            "bots": [
+              {
+                "i": 1,
+                "u": "LoadBot1",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  -7.5
+                ],
+                "pk": 1471,
+                "kb": 963077,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 666,
+                "aliveMs": 44923,
+                "spawnMs": 1520,
+                "kick": null
+              },
+              {
+                "i": 2,
+                "u": "LoadBot2",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  10.5,
+                  -60,
+                  -3.5
+                ],
+                "pk": 1498,
+                "kb": 963177,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 666,
+                "aliveMs": 44421,
+                "spawnMs": 1434,
+                "kick": null
+              },
+              {
+                "i": 3,
+                "u": "LoadBot3",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  8.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 1538,
+                "kb": 963381,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 666,
+                "aliveMs": 44232,
+                "spawnMs": 1254,
+                "kick": null
+              },
+              {
+                "i": 4,
+                "u": "LoadBot4",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  1.5
+                ],
+                "pk": 1533,
+                "kb": 962933,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 666,
+                "aliveMs": 44162,
+                "spawnMs": 1218,
+                "kick": null
+              },
+              {
+                "i": 5,
+                "u": "LoadBot5",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 1529,
+                "kb": 962523,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 665,
+                "aliveMs": 44108,
+                "spawnMs": 1210,
+                "kick": null
+              },
+              {
+                "i": 6,
+                "u": "LoadBot6",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -2.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 1527,
+                "kb": 962229,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 665,
+                "aliveMs": 44057,
+                "spawnMs": 1222,
+                "kick": null
+              },
+              {
+                "i": 7,
+                "u": "LoadBot7",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  6.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 1527,
+                "kb": 962009,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 8,
+                "aliveMs": 44006,
+                "spawnMs": 1439,
+                "kick": null
+              },
+              {
+                "i": 8,
+                "u": "LoadBot8",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  9.5
+                ],
+                "pk": 1509,
+                "kb": 960853,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 69,
+                "aliveMs": 43862,
+                "spawnMs": 1461,
+                "kick": null
+              },
+              {
+                "i": 9,
+                "u": "LoadBot9",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -9.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 1501,
+                "kb": 960241,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 118,
+                "aliveMs": 43735,
+                "spawnMs": 1460,
+                "kick": null
+              },
+              {
+                "i": 10,
+                "u": "LoadBot10",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -5.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 1489,
+                "kb": 959374,
+                "ch": 117,
+                "ka": 2,
+                "err": 0,
+                "sincePkMs": 170,
+                "aliveMs": 43637,
+                "spawnMs": 1461,
+                "kick": null
+              }
+            ]
+          }
+        ]
+      },
+      "sparkHealth": {
+        "raw": "",
+        "available": false,
+        "line": null,
+        "usedMB": null,
+        "maxMB": null,
+        "cpuPct": null
+      },
+      "durationMs": 1163
+    },
+    {
+      "index": 5,
+      "phase": "baseline",
+      "at": "2026-11-14T05:39:04.058Z",
+      "sinceStartMs": 157317,
+      "sinceJoinMs": 55003,
+      "hostCpuPct": 38.7,
+      "commands": {
+        "mspt": {
+          "ok": true,
+          "command": "mspt",
+          "raw": "§6Server tick times §e(§7avg§e/§7min§e/§7max§e)§6 from last 5s§7,§6 10s§7,§6 1m§e:\n§6◴ §a2.9§7/§a1.3§7/§a13.6§e, §a3.1§7/§a1.3§7/§c54.1§e, §a5.9§7/§a0.4§7/§c240.8\n",
+          "latencyMs": 122
+        },
+        "tps": {
+          "ok": true,
+          "command": "tps",
+          "raw": "§6TPS from last 1m, 5m, 15m: §a20.0§r, §a20.0§r, §a20.0\n",
+          "latencyMs": 135
+        },
+        "aegishider diag": {
+          "ok": true,
+          "command": "aegishider diag",
+          "raw": "§6§l--- Aegishider diag ---\n§7Security tick last/avg/max: §f94 / 274 / 29734 us §7| p50/p95/p99: §f150/500/2650 us §7| overruns: §f18\n§7Engine time (item/block) last: §f55/20 us §7max: §f17422/14862 us\n§7Raycasts: §f0 §7| deferred by budget: §f0 §7| budget remaining: §f300/300\n§7Item engine: §ftracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\n§7Block engine: §fviewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\n§7Discovery queue: §f56 §7| resync pending: §f0 §7| occlusion rev: §f0\n§7Async: §fsubmitted=0 rejected=0 queue=0/512 threads=4\n§7Errors/config warnings: §f0/0\n§7Gateway: §fstate=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\n§7Index: §fw=§f2 blocks=0 chunks=0 indexRevision=0\n§6§l-----------------------\n",
+          "latencyMs": 133
+        },
+        "spark health": {
+          "ok": true,
+          "command": "spark health",
+          "raw": "",
+          "latencyMs": 134
+        }
+      },
+      "mspt": {
+        "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 2.9/1.3/13.6, 3.1/1.3/54.1, 5.9/0.4/240.8",
+        "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+        "windows": [
+          {
+            "window": "5s",
+            "avg": 2.9,
+            "min": 1.3,
+            "max": 13.6
+          },
+          {
+            "window": "10s",
+            "avg": 3.1,
+            "min": 1.3,
+            "max": 54.1
+          },
+          {
+            "window": "1m",
+            "avg": 5.9,
+            "min": 0.4,
+            "max": 240.8
+          }
+        ]
+      },
+      "tps": {
+        "raw": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "line": "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      },
+      "diag": {
+        "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 94 / 274 / 29734 us | p50/p95/p99: 150/500/2650 us | overruns: 18\nEngine time (item/block) last: 55/20 us max: 17422/14862 us\nRaycasts: 0 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=200 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=3 itemChunks=4 evals=0\nBlock engine: viewers=10 revealedMarkers=0 pendingCandidates=0 occlusionRevision=0 evals=0\nDiscovery queue: 56 | resync pending: 0 | occlusion rev: 0\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=2 blocks=0 chunks=0 indexRevision=0\n-----------------------",
+        "available": true,
+        "tickLastUs": 94,
+        "tickAvgUs": 274,
+        "tickMaxUs": 29734,
+        "p50Us": 150,
+        "p95Us": 500,
+        "p99Us": 2650,
+        "overruns": 18,
+        "itemDecisionLastUs": 55,
+        "blockDecisionLastUs": 20,
+        "itemDecisionMaxUs": 17422,
+        "blockDecisionMaxUs": 14862,
+        "raycasts": 0,
+        "raycastsDeferred": 0,
+        "budgetRemaining": 300,
+        "trackedItems": 200,
+        "revealedPairs": 0,
+        "dirtyQueue": 0,
+        "viewerIndexChunks": 3,
+        "itemChunks": 4,
+        "itemEvals": 0,
+        "blockEvals": 0,
+        "discoveryQueue": 56,
+        "resyncPending": 0,
+        "occlusionRevision": 0,
+        "asyncSubmitted": 0,
+        "asyncRejected": 0,
+        "asyncQueueSize": 0,
+        "asyncThreads": 4,
+        "errors": 0,
+        "configWarnings": 0,
+        "gatewayState": "ACTIVE",
+        "chunkSanitized": 0,
+        "chunkFailClosed": 0,
+        "blockFaked": 0,
+        "itemSpawnBlocked": 0,
+        "entityChosenCancelled": 0,
+        "gatewayErrors": 0,
+        "packetDetectedBlocks": 0,
+        "indexWorlds": 2,
+        "indexBlocks": 0,
+        "indexChunks": 0
+      },
+      "paperHeap": {
+        "invoked": false,
+        "available": false,
+        "reason": "Paper 1.21.4 /paper heap writes a .hprof heap dump to disk; it does not print used/max MB. Heap usage is measured with /spark health and jcmd GC.heap_info instead. See README-load-test.md."
+      },
+      "jvmHeap": {
+        "ok": true,
+        "raw": "23044:\r\n garbage-first heap   total 1048576K, used 780800K [0x0000000080000000, 0x0000000100000000)\n  region size 1024K, 403 young (412672K), 4 survivors (4096K)\n Metaspace       used 153667K, committed 155136K, reserved 1179648K\n  class space    used 24833K, committed 25472K, reserved 1048576K",
+        "heapTotalMB": 1024,
+        "heapUsedMB": 762.5,
+        "metaspaceUsedMB": 150.1
+      },
+      "serverProcess": {
+        "ok": true,
+        "pid": 23044,
+        "cpuSeconds": 172.797,
+        "workingSetMB": 1475.1,
+        "privateMB": 1509.4
+      },
+      "bots": {
+        "ok": true,
+        "aggregate": {
+          "workers": 1,
+          "workersResponded": 1,
+          "bots": 10,
+          "spawned": 10,
+          "alive": 10,
+          "failed": 0,
+          "totalPackets": 17955,
+          "totalBytes": 9643409
+        },
+        "workers": [
+          {
+            "worker": 1,
+            "workerBots": 10,
+            "spawned": 10,
+            "alive": 10,
+            "failed": 0,
+            "totalPackets": 17955,
+            "totalBytes": 9643409,
+            "bots": [
+              {
+                "i": 1,
+                "u": "LoadBot1",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  -7.5
+                ],
+                "pk": 1744,
+                "kb": 965384,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 137,
+                "aliveMs": 54907,
+                "spawnMs": 1520,
+                "kick": null
+              },
+              {
+                "i": 2,
+                "u": "LoadBot2",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  10.5,
+                  -60,
+                  -3.5
+                ],
+                "pk": 1771,
+                "kb": 965484,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 137,
+                "aliveMs": 54405,
+                "spawnMs": 1434,
+                "kick": null
+              },
+              {
+                "i": 3,
+                "u": "LoadBot3",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  8.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 1824,
+                "kb": 965758,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 137,
+                "aliveMs": 54216,
+                "spawnMs": 1254,
+                "kick": null
+              },
+              {
+                "i": 4,
+                "u": "LoadBot4",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  9.5,
+                  -60,
+                  1.5
+                ],
+                "pk": 1819,
+                "kb": 965310,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 138,
+                "aliveMs": 54146,
+                "spawnMs": 1218,
+                "kick": null
+              },
+              {
+                "i": 5,
+                "u": "LoadBot5",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  10.5
+                ],
+                "pk": 1815,
+                "kb": 964900,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 137,
+                "aliveMs": 54092,
+                "spawnMs": 1210,
+                "kick": null
+              },
+              {
+                "i": 6,
+                "u": "LoadBot6",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -2.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 1813,
+                "kb": 964606,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 137,
+                "aliveMs": 54041,
+                "spawnMs": 1222,
+                "kick": null
+              },
+              {
+                "i": 7,
+                "u": "LoadBot7",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  6.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 1812,
+                "kb": 964368,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 136,
+                "aliveMs": 53990,
+                "spawnMs": 1439,
+                "kick": null
+              },
+              {
+                "i": 8,
+                "u": "LoadBot8",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -0.5,
+                  -60,
+                  9.5
+                ],
+                "pk": 1795,
+                "kb": 963230,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 39,
+                "aliveMs": 53846,
+                "spawnMs": 1461,
+                "kick": null
+              },
+              {
+                "i": 9,
+                "u": "LoadBot9",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -9.5,
+                  -60,
+                  5.5
+                ],
+                "pk": 1787,
+                "kb": 962618,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 94,
+                "aliveMs": 53719,
+                "spawnMs": 1460,
+                "kick": null
+              },
+              {
+                "i": 10,
+                "u": "LoadBot10",
+                "s": "spawned",
+                "spawned": true,
+                "pos": [
+                  -5.5,
+                  -60,
+                  7.5
+                ],
+                "pk": 1775,
+                "kb": 961751,
+                "ch": 117,
+                "ka": 3,
+                "err": 0,
+                "sincePkMs": 136,
+                "aliveMs": 53621,
+                "spawnMs": 1461,
+                "kick": null
+              }
+            ]
+          }
+        ]
+      },
+      "sparkHealth": {
+        "raw": "",
+        "available": false,
+        "line": null,
+        "usedMB": null,
+        "maxMB": null,
+        "cpuPct": null
+      },
+      "durationMs": 1177
+    }
+  ],
+  "soak": null,
+  "summary": {
+    "tier": {
+      "botsRequested": 10,
+      "itemsRequested": 200,
+      "botsSpawned": 10
+    },
+    "join": {
+      "reached": true,
+      "target": 10,
+      "spawned": 10,
+      "waitedMs": 3663,
+      "timedOut": false
+    },
+    "joinLatencyMs": {
+      "count": 10,
+      "min": 1210,
+      "median": 1436.5,
+      "p95": 1493.45,
+      "max": 1520,
+      "avg": 1367.9
+    },
+    "joinPct": 100,
+    "failures": 0,
+    "samples": 6,
+    "baselineSamples": 6,
+    "soakSamples": 0,
+    "mspt": {
+      "last5s_avg": {
+        "count": 6,
+        "min": 2.9,
+        "median": 4.6,
+        "p95": 5.975,
+        "max": 6.4,
+        "avg": 4.533
+      },
+      "last5s_max": {
+        "count": 6,
+        "min": 13.6,
+        "median": 44.2,
+        "p95": 79.5,
+        "max": 79.5,
+        "avg": 46.05
+      },
+      "last10s_avg": {
+        "count": 6,
+        "min": 3.1,
+        "median": 4.9,
+        "p95": 11.925,
+        "max": 13.9,
+        "avg": 6.033
+      },
+      "last1m_avg": {
+        "count": 6,
+        "min": 2.6,
+        "median": 4.4,
+        "p95": 5.75,
+        "max": 5.9,
+        "avg": 4.267
+      }
+    },
+    "tps": {
+      "count": 6,
+      "min": 20,
+      "median": 20,
+      "p95": 20,
+      "max": 20,
+      "avg": 20
+    },
+    "aegishider": {
+      "tickLastUs": {
+        "count": 6,
+        "min": 48,
+        "median": 91,
+        "p95": 2425.75,
+        "max": 3203,
+        "avg": 601.167
+      },
+      "tickAvgUs": {
+        "count": 6,
+        "min": 274,
+        "median": 377.5,
+        "p95": 602.25,
+        "max": 634,
+        "avg": 412.833
+      },
+      "tickMaxUs": {
+        "count": 6,
+        "min": 29734,
+        "median": 29734,
+        "p95": 29734,
+        "max": 29734,
+        "avg": 29734
+      },
+      "p50Us": {
+        "count": 6,
+        "min": 150,
+        "median": 200,
+        "p95": 200,
+        "max": 200,
+        "avg": 183.333
+      },
+      "p95Us": {
+        "count": 6,
+        "min": 500,
+        "median": 650,
+        "p95": 1012.5,
+        "max": 1100,
+        "avg": 691.667
+      },
+      "p99Us": {
+        "count": 6,
+        "min": 2650,
+        "median": 3200,
+        "p95": 3200,
+        "max": 3200,
+        "avg": 3108.333
+      },
+      "overruns": {
+        "count": 6,
+        "min": 11,
+        "median": 15.5,
+        "p95": 17.75,
+        "max": 18,
+        "avg": 14.833
+      },
+      "itemEvals": {
+        "count": 6,
+        "min": 0,
+        "median": 0,
+        "p95": 0,
+        "max": 0,
+        "avg": 0
+      },
+      "blockEvals": {
+        "count": 6,
+        "min": 0,
+        "median": 0,
+        "p95": 0,
+        "max": 0,
+        "avg": 0
+      },
+      "raycasts": {
+        "count": 6,
+        "min": 0,
+        "median": 0,
+        "p95": 0,
+        "max": 0,
+        "avg": 0
+      },
+      "raycastsDeferred": {
+        "count": 6,
+        "min": 0,
+        "median": 0,
+        "p95": 0,
+        "max": 0,
+        "avg": 0
+      },
+      "trackedItems": {
+        "count": 6,
+        "min": 200,
+        "median": 200,
+        "p95": 200,
+        "max": 200,
+        "avg": 200
+      },
+      "trackedItemsAtEnd": 200,
+      "errors": 0,
+      "chunkSanitizedAtEnd": 0,
+      "gatewayStateAtEnd": "ACTIVE"
+    },
+    "heap": {
+      "jvmUsedMB": {
+        "count": 6,
+        "min": 398.5,
+        "median": 566.75,
+        "p95": 743,
+        "max": 762.5,
+        "avg": 570.417
+      },
+      "jvmTotalMB": {
+        "count": 6,
+        "min": 1024,
+        "median": 1024,
+        "p95": 1024,
+        "max": 1024,
+        "avg": 1024
+      },
+      "sparkUsedMB": null,
+      "sparkMaxMB": null,
+      "serverWorkingSetMB": {
+        "count": 6,
+        "min": 1466.7,
+        "median": 1473.15,
+        "p95": 1475,
+        "max": 1475.1,
+        "avg": 1471.667
+      },
+      "paperHeapUsedMB": null,
+      "paperHeapNote": "Paper 1.21.4 /paper heap writes a .hprof dump and does not print used/max MB; used/max heap is measured by /spark health and jcmd GC.heap_info"
+    },
+    "hostCpuPct": {
+      "count": 6,
+      "min": 38.1,
+      "median": 49.35,
+      "p95": 66.875,
+      "max": 71.4,
+      "avg": 50.033
+    },
+    "bots": {
+      "spawned": 10,
+      "requested": 10,
+      "spawnedPct": 100,
+      "finalAlive": 10,
+      "finalSpawned": 10,
+      "finalFailed": 0,
+      "totalPackets": 18149,
+      "totalBytes": 9645087
+    },
+    "soak": null
+  },
+  "cleanup": {
+    "reason": "normal",
+    "steps": [
+      {
+        "step": "bot-worker",
+        "worker": 1,
+        "graceful": true,
+        "exitCode": 0
+      },
+      {
+        "step": "paper-stop",
+        "graceful": true,
+        "exitCode": 0
+      }
+    ],
+    "rconStopResponse": "Stopping the server",
+    "ports": {
+      "25600": {
+        "free": true,
+        "ownerPids": []
+      },
+      "25601": {
+        "free": true,
+        "ownerPids": []
+      }
+    },
+    "portsAllFree": true
+  },
+  "limitations": [],
+  "server": {
+    "serverDir": "D:\\Aegishider\\bench\\load-server",
+    "paperJar": "D:\\Aegishider\\bench\\load-server\\paper-1.21.4.jar",
+    "paperJarSizeBytes": 51437498,
+    "aegishider": {
+      "source": "D:\\Aegishider\\dist\\Aegishider-3.2.0.jar",
+      "sourceName": "Aegishider-3.2.0.jar",
+      "selectionPolicy": "preferred-final-3.2.0",
+      "target": "D:\\Aegishider\\bench\\load-server\\plugins\\Aegishider.jar",
+      "sourceSha256": "cf3cc53e7529e35b7dbc801773eba3bf8c8d02dc7e0028cf89bbe3aa1191808c",
+      "targetSha256": "cf3cc53e7529e35b7dbc801773eba3bf8c8d02dc7e0028cf89bbe3aa1191808c",
+      "sizeBytes": 6797418
+    },
+    "aegishiderConfig": null,
+    "packetEvents": {
+      "target": "D:\\Aegishider\\bench\\load-server\\plugins\\PacketEvents.jar",
+      "source": "existing",
+      "sizeBytes": 5723413
+    },
+    "serverPropertiesPath": "D:\\Aegishider\\bench\\load-server\\server.properties",
+    "propertiesBefore": null,
+    "propertiesApplied": {
+      "allow-end": "false",
+      "allow-flight": "true",
+      "allow-nether": "false",
+      "difficulty": "peaceful",
+      "enable-rcon": "true",
+      "enforce-secure-profile": "false",
+      "generate-structures": "false",
+      "generator-settings": "{\"layers\":[{\"block\":\"minecraft:bedrock\",\"height\":1},{\"block\":\"minecraft:dirt\",\"height\":2},{\"block\":\"minecraft:grass_block\",\"height\":1}],\"biome\":\"minecraft:plains\"}",
+      "level-name": "world",
+      "level-seed": "123456789",
+      "level-type": "minecraft:flat",
+      "max-players": "20",
+      "motd": "Aegishider load test smoke10-200",
+      "network-compression-threshold": "-1",
+      "online-mode": "false",
+      "pause-when-empty-seconds": "-1",
+      "player-idle-timeout": "0",
+      "pvp": "false",
+      "rate-limit": "0",
+      "rcon.password": "itest-rcon-pass",
+      "rcon.port": "25600",
+      "server-ip": "127.0.0.1",
+      "server-port": "25601",
+      "simulation-distance": "4",
+      "spawn-animals": "false",
+      "spawn-monsters": "false",
+      "spawn-npcs": "false",
+      "spawn-protection": "0",
+      "sync-chunk-writes": "false",
+      "view-distance": "4"
+    },
+    "maxPlayers": 20,
+    "mainClass": "paper-1.21.4.jar",
+    "javaArgs": [
+      "-Xms1G",
+      "-Xmx2G",
+      "-jar",
+      "paper-1.21.4.jar",
+      "--nogui"
+    ],
+    "startedAt": "2026-11-14T05:36:27.489Z",
+    "startupMs": 99907,
+    "logPath": "D:\\Aegishider\\bench\\load-server-smoke10-200.log",
+    "pid": 23044,
+    "pluginStartupLines": [
+      "[12:37:17 INFO]: [PluginRemapper] Remapping plugin 'plugins\\Aegishider.jar'...",
+      "[12:37:19 INFO]: [PluginRemapper] Done remapping plugin 'plugins\\Aegishider.jar' in 2163ms.",
+      "[12:37:56 INFO]: [packetevents] Loading server plugin packetevents v2.14.0",
+      "[12:38:02 INFO]: [packetevents] Loaded packetevents v2.14.0",
+      "[12:38:02 INFO]: [Aegishider] Loading server plugin Aegishider v3.2.0",
+      "[12:38:06 INFO]: [packetevents] Enabling packetevents v2.14.0",
+      "[12:38:06 INFO]: [Aegishider] Enabling Aegishider v3.2.0",
+      "[12:38:06 INFO]: [Aegishider] Packet gateway ACTIVE: PacketEvents 2.14.0 active on V_1_21_4",
+      "[12:38:06 INFO]: [Aegishider] Aegishider 3.2.0 enabled | worlds=0 | packet-gateway=ACTIVE (PacketEvents 2.14.0 active on V_1_21_4) | block-protection=ACTIVE | item-protection=ACTIVE | known-protected-blocks=0 | async-threads=4",
+      "[12:38:07 INFO]: Done (67.873s)! For help, type \"help\""
+    ],
+    "packetEventsVersion": "2.14.0",
+    "rconConnected": true
+  },
+  "finishedAt": "2026-11-14T05:39:07.732Z",
+  "durationMs": 160991
+}

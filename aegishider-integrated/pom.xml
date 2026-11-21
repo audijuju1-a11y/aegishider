@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dev.audismp</groupId>
+    <artifactId>Aegishider</artifactId>
+    <version>4.0.2</version>
+    <packaging>jar</packaging>
+    <name>Aegishider</name>
+
+    <repositories>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>codemc</id>
+            <url>https://repo.codemc.io/repository/maven-releases/</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        <junit.version>5.11.4</junit.version>
+        <!-- Default target; per-version profiles below override these two. -->
+        <paper.version>1.21.4-R0.1-SNAPSHOT</paper.version>
+        <mc.suffix>mc1.21.4</mc.suffix>
+    </properties>
+
+    <dependencies>
+        <!-- Paper 1.21.4 API (provided by the server) -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${paper.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--
+          PacketEvents API (GPL-3.0, provided at runtime by the PacketEvents plugin).
+          NOT shaded: the server must install the PacketEvents plugin. PacketEvents gives us
+          outgoing-packet interception, which is the only way to stop container/chunk data
+          from ever reaching a client that is not allowed to see it.
+        -->
+        <dependency>
+            <groupId>com.github.retrooper</groupId>
+            <artifactId>packetevents-api</artifactId>
+            <version>2.14.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- FastUtil (Apache-2.0, shaded + relocated): primitive collections in hot paths -->
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil-core</artifactId>
+            <version>8.5.13</version>
+        </dependency>
+
+        <!-- Test scoped -->
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>Aegishider-${project.version}-${mc.suffix}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                    <compilerArgs>
+                        <arg>-Xlint:all,-processing,-serial,-classfile</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                    <failIfNoTests>true</failIfNoTests>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>it.unimi.dsi.fastutil</pattern>
+                                    <shadedPattern>dev.audismp.aegishider.libs.fastutil</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/maven/**</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>build.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>build.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>mc1211</id>
+            <properties>
+                <paper.version>1.21.1-R0.1-SNAPSHOT</paper.version>
+                <mc.suffix>mc1.21.1</mc.suffix>
+            </properties>
+        </profile>
+        <profile>
+            <id>mc1214</id>
+            <properties>
+                <paper.version>1.21.4-R0.1-SNAPSHOT</paper.version>
+                <mc.suffix>mc1.21.4</mc.suffix>
+            </properties>
+        </profile>
+        <profile>
+            <id>mc1215</id>
+            <properties>
+                <paper.version>1.21.5-R0.1-SNAPSHOT</paper.version>
+                <mc.suffix>mc1.21.5</mc.suffix>
+            </properties>
+        </profile>
+        <profile>
+            <id>mc12111</id>
+            <properties>
+                <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
+                <mc.suffix>mc1.21.11</mc.suffix>
+            </properties>
+        </profile>
+        <profile>
+            <id>mc261</id>
+            <properties>
+                <!-- paper-api 26.x ships Java 25 class files; javac must target 25. -->
+                <maven.compiler.release>25</maven.compiler.release>
+                <paper.version>26.1.2.build.74-stable</paper.version>
+                <mc.suffix>mc26.1</mc.suffix>
+            </properties>
+        </profile>
+        <profile>
+            <id>mc263</id>
+            <properties>
+                <!-- paper-api 26.x ships Java 25 class files; javac must target 25. -->
+                <maven.compiler.release>25</maven.compiler.release>
+                <paper.version>26.3.build.256-stable</paper.version>
+                <mc.suffix>mc26.3</mc.suffix>
+            </properties>
+        </profile>
+    </profiles>
+</project>

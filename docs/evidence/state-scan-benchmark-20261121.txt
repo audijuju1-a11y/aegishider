@@ -1,0 +1,8 @@
+State-only BOOKSHELF scan benchmark
+date: 2026-11-21
+command: mvn -B -Pmc1214 verify (PerformanceBenchmarkTest, Java 21, 8 CPUs)
+note: 24 sections = 98,304 block states per chunk; ns/chunk from the in-JVM test
+BENCH stateScan sections=24 blocksPerChunk=98304
+BENCH stateScan.prefilterSkip = 3970.16 ns/chunk (sections=24, scanned=0, blocksRead=0)
+BENCH stateScan.oneMatchingSection = 52084.59 ns/chunk (sections=24, scanned=1, blocksRead=4096)
+BENCH stateScan.fallbackFullChunk = 2414054.36 ns/chunk (sections=24, scanned=24, blocksRead=98304)

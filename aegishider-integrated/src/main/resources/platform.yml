@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------------------
+# Aegishider Platform client
+#
+# Connects this server to an Aegishider Control Platform instance for licence
+# leases and optional telemetry. Disabled by default: set enabled: true and
+# api-base-url to opt in. The security core never waits for this service and
+# never becomes fail-open because of it.
+# ---------------------------------------------------------------------------
+
+enabled: true
+
+# Base URL of the platform, without a trailing slash.
+# The plugin calls this API directly (redirects are disabled for security).
+api-base-url: "https://basehider-platform.audijuju1.workers.dev"
+
+# Product slug registered on the platform.
+product: aegishider
+
+# Server name reported to the platform for pairing and abuse tracking.
+# Leave empty to report "<server software>:<port>" automatically.
+server-name: ""
+
+# Optional anti-tamper pin: SHA-256 of the release jar. When set, the plugin
+# verifies its own jar at startup and reports integrity.mismatch telemetry on a
+# different build. Leave empty to only display the hash in /aegishider license status.
+integrity:
+  jar-sha256: ""
+  # Extra pinned Ed25519 public-key fingerprint (SHA-256 of SPKI DER) for a planned
+  # key rotation. The production key (prod-1 / 7ba972af…) is pinned in the jar too.
+  trusted-key-sha256: ""
+
+# warn    = verify and report problems but keep protection active.
+# enforce = protection stays DISABLED until a signed lease is active. Activation
+#           happens in the web portal: /aegishider license link -> enter code ->
+#           /aegishider license refresh. This is the product default.
+enforcement: enforce
+
+# Trial period from first identity creation before a lease is required.
+trial-days: 7
+
+# Lease refresh and heartbeat cadence.
+lease-refresh-minutes: 60
+heartbeat-minutes: 3
+
+# HTTP connect/request timeout.
+request-timeout-seconds: 15
+
+# Telemetry is optional and aggregate-only.
+telemetry:
+  enabled: true
+  max-buffer: 500
+  batch-max: 50
+  flush-seconds: 60

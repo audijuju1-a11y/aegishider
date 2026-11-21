@@ -1,0 +1,28 @@
+# Minecraft test servers and downloaded caches
+.work/
+
+# Build output and local toolchains: rebuild these, never commit them
+/dist/
+/bench/
+/.tools/
+/aegishider-integrated/target/
+/site/.qa/
+
+# Local secret material written by scripts/cf-prod-secrets.mjs
+.prod-secrets.json
+*.secrets.json
+
+# Local packaging output (release archives, never committed)
+/artifacts/
+.release/
+
+# Local wrangler state and compiled helper classes
+.wrangler/
+**/.wrangler/
+/tools/stringcrypt/classes/
+
+# Dependencies and local environment files
+node_modules/
+**/node_modules/
+.dev.vars
+**/.dev.vars

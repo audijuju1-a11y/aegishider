@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Disallow: /download/
+
+Sitemap: https://aegishider.pages.dev/sitemap.xml

@@ -1,0 +1,5 @@
+# Generated test artifacts and heavy downloads are not source.
+server/
+out/
+.cache/
+bot/node_modules/

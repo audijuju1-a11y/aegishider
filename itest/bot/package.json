@@ -1,0 +1,15 @@
+{
+    "private":  true,
+    "name":  "aegishider-itest-bot",
+    "version":  "1.0.0",
+    "type":  "commonjs",
+    "dependencies":  {
+                         "minecraft-data":  "^3.119.0",
+                         "minecraft-protocol":  "1.68.0"
+                     },
+    "scripts":  {
+                    "self-test":  "node lib/chunk-decoder.js --self-test",
+                    "capture":  "node capture-bot.js",
+                    "itest":  "node scenario-driver.js"
+                }
+}

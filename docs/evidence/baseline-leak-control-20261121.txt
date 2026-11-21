@@ -1,0 +1,31 @@
+Baseline leak control A-I (Paper 1.21.4, wiped world, harness --baseline mode)
+date: 2026-11-21
+
+Documented baseline jar
+  path: itest/.cache/baseline-Aegishider.jar
+  plugin: BaseHider 3.0.0
+  sha256: 8fa4c379422f8218d52dc2e70210529accbb7a39c80971c9d14900086f86cd75
+  status: NOT available in this workspace. itest/.cache is gitignored and the jar was
+  never committed; the repository history only contains BaseHider 3.2.0/3.6.x builds.
+
+Substitute checked first (rejected)
+  dist/BaseHider-3.2.0.jar, sha256 f2ca7a488d358d5b5db32394b9ebb787af27dd4938dcb3019dee9431e35baf79
+  loaded: [BaseHider] Loading server plugin BaseHider v3.2.0
+  A=HIDDEN, C=HIDDEN -> 3.2.0 already hides items and chunk containers, so it is not
+  a leak baseline and cannot validate the detector.
+
+Leak control used instead
+  Same Aegishider 4.0.0 jar (sha256 7349d3ab...), world protection module disabled
+  (worlds.default.enabled=false). The packet stream is therefore vanilla, while the
+  settle gate, chunks.pack capture, chunk decoder and client registry checks are the
+  same code paths as the normal run.
+  run-20261121-081442-397: baseline mode PASS 9/9
+    A LEAK, B VISIBLE, C LEAK, D LEAK, E DIRTY_REGISTRY, F CACHE_LEAK,
+    G CROSS_FLOOR_VISIBLE, H LEAK, I CACHE_LEAK
+    boot=16147ms, settle=35811ms (captureQuiet=true, stallLines=0, timedOut=false)
+    server log: "Can't keep up"/"has not responded" = 0
+  report: itest/out/report-20261121-081442-397.json
+
+Conclusion: the world-settle gate and the single-pack chunk capture do not hide real
+leaks. On a wiped world the detector still reports A/C/D as LEAK (and E/F/G/H/I as the
+expected baseline outcomes) exactly as the 3.0.0 baseline did.

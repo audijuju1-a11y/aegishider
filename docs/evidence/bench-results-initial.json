@@ -1,0 +1,193 @@
+{
+  "runAt": "2026-11-14T04:23:22.096Z",
+  "results": [
+    {
+      "label": "A-baseline-disabled",
+      "mode": {
+        "label": "A-baseline-disabled",
+        "plugin": false,
+        "items": 0
+      },
+      "botPosition": {
+        "x": -6.5,
+        "y": -60,
+        "z": 9.5,
+        "yaw": 0,
+        "pitch": 0
+      },
+      "idle": {
+        "spark": {
+          "raw": "",
+          "tps": null,
+          "mspt": null
+        }
+      },
+      "items": {},
+      "spark": {},
+      "plugin": {
+        "diag": {
+          "tickLastUs": null,
+          "tickAvgUs": null,
+          "tickMaxUs": null,
+          "overruns": null,
+          "raycasts": null,
+          "trackedItems": null,
+          "itemEvaluations": null,
+          "chunkSanitized": null,
+          "errors": null
+        },
+        "installed": true
+      }
+    },
+    {
+      "label": "B-plugin-idle",
+      "mode": {
+        "label": "B-plugin-idle",
+        "plugin": true,
+        "items": 0
+      },
+      "botPosition": {
+        "x": -6.5,
+        "y": -60,
+        "z": 9.5,
+        "yaw": 0,
+        "pitch": 0
+      },
+      "idle": {
+        "spark": {
+          "raw": "",
+          "tps": null,
+          "mspt": null
+        }
+      },
+      "items": {},
+      "spark": {},
+      "plugin": {
+        "diag": {
+          "tickLastUs": 64,
+          "tickAvgUs": 372,
+          "tickMaxUs": 36521,
+          "overruns": 8,
+          "raycasts": 0,
+          "trackedItems": 0,
+          "itemEvaluations": null,
+          "chunkSanitized": 0,
+          "errors": 0
+        },
+        "installed": true
+      }
+    },
+    {
+      "label": "C-plugin-items300",
+      "mode": {
+        "label": "C-plugin-items300",
+        "plugin": true,
+        "items": 300
+      },
+      "botPosition": {
+        "x": -6.5,
+        "y": -60,
+        "z": 9.5,
+        "yaw": 0,
+        "pitch": 0
+      },
+      "idle": {
+        "spark": {
+          "raw": "",
+          "tps": null,
+          "mspt": null
+        }
+      },
+      "items": {
+        "spawned": 300,
+        "diag": {
+          "tickLastUs": 102,
+          "tickAvgUs": 860,
+          "tickMaxUs": 138737,
+          "overruns": 126,
+          "raycasts": 462,
+          "trackedItems": 300,
+          "itemEvaluations": null,
+          "chunkSanitized": 0,
+          "errors": 0
+        },
+        "spark": {
+          "raw": "",
+          "tps": null,
+          "mspt": null
+        }
+      },
+      "spark": {},
+      "plugin": {
+        "diag": {
+          "tickLastUs": 80,
+          "tickAvgUs": 488,
+          "tickMaxUs": 51335,
+          "overruns": 8,
+          "raycasts": 0,
+          "trackedItems": 0,
+          "itemEvaluations": null,
+          "chunkSanitized": 0,
+          "errors": 0
+        },
+        "installed": true
+      }
+    },
+    {
+      "label": "D-plugin-items800",
+      "mode": {
+        "label": "D-plugin-items800",
+        "plugin": true,
+        "items": 800
+      },
+      "botPosition": {
+        "x": -6.5,
+        "y": -60,
+        "z": 9.5,
+        "yaw": 0,
+        "pitch": 0
+      },
+      "idle": {
+        "spark": {
+          "raw": "",
+          "tps": null,
+          "mspt": null
+        }
+      },
+      "items": {
+        "spawned": 800,
+        "diag": {
+          "tickLastUs": 237,
+          "tickAvgUs": 348,
+          "tickMaxUs": 21110,
+          "overruns": 41,
+          "raycasts": 1365,
+          "trackedItems": 800,
+          "itemEvaluations": null,
+          "chunkSanitized": 0,
+          "errors": 0
+        },
+        "spark": {
+          "raw": "",
+          "tps": null,
+          "mspt": null
+        }
+      },
+      "spark": {},
+      "plugin": {
+        "diag": {
+          "tickLastUs": 90,
+          "tickAvgUs": 258,
+          "tickMaxUs": 21110,
+          "overruns": 6,
+          "raycasts": 0,
+          "trackedItems": 0,
+          "itemEvaluations": null,
+          "chunkSanitized": 0,
+          "errors": 0
+        },
+        "installed": true
+      }
+    }
+  ]
+}

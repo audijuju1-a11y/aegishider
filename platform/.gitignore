@@ -1,0 +1,12 @@
+node_modules/
+.wrangler/
+.dev.vars
+dist/
+coverage/
+.qa/
+*.log
+.DS_Store
+
+# Local secret material written by scripts/cf-prod-secrets.mjs
+.prod-secrets.json
+*.secrets.json

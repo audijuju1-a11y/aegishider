@@ -1,0 +1,281 @@
+# ---------------------------------------------------------------------------
+# Aegishider 4.0.0 - server-side anti-ESP visibility control
+#
+# Security model: FAIL-CLOSED.
+#   * A protected block/entity is hidden from a viewer unless the visibility
+#     policy explicitly proves it is allowed to be sent.
+#   * Unknown state, disabled module, missing packet gateway, timeout, error
+#     and queue pressure all keep data hidden - never the opposite.
+#
+# Packet gateway requirement:
+#   Block/container/chunk protection is only possible by rewriting outgoing
+#   packets. That requires the PacketEvents plugin to be installed. If it is
+#   absent, Aegishider disables block protection entirely (and says so in logs
+#   and /aegishider status) instead of sending data first and patching later.
+#   Entity/item protection uses Paper's native per-player entity visibility
+#   API and works without PacketEvents (packet-level checks are added when the
+#   gateway is active).
+# ---------------------------------------------------------------------------
+
+security:
+  # Keep true in production. There is no "fast but unsafe" mode.
+  fail-closed: true
+  # Refuse to start protection when the JVM has a debugger/agent attached
+  # (JDWP, -Xdebug, -agentlib, -javaagent, JMX remote). Server owners who
+  # intentionally attach a profiler can set allow-debug: true.
+  anti-debug: true
+  allow-debug: false
+  packet-gateway:
+    # Minimum PacketEvents version that is known to expose the APIs Aegishider
+    # uses (chunk column / block state rewriting, packet cancellation).
+    minimum-version: "2.14.0"
+  # Global per-tick time budget for Aegishider's main-thread security work.
+  # Work is sliced and deferred when the budget is exceeded; visibility
+  # decisions are never skipped, only delayed by at most a few ticks.
+  main-thread-budget-ms: 1.5
+  # Shared raycast budget per tick for block occlusion + entity occlusion.
+  # Raise for large storage bases if visible-blocks reveal feels slow; lower to
+  # reduce CPU. 0 = no raycasts (everything stays hidden - fail-closed).
+  raycast-budget-per-tick: 180
+
+worlds:
+  # Settings under "default" apply to every world that is not explicitly
+  # listed below. Add e.g. "world_nether:" with the same structure to override.
+  default:
+    enabled: true
+    bypass-permission: aegishider.bypass
+
+    block-protection:
+      enabled: true
+      # These blocks are hidden at packet level. They are discovered from real
+      # block-entity data (natural structures included) and tracked on place/
+      # break/explosion/piston events plus a background reconciliation sweep.
+      # Tile-entity backed materials are the normal path. Plain BOOKSHELF is the
+      # explicit non-tile-entity exception; other unsupported entries are rejected
+      # with a console warning instead of being silently ignored.
+      # Loot-bearing containers and storage tiles are hidden by default. Public or
+      # decorative landmarks are opt-in: BEACON and plain BOOKSHELF are intentionally
+      # not hidden out of the box because they are common in spawn hubs and libraries.
+      # Add them under hidden-blocks when a base world wants them covered.
+      # ANVIL, SMITHING_TABLE and similar non-tile-entity workstations are rejected
+      # with a warning instead of being silently unprotected. Note blocks and jukeboxes
+      # stay out by default: they are decorative and made redstone/music builds look
+      # broken without revealing base loot.
+      hidden-blocks:
+        - CHEST
+        - TRAPPED_CHEST
+        - BARREL
+        - ENDER_CHEST
+        - ENCHANTING_TABLE
+        - SHULKER_BOX
+        - WHITE_SHULKER_BOX
+        - ORANGE_SHULKER_BOX
+        - MAGENTA_SHULKER_BOX
+        - LIGHT_BLUE_SHULKER_BOX
+        - YELLOW_SHULKER_BOX
+        - LIME_SHULKER_BOX
+        - PINK_SHULKER_BOX
+        - GRAY_SHULKER_BOX
+        - LIGHT_GRAY_SHULKER_BOX
+        - CYAN_SHULKER_BOX
+        - PURPLE_SHULKER_BOX
+        - BLUE_SHULKER_BOX
+        - BROWN_SHULKER_BOX
+        - GREEN_SHULKER_BOX
+        - RED_SHULKER_BOX
+        - BLACK_SHULKER_BOX
+        - HOPPER
+        - DROPPER
+        - DISPENSER
+        - FURNACE
+        - BLAST_FURNACE
+        - SMOKER
+        - BREWING_STAND
+        - SPAWNER
+        - TRIAL_SPAWNER
+        - VAULT
+        - CRAFTER
+        - DECORATED_POT
+        - CHISELED_BOOKSHELF
+        - LECTERN
+        # Opt-in (public landmarks):
+        # - BEACON
+        # - BOOKSHELF
+      # CONTEXTUAL = mimic the surrounding blocks (grass/dirt/stone/wall material); STONE = fixed
+      replace-with: CONTEXTUAL
+
+      # Blocks become visible to a viewer when they are close and not occluded. Once
+      # seen, they stay visible while the viewer remains close (prevents flicker); they
+      # are hidden again when the viewer leaves, the chunk is resent, or the world changes.
+      reveal:
+        # 24 blocks: containers stay real across a normal room or yard, so they stop
+        # popping when the player turns or takes a step back. Everything beyond this
+        # radius is still replaced before it reaches the client, and a clear line of
+        # sight is still required, so through-wall xray reads are unchanged.
+        max-distance: 24.0
+        # 360 = FOV gate disabled (recommended). A third-person front view (F5 twice)
+        # legitimately shows the world behind the player, and a narrow cone would hide
+        # blocks that are visibly on screen. 180 keeps the front hemisphere; 120 is the
+        # old narrow cone and will show fake blocks at the edge of a wide screen.
+        fov-degrees: 360.0
+        keep-distance-factor: 1.6
+        # Re-raycast revealed blocks when the viewer moved this far (blocks).
+        recheck-move-blocks: 4
+      # Background reconciliation sweep: catches blocks changed by plugins,
+      # commands or mechanics that do not fire a Bukkit block event.
+      reconcile:
+        enabled: true
+        chunks-per-second: 20
+        # Only chunks within this many chunks of a player are reconciled.
+        player-radius-chunks: 8
+
+    item-protection:
+      enabled: true
+      # Entity types hidden by default and only revealed through the same
+      # distance/line-of-sight policy. This is the anti-entity-ESP list.
+      # ITEM covers every dropped item (player, mob, block, natural, custom,
+      # enchanted, shulker contents...). Hostile monsters are listed so the
+      # behaviour stays obvious even when hide-all-living-entities is disabled.
+      # Players are handled by player-protection below.
+      hidden-entity-types:
+        - ITEM
+        - ITEM_FRAME
+        - GLOW_ITEM_FRAME
+        - ARMOR_STAND
+        - CHEST_MINECART
+        - HOPPER_MINECART
+        - FURNACE_MINECART
+        - TNT_MINECART
+        - ZOMBIE
+        - ZOMBIE_VILLAGER
+        - HUSK
+        - DROWNED
+        - SKELETON
+        - STRAY
+        - BOGGED
+        - WITHER_SKELETON
+        - CREEPER
+        - SPIDER
+        - CAVE_SPIDER
+        - ENDERMAN
+        - WITCH
+        - PILLAGER
+        - VINDICATOR
+        - EVOKER
+        - RAVAGER
+        - VEX
+        - ZOMBIFIED_PIGLIN
+        - PIGLIN
+        - PIGLIN_BRUTE
+        - HOGLIN
+        - ZOGLIN
+        - BLAZE
+        - GHAST
+        - MAGMA_CUBE
+        - SLIME
+        - PHANTOM
+        - SHULKER
+        - GUARDIAN
+        - ELDER_GUARDIAN
+        - WARDEN
+        - WITHER
+        - ENDER_DRAGON
+        - IRON_GOLEM
+      reveal:
+        # Dropped items follow the same rule as containers: 24 blocks keeps normal
+        # pickups/loot visible without handing cheats a wallhack (LOS still applies).
+        max-distance: 24.0
+        # 360 = FOV gate disabled; see block-protection.reveal.fov-degrees above.
+        fov-degrees: 360.0
+        # The thrower sees their own item only for the first 2 seconds or within 8 blocks
+        # (bounded on purpose: an unbounded owner exemption would keep own items in ESP).
+        owner-grace: true
+      # Living mobs (monsters, slimes, golems, the dragon): hide only when a wall or
+      # terrain blocks the line of sight. Distance and FOV are ignored, so turning around
+      # never makes them pop in/out. Both the centre and the head are sampled, and anything
+      # within 4 blocks is always shown, so a mob peeking over a fence/ledge or fighting you
+      # never blinks out. Items, minecarts, armor stands and item frames keep the strict
+      # distance + line-of-sight policy (those are the real loot/base ESP targets).
+      # Set false to restore the strict policy for every entity type.
+      monster-occlusion-only: true
+      monster-max-distance: 96.0
+      # Protect every living entity (monsters, animals, villagers, golems, allays,
+      # armor stands...) without listing each type. Farms, animal pens and villagers
+      # inside a hidden base are never sent to a viewer that is not supposed to see
+      # that base. Players are handled by player-protection below.
+      hide-all-living-entities: true
+      # Re-evaluate item visibility every N ticks.
+      update-interval-ticks: 2
+
+    # Player-vs-player entity visibility (anti player-ESP). The vertical height shield
+    # below is independent and stays active even when the distance layer is off.
+    # distance-hiding is opt-in: when true, players in the 24-48 block band are hidden
+    # through walls unless the target has a clear line of sight. It is off by default so
+    # normal same-floor play never loses a player behind a fence, slab or a fast turn.
+    player-protection:
+      enabled: true
+      distance-hiding: false
+      hide-distance: 48.0
+      always-visible-distance: 24.0
+      # 360 = FOV gate disabled (recommended); see the F5/fast-turn explanation above.
+      fov-degrees: 360.0
+      require-line-of-sight: true
+      team-aware: true
+      combat-grace-seconds: 8
+      update-interval-ticks: 4
+    # Vertical (Y) separation shield for players and living entities (monsters,
+    # animals, villagers, golems...). A player or mob on another floor is never sent
+    # to the viewer, even when the line of sight is clear, so a base at y=-50 is
+    # invisible from the surface and the surface is invisible from inside the base.
+    # Same-floor gameplay is unaffected: a normal floor/step is 0-2 blocks of
+    # difference. Dropped items, item frames and minecarts are NOT affected; they
+    # keep the block/item distance + line-of-sight policy.
+    entity-height-shield:
+      enabled: true
+      # Maximum eye-to-entity vertical gap (blocks) that can still be visible.
+      # Raise it for tall multi-floor bases; lower it for stricter floor separation.
+      max-vertical-distance: 16.0
+      # The vertical gap only hides when the lower side is clearly below this Y and the
+      # upper side is clearly above it. This keeps a deep base hidden from the surface,
+      # while a ravine/mineshaft at y=40 vs y=70, mountains, towers and elytra flight
+      # remain visible when both players can actually see each other.
+      underground-y: 50.0
+      # Dead band around underground-y; lower the margin only if you want stricter floor
+      # separation. Set underground-y: 512 to restore the old always-on vertical band.
+      band-margin: 12.0
+    # Distance-only Y-level shield: while the viewer is above hide-below-y, chunks farther
+    # than real-chunk-radius are sent with every section below hide-below-y replaced by
+    # solid filler. This hides natural caves and deep bases from the surface / cheat ESP
+    # while keeping nearby chunks (and any cave the player actually enters) real.
+    y-shield:
+      enabled: false
+      hide-below-y: 40
+      real-chunk-radius: 4
+      filler: STONE
+    # Tunnel / dug-hole shield: remember mined blocks and send the original material to
+    # distant viewers instead of the new air, so cheat clients cannot see player-dug
+    # tunnels/holes. When a viewer comes within hide-radius, the real air is revealed.
+    tunnel-shield:
+      enabled: false
+      hide-radius: 28.0
+      max-tracked-breaks: 50000
+# Optional, non-enforcing analytics. They never alter visibility decisions and
+# never ban/kick automatically. Alerts go to players with aegishider.admin.
+analytics:
+  mining:
+    enabled: false
+    xray-ore-rate-threshold-percent: 5.0
+    min-samples: 200
+    tunnel-streak-blocks: 24
+    alert-cooldown-seconds: 120
+  raid:
+    enabled: false
+    alert-cooldown-seconds: 300
+
+debug:
+  # Log one line per blocked packet category (rate limited). Keep false in prod.
+  log-blocked-packets: false
+  # Log a warning when the per-tick budget is exceeded (rate limited).
+  log-budget-overruns: true
+  # Dump stack traces for internal security errors. Always logged at SEVERE.
+  verbose-errors: false

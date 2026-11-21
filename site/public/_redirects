@@ -1,0 +1,21 @@
+# The Pages project is a static mirror of the platform homepage. Application
+# routes, auth and downloads live on the Worker; keep old links working.
+/plugins      https://basehider-platform.audijuju1.workers.dev/plugins      301
+/plugins/*    https://basehider-platform.audijuju1.workers.dev/plugins/:splat 301
+/docs         https://basehider-platform.audijuju1.workers.dev/docs         301
+/docs/*       https://basehider-platform.audijuju1.workers.dev/docs/:splat  301
+/auth/*       https://basehider-platform.audijuju1.workers.dev/auth/:splat  301
+/app/*        https://basehider-platform.audijuju1.workers.dev/app/:splat   301
+/admin/*      https://basehider-platform.audijuju1.workers.dev/admin/:splat 301
+/legal/*      https://basehider-platform.audijuju1.workers.dev/legal/:splat 301
+/release/*    https://basehider-platform.audijuju1.workers.dev/release/:splat 301
+/api/*        https://basehider-platform.audijuju1.workers.dev/api/:splat   301
+/support      https://basehider-platform.audijuju1.workers.dev/support      301
+/contact      https://basehider-platform.audijuju1.workers.dev/contact      301
+/status       https://basehider-platform.audijuju1.workers.dev/status       301
+/pricing      https://basehider-platform.audijuju1.workers.dev/pricing      301
+/changelog    https://basehider-platform.audijuju1.workers.dev/changelog    301
+/jar          https://basehider-platform.audijuju1.workers.dev/release/rel_ag_402_mc12111/download 301
+/latest.jar   https://basehider-platform.audijuju1.workers.dev/release/rel_ag_402_mc12111/download 301
+/download     https://basehider-platform.audijuju1.workers.dev/plugins/aegishider 301
+/download/    https://basehider-platform.audijuju1.workers.dev/plugins/aegishider 301

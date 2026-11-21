@@ -1,0 +1,35 @@
+Fresh-wipe integration run A-I (Paper 1.21.4, world wiped before every run)
+date: 2026-11-21
+plugin jar sha256=7349d3abe9bda89ab58f4271fa49f6ba119370201b31371111d25d7784adbab1
+loaded build (server log): [Aegishider] Loading server plugin Aegishider v4.0.0
+
+Setup: server/world, server/world_nether and server/world_the_end are removed before
+the driver starts; Paper regenerates the flat world from scratch. No pre-generated
+world is reused and no fixed sleep is added to the scenarios. The driver now installs
+the jar selected with --jar into server/plugins/Aegishider.jar (and drops Paper's
+remapped copy) and records the "Loading server plugin ..." line, so the run cannot
+silently test a leftover build.
+
+Before the harness fix (run-20261121-054009-563, first join on a new world):
+  watchdog thread dumps=9 (server unresponsive for 30-60s+; last stack
+    MoonriseRegionFileIO.scheduleSave, earlier PlayerDataStorage.save)
+  "Can't keep up" lines=2 (last: 120732ms or 2414 ticks behind)
+  capture cost: 9,487 + 2,699 chunk files (~49 MB, 12,186 file creations) written
+    into the same filesystem while Paper was committing the new world
+  outcome: bot timed out, RCON control commands stalled, no report
+
+After the harness fix (chunk pack + bounded world-settle gate):
+  run-20261121-081451-003: A-I PASS, boot=14759ms, settle=35817ms
+    (captureQuiet=true, stallLines=0, timedOut=false), duration=292442ms
+  "Can't keep up" / "has not responded" lines in the server log=0
+  chunk capture cost: one chunks.pack per viewer (22.5 MB + 5.8 MB), zero per-chunk
+    files; GC lines land in the captured console log
+
+Two earlier runs of the same plugin sources (074456-033, 075006-836) also passed A-I
+on wiped worlds with 0 overload lines while the driver still loaded the previous build
+(69b168c5...) from server/plugins; the install step above closes that gap.
+
+Per-scenario, final run: A 6327ms, B 4749ms, C 11751ms, D 166257ms, E 75ms,
+F 10355ms, G 15189ms, H 8098ms, I 10099ms - all PASS.
+
+Reports: itest/out/report-20261121-081943-444.json

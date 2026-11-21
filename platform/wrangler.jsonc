@@ -1,0 +1,89 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "basehider-platform",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "none",
+    "run_worker_first": [
+      "/api/*", "/app/*", "/admin/*", "/auth/*", "/release/*",
+      "/", "/plugins", "/plugins/*", "/pricing", "/docs", "/docs/*",
+      "/changelog", "/changelog/*", "/support", "/contact", "/status",
+      "/about", "/legal", "/legal/*"
+    ]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "triggers": {
+    // hourly cleanup + 5-minute alert evaluation (see src/scheduled.ts)
+    "crons": ["17 * * * *", "*/5 * * * *"]
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "APP_NAME": "Aegishider Control Platform",
+    "APP_URL": "https://basehider-platform.audijuju1.workers.dev",
+    "SESSION_TTL_DAYS": "14",
+    "LEASE_TTL_HOURS": "24",
+    "OFFLINE_GRACE_HOURS": "72",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAGByu5w-kyh8m65O",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "EMAIL_PROVIDER": "none",
+    "MAIL_FROM": "Aegishider <audijuju1@gmail.com>",
+    "SUPPORT_EMAIL": "audijuju1@gmail.com",
+    "ADMIN_EMAILS": "audijuju1@gmail.com",
+    "EMAIL_OTP_TTL_MINUTES": "15",
+    "AUTH_OTP_ENABLED": "false",
+    // Optional HTTP log/alert sink; leave empty for console-only logging.
+    // Put the bearer token in a secret named OBSERVABILITY_WEBHOOK_TOKEN.
+    "OBSERVABILITY_WEBHOOK_URL": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bhcp-db",
+      "database_id": "3d79ce8d-3385-4c2c-8841-584c8e81adde",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "0d94e22e7ef6458c80f00824473d49f1"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARCHIVE",
+      "bucket_name": "bhcp-archive"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "TELEMETRY_QUEUE",
+        "queue": "bhcp-telemetry"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "bhcp-telemetry",
+        "max_batch_size": 25,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+        "dead_letter_queue": "bhcp-telemetry-dlq"
+      },
+      {
+        "queue": "bhcp-telemetry-dlq",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_retries": 1
+      }
+    ]
+  }
+}

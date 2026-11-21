@@ -1,0 +1,64 @@
+# Copy to .dev.vars for local development. NEVER commit real secrets.
+ENVIRONMENT=development
+APP_NAME=Aegishider Control Platform
+APP_URL=http://localhost:8787
+SESSION_TTL_DAYS=14
+LEASE_TTL_HOURS=24
+OFFLINE_GRACE_HOURS=72
+
+# 32+ random bytes, hex or base64. Used as the license-key HMAC pepper.
+LICENSE_KEY_PEPPER=replace-with-32-plus-random-bytes
+# Ed25519 private key, PKCS#8 DER, base64. Generate with: pnpm keygen
+# Also set LICENSE_PUBLIC_KEY to the matching SPKI base64 (scripts/dev-public-key.mjs).
+LICENSE_SIGNING_KEY=
+LICENSE_PUBLIC_KEY=
+LICENSE_SIGNING_KEY_ID=dev-key-1
+
+# Cloudflare Turnstile (production: required)
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET=
+
+# Cloudflare Access is optional; /admin works with an email+password session and a staff role.
+ACCESS_TEAM_DOMAIN=
+ACCESS_AUD=
+
+# Transactional email: console | none | mailchannels
+# Password-only auth: no transactional email provider is required.
+EMAIL_PROVIDER=none
+MAIL_FROM=Aegishider <noreply@example.com>
+SUPPORT_EMAIL=support@example.com
+
+# Development-only admin bootstrap allowlist (ignored in production).
+# /auth/dev-admin stays disabled unless BOTH of these are set; the token must be sent
+# as ?token=... or the x-dev-admin-token header (16+ characters).
+ADMIN_EMAILS=you@example.com
+DEV_BOOTSTRAP=1
+DEV_ADMIN_TOKEN=local-dev-admin-token-change-me
+
+# Optional HTTP sink for warn/error logs and alert transitions. Leave empty for console only.
+# The bearer token is optional; production sets it with: wrangler secret put OBSERVABILITY_WEBHOOK_TOKEN
+OBSERVABILITY_WEBHOOK_URL=
+OBSERVABILITY_WEBHOOK_TOKEN=
+
+# Payment webhook HMAC secret (manual provider does not need it)
+
+# --- Payments (PromptPay top-ups) ---
+# Displayed/served merchant phone. The QR is generated locally; no external service.
+# HMAC secret for the signed bank/provider webhook that confirms incoming money.
+
+# --- Email OTP ---
+EMAIL_OTP_TTL_MINUTES=10
+# Provider "gmail" uses the Gmail API with an OAuth refresh token (not an account password).
+GMAIL_CLIENT_ID=
+GMAIL_CLIENT_SECRET=
+GMAIL_REFRESH_TOKEN=
+GMAIL_SENDER=
+# Optional dedicated pepper for OTP hashes (falls back to LICENSE_KEY_PEPPER).
+OTP_PEPPER=
+# Optional dedicated pepper for hashed IPs (falls back to LICENSE_KEY_PEPPER).
+IP_HASH_PEPPER=
+
+# --- Stripe PromptPay provider (optional) ---
+
+# Temporarily disable the 6-digit OTP flow (email-link and password login remain)
+AUTH_OTP_ENABLED=false

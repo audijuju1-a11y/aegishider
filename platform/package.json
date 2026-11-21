@@ -1,0 +1,36 @@
+{
+  "name": "aegishider-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Aegishider Control Platform — multi-product plugin commerce, licensing, telemetry and operations on Cloudflare",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "db:migrate:local": "wrangler d1 migrations apply bhcp-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply bhcp-db --remote",
+    "db:seed:local": "wrangler d1 execute bhcp-db --local --file=./seed/seed.sql",
+    "db:seed:remote": "wrangler d1 execute bhcp-db --remote --file=./seed/seed.sql",
+    "keygen": "node scripts/generate-signing-key.mjs",
+    "docs:build": "node scripts/build-docs.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node scripts/e2e-license.mjs",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "hono": "4.13.18",
+    "qrcode-generator": "^2.0.4",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.8.2",
+    "@cloudflare/workers-types": "5.20261115.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12",
+    "wrangler": "4.162.0"
+  }
+}

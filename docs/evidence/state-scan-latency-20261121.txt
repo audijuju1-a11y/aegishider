@@ -1,0 +1,23 @@
+State-only BOOKSHELF chunk latency (Paper 1.21.4, localhost, same fixture)
+date: 2026-11-21
+plugin sha256=69b168c592f6a7a184e64145e92f1491fddaf65a99ae8cbe9286e6f596f3339e
+
+C with BOOKSHELF enabled (state scan active):
+  duration=11825ms
+  initialChunkLatencyMs=630
+  resend.chunkLatencyMs=630
+  chestInChunkData=false chestStatesInSection=0 pass=true
+
+C control without BOOKSHELF (state scan disabled, same jar):
+  duration=11858ms
+  initialChunkLatencyMs=631
+  resend.chunkLatencyMs=628
+  chestInChunkData=false chestStatesInSection=0 pass=true
+
+Final jar C/F/H/I:
+  C: {"pass":true,"outcome":"HIDDEN","durationMs":11825,"chunkLatencyMs":630,"resendChunkLatencyMs":630}
+  F: {"pass":true,"outcome":"REVEAL_THEN_REHIDE","durationMs":10282}
+  H: {"pass":true,"outcome":"HIDDEN","durationMs":8068,"hiddenBEs":0,"beaconBeamSource":false}
+  I: {"pass":true,"outcome":"REVEAL_THEN_REHIDE","durationMs":10035,"chunkLatencyMs":628,"arrivalHidden":true,"revealSeen":true,"rehideUpdates":1,"finalState":"stone"}
+
+Reports: itest/out/report-20261121-043735-012.json, report-20261121-043919-084.json

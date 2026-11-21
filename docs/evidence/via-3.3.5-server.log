@@ -1,0 +1,96 @@
+Starting org.bukkit.craftbukkit.Main
+2026-11-15T05:21:55.524086300Z ServerMain WARN Advanced terminal features are not available in this environment
+[12:21:56 INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.13+9-LTS; Eclipse Adoptium Temurin-21.0.13+9) on Windows 11 10.0 (amd64)
+[12:21:56 INFO]: [bootstrap] Loading Paper 1.21.4-232-ver/1.21.4@12d8fe0 (2025-06-09T10:15:42Z) for Minecraft 1.21.4
+[12:21:57 INFO]: [PluginInitializerManager] Initializing plugins...
+[12:21:58 INFO]: [PluginRemapper] Remapping plugin 'plugins\Aegishider.jar'...
+[12:22:03 INFO]: [PluginRemapper] Done remapping plugin 'plugins\Aegishider.jar' in 5230ms.
+[12:22:04 INFO]: [PluginInitializerManager] Initialized 3 plugins
+[12:22:04 INFO]: [PluginInitializerManager] Bukkit plugins (3):
+ - Aegishider (3.3.5), ViaVersion (5.12.2), packetevents (2.14.0)
+[12:22:13 INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[12:22:17 INFO]: Loaded 1370 recipes
+[12:22:17 INFO]: Loaded 1481 advancements
+[12:22:17 INFO]: [MCTypeRegistry] Initialising converters for DataConverter...
+[12:22:17 INFO]: [MCTypeRegistry] Finished initialising converters for DataConverter in 389.7ms
+[12:22:17 INFO]: Starting minecraft server version 1.21.4
+[12:22:17 INFO]: Loading properties
+[12:22:17 INFO]: This server is running Paper version 1.21.4-232-ver/1.21.4@12d8fe0 (2025-06-09T10:15:42Z) (Implementing API version 1.21.4-R0.1-SNAPSHOT)
+[12:22:18 INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[12:22:18 INFO]: Server Ping Player Sample Count: 12
+[12:22:18 INFO]: Using 4 threads for Netty based IO
+[12:22:20 INFO]: [MoonriseCommon] Paper is using 2 worker threads, 1 I/O threads
+[12:22:20 INFO]: [ChunkTaskScheduler] Chunk system is using population gen parallelism: true
+[12:22:20 INFO]: Default game type: CREATIVE
+[12:22:20 INFO]: Generating keypair
+[12:22:20 INFO]: Starting Minecraft server on 127.0.0.1:25599
+[12:22:20 INFO]: Using default channel type
+[12:22:20 INFO]: Paper: Using Java compression from Velocity.
+[12:22:20 INFO]: Paper: Using Java cipher from Velocity.
+[12:22:23 INFO]: [ViaVersion] Loading server plugin ViaVersion v5.12.2
+[12:22:23 INFO]: [ViaVersion] ViaVersion 5.12.2 is now loaded. Registering protocol transformers and injecting...
+[12:22:26 INFO]: [packetevents] Loading server plugin packetevents v2.14.0
+[12:22:27 INFO]: [packetevents] Loading packetevents...
+[12:22:30 INFO]: [packetevents] Loading block mappings for V_26_3/23...
+[12:22:30 INFO]: [packetevents] Finished loading block mappings for V_26_3/23 in 493.6916ms
+[12:22:31 INFO]: [packetevents] Loaded packetevents v2.14.0
+[12:22:31 INFO]: [Aegishider] Loading server plugin Aegishider v3.3.5
+[12:22:31 INFO]: Server permissions file permissions.yml is empty, ignoring it
+[12:22:31 WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[12:22:31 WARN]: The server will make no attempt to authenticate usernames. Beware.
+[12:22:31 WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[12:22:31 WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[12:22:31 INFO]: Preparing level "world"
+[12:22:32 INFO]: Preparing start region for dimension minecraft:overworld
+[12:22:32 INFO]: Preparing spawn area: 0%
+[12:22:33 INFO]: Preparing spawn area: 16%
+[12:22:33 INFO]: Preparing spawn area: 18%
+[12:22:33 INFO]: Time elapsed: 1224 ms
+[12:22:33 INFO]: Preparing start region for dimension minecraft:the_end
+[12:22:33 INFO]: Preparing spawn area: 0%
+[12:22:33 INFO]: Time elapsed: 261 ms
+[12:22:33 INFO]: [ViaVersion] Enabling ViaVersion v5.12.2
+[12:22:33 INFO]: [ViaVersion] ViaVersion detected server version: 1.21.4 (769)
+[12:22:33 WARN]: [ViaVersion] The Vanilla protocol of Minecraft 1.20.5-1.21.4 is exploitable easily. Please consider updating your server to at least 1.21.5.
+[12:22:33 INFO]: [packetevents] Enabling packetevents v2.14.0
+[12:22:33 INFO]: [packetevents] Checking for updates, please wait...
+[12:22:33 INFO]: [Aegishider] Enabling Aegishider v3.3.5
+[12:22:33 INFO]: [Aegishider] Packet gateway ACTIVE: PacketEvents 2.14.0 active on V_1_21_4
+[12:22:34 INFO]: [Aegishider] Aegishider 3.3.5 enabled | worlds=0 | packet-gateway=ACTIVE (PacketEvents 2.14.0 active on V_1_21_4) | block-protection=ACTIVE | item-protection=ACTIVE | known-protected-blocks=0 | async-threads=4
+[12:22:34 INFO]: [packetevents] You are running the latest release: 2.14.0
+[12:22:34 INFO]: [spark] Starting background profiler...
+[12:22:34 INFO]: [spark] The async-profiler engine is not supported for your os/arch (windows11/amd64), so the built-in Java engine will be used instead.
+[12:22:34 INFO]: Done preparing level "world" (3.008s)
+[12:22:34 INFO]: Starting remote control listener
+[12:22:34 INFO]: Thread RCON Listener started
+[12:22:34 INFO]: RCON running on 127.0.0.1:25598
+[12:22:34 INFO]: Running delayed init tasks
+[12:22:34 INFO]: Done (40.787s)! For help, type "help"
+[12:22:34 INFO]: [ViaVersion] Finished mapping loading, shutting down loader executor.
+[12:22:35 INFO]: Thread RCON Client /127.0.0.1 started
+[12:22:35 INFO]: [Aegishider] Reloading Aegishider...
+[12:22:35 INFO]: [Aegishider] Aegishider reloaded (config revision 2, block protection ACTIVE)
+[12:22:36 INFO]: Thread RCON Client /127.0.0.1 shutting down
+[12:22:36 WARN]: [Aegishider] Aegishider tick took 54155 us (budget 1500 us); visibility work is being deferred
+[12:22:40 INFO]: UUID of player ViaTest is afc53a43-78b8-3d49-a229-11f4ca5bd795
+[12:22:41 INFO]: [Aegishider] Viewer ViaTest joined: client=V_26_1, world=world, bypass=false, gateway=ACTIVE (PacketEvents 2.14.0 active on V_1_21_4)
+[12:22:41 INFO]: ViaTest joined the game
+[12:22:41 INFO]: ViaTest[/127.0.0.1:49376] logged in with entity id 11 at ([world]4.5, -60.0, 1.5)
+[12:22:42 INFO]: [packetevents] Loading block mappings for V_1_21_4/17...
+[12:22:42 INFO]: [packetevents] Finished loading block mappings for V_1_21_4/17 in 527.0916ms
+[12:22:42 INFO]: [Aegishider] Chunk sanitize: client=V_26_1 chunk=0,0 changed=1 detected=0 tileEntitiesRemoved=true
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=1 typeId=28 type=minecraft:cow tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=7 typeId=28 type=minecraft:cow tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=8 typeId=104 type=minecraft:sheep tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=9 typeId=104 type=minecraft:sheep tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=2 typeId=28 type=minecraft:cow tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=3 typeId=28 type=minecraft:cow tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=4 typeId=104 type=minecraft:sheep tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=5 typeId=28 type=minecraft:cow tracked=false hiddenSpawn=false cancelled=false
+[12:22:42 INFO]: [Aegishider] Entity spawn decision: entityId=6 typeId=28 type=minecraft:cow tracked=false hiddenSpawn=false cancelled=false
+[12:22:43 INFO]: [Aegishider] Entity spawn decision: entityId=10 typeId=28 type=minecraft:cow tracked=false hiddenSpawn=false cancelled=false
+[12:22:44 INFO]: Thread RCON Client /127.0.0.1 started
+[12:22:44 INFO]: [Aegishider] Entity spawn decision: entityId=21 typeId=24 type=minecraft:chest_minecart tracked=false hiddenSpawn=true cancelled=true
+[12:22:52 INFO]: ViaTest lost connection: Disconnected
+[12:22:52 INFO]: ViaTest left the game
+[12:22:54 INFO]: Thread RCON Client /127.0.0.1 shutting down

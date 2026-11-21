@@ -1,0 +1,685 @@
+{
+  "schema": "aegishider-itest/report/v1",
+  "runId": "run-20261114-111235-737",
+  "startedAt": "2026-11-14T04:12:35.731Z",
+  "baselineMode": false,
+  "environment": {
+    "platform": "Windows_NT 10.0.26300 x64",
+    "node": "v24.21.0",
+    "minecraftProtocol": "1.68.0",
+    "java": "C:\\Users\\audim_r0h5i\\.jdks\\jdk-21.0.13+9\\bin\\java.exe",
+    "serverPort": 25599,
+    "rconPort": 25598
+  },
+  "plugin": {
+    "jarPath": "D:\\Aegishider\\dist\\Aegishider-3.1.0.jar",
+    "size": 6770299,
+    "sha256": "bbfbfc5293680522a3a00ef41a71a3cd10d63b011ec68fc5c88468d78331d8f3",
+    "pluginYmlName": "Aegishider",
+    "pluginYmlVersion": "3.1.0",
+    "packetEventsInstalled": true
+  },
+  "server": {
+    "dir": "D:\\Aegishider\\itest\\server",
+    "jar": "D:\\Aegishider\\itest\\server\\paper-1.21.4.jar",
+    "port": 25599,
+    "rconPort": 25598,
+    "logPath": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\server-console.log",
+    "bootMs": 81309,
+    "versionLine": "[11:12:40 INFO]: [bootstrap] Loading Paper 1.21.4-232-ver/1.21.4@12d8fe0 (2025-06-09T10:15:42Z) for Minecraft 1.21.4",
+    "rconReady": true,
+    "crashDetected": false,
+    "pid": 8988,
+    "pidFile": "D:\\Aegishider\\itest\\out\\server.pid",
+    "stopped": {
+      "cleanExit": true,
+      "killedTree": false,
+      "exitCode": 0,
+      "portsFreeAfterStop": true
+    }
+  },
+  "decoderSelfTest": {
+    "ok": true,
+    "checks": [
+      {
+        "label": "section count",
+        "ok": true,
+        "detail": "24"
+      },
+      {
+        "label": "bytes consumed == blob size",
+        "ok": true,
+        "detail": "2247/2247"
+      },
+      {
+        "label": "stone state round-trip",
+        "ok": true,
+        "detail": "got 1 want 1 (stone)"
+      },
+      {
+        "label": "chest state round-trip",
+        "ok": true,
+        "detail": "got 3009 want 3009 (chest)"
+      },
+      {
+        "label": "observer state round-trip",
+        "ok": true,
+        "detail": "got 13563 want 13563 (observer)"
+      },
+      {
+        "label": "air state round-trip",
+        "ok": true,
+        "detail": "got 0"
+      },
+      {
+        "label": "chest decodes to chest block",
+        "ok": true,
+        "detail": "chest"
+      },
+      {
+        "label": "stone decodes to stone block",
+        "ok": true,
+        "detail": "stone"
+      },
+      {
+        "label": "observer decodes to observer block",
+        "ok": true,
+        "detail": "observer"
+      },
+      {
+        "label": "reader consumed whole blob (no trailing)",
+        "ok": true,
+        "detail": "trailing 0"
+      },
+      {
+        "label": "direct-palette container: whole blob consumed",
+        "ok": true,
+        "detail": "8384/8384, trailing 0"
+      },
+      {
+        "label": "direct-palette container: stone state round-trip",
+        "ok": true,
+        "detail": "got 1 want 1"
+      },
+      {
+        "label": "direct-palette container: chest state round-trip",
+        "ok": true,
+        "detail": "got 3009 want 3009"
+      },
+      {
+        "label": "direct-palette container: observer state round-trip",
+        "ok": true,
+        "detail": "got 13563 want 13563"
+      },
+      {
+        "label": "direct-palette container: air remains air",
+        "ok": true,
+        "detail": "expected 0"
+      }
+    ]
+  },
+  "scenarios": {
+    "A": {
+      "id": "A",
+      "name": "hidden dropped item far away behind solid blocks",
+      "expectation": "HIDDEN",
+      "startedAt": "2026-11-14T04:14:03.110Z",
+      "durationMs": 6643,
+      "outcome": "HIDDEN",
+      "pass": true,
+      "evidence": {
+        "summonCommand": "summon minecraft:item 8.5 -59 32.5 {UUID:[I;169090600,185273100,201326600,217480100],NoGravity:1b,PickupDelay:32767s,Item:{id:\"minecraft:diamond\",count:1}}",
+        "summonResponse": "Summoned new Diamond",
+        "perBot": {
+          "testBot": {
+            "username": "TestBot",
+            "windowPackets": 8,
+            "itemSpawnPackets": 0,
+            "targetUuidSpawns": 0,
+            "leakedEntityIds": [],
+            "followupPackets": 0,
+            "followupByType": {},
+            "unknownEntityPackets": 0,
+            "leaked": false,
+            "capturePath": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot.ndjson"
+          },
+          "testBot2": {
+            "username": "TestBot2",
+            "windowPackets": 8,
+            "itemSpawnPackets": 0,
+            "targetUuidSpawns": 0,
+            "leakedEntityIds": [],
+            "followupPackets": 0,
+            "followupByType": {},
+            "unknownEntityPackets": 0,
+            "leaked": false,
+            "capturePath": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot2.ndjson"
+          }
+        },
+        "anyLeak": false,
+        "totalLeakedSpawnPackets": 0,
+        "totalFollowupPackets": 0,
+        "targetUuid": "0a141e28-0b0b-0b0c-0c00-00080cf67ba4",
+        "itemPosition": {
+          "x": 8.5,
+          "y": -59,
+          "z": 32.5
+        },
+        "observerDistance": 24,
+        "packetCountsTestBot": {
+          "success": 1,
+          "custom_payload": 1,
+          "feature_flags": 1,
+          "select_known_packs": 1,
+          "registry_data": 12,
+          "tags": 1,
+          "finish_configuration": 1,
+          "login": 1,
+          "__login_event__": 1,
+          "difficulty": 1,
+          "abilities": 1,
+          "held_item_slot": 1,
+          "declare_recipes": 1,
+          "entity_status": 1,
+          "recipe_book_settings": 1,
+          "recipe_book_add": 2,
+          "position": 3,
+          "server_data": 1,
+          "system_chat": 1,
+          "player_info": 2,
+          "update_view_distance": 1,
+          "simulation_distance": 1,
+          "update_view_position": 2,
+          "initialize_world_border": 1,
+          "update_time": 9,
+          "spawn_position": 1,
+          "game_state_change": 1,
+          "set_ticking_state": 1,
+          "step_tick": 1,
+          "window_items": 1,
+          "set_slot": 1,
+          "set_entity_metadata": 2,
+          "advancements": 1,
+          "update_health": 1,
+          "experience": 1,
+          "declare_commands": 1,
+          "entity_update_attributes": 2,
+          "level_chunk_with_light": 117,
+          "bundle_delimiter": 2,
+          "spawn_entity": 1,
+          "sync_entity_position": 9,
+          "rel_entity_move": 2,
+          "multi_block_change": 2
+        }
+      },
+      "markers": {
+        "start": {
+          "label": "A-start",
+          "seq": 191,
+          "timestampMs": 1794629646399,
+          "tRelMs": 7519
+        },
+        "end": {
+          "label": "A-end",
+          "seq": 200,
+          "timestampMs": 1794629649551,
+          "tRelMs": 10671
+        }
+      },
+      "expectationMet": true
+    },
+    "B": {
+      "id": "B",
+      "name": "visible dropped item ~3 blocks in front",
+      "expectation": "VISIBLE",
+      "startedAt": "2026-11-14T04:14:10.266Z",
+      "durationMs": 4754,
+      "outcome": "VISIBLE",
+      "pass": true,
+      "evidence": {
+        "summonCommand": "summon minecraft:item 8.5 -56.5 11.5 {UUID:[I;202050200,218103800,234157400,250211000],PickupDelay:32767s,Item:{id:\"minecraft:diamond\",count:1}}",
+        "summonResponse": "Summoned new Diamond",
+        "perBot": {
+          "testBot": {
+            "username": "TestBot",
+            "windowPackets": 23,
+            "spawnPackets": 1,
+            "targetUuidFound": true,
+            "firstSpawnLatencyMs": 63,
+            "entityId": 24,
+            "followupPackets": 4,
+            "followupByType": {
+              "set_entity_metadata": 2,
+              "entity_velocity": 1,
+              "rel_entity_move": 1
+            },
+            "metadataPackets": 2,
+            "positionPackets": 2,
+            "visible": true,
+            "capturePath": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot.ndjson"
+          },
+          "testBot2": {
+            "username": "TestBot2",
+            "windowPackets": 23,
+            "spawnPackets": 1,
+            "targetUuidFound": true,
+            "firstSpawnLatencyMs": 62,
+            "entityId": 24,
+            "followupPackets": 4,
+            "followupByType": {
+              "set_entity_metadata": 2,
+              "entity_velocity": 1,
+              "rel_entity_move": 1
+            },
+            "metadataPackets": 2,
+            "positionPackets": 2,
+            "visible": true,
+            "capturePath": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot2.ndjson"
+          }
+        },
+        "targetUuid": "0c0b0a98-0cff-fff8-0df4-f5580ee9eab8",
+        "itemPosition": {
+          "x": 8.5,
+          "y": -56.5,
+          "z": 11.5
+        },
+        "visible": true,
+        "packetCountsTestBot": {
+          "success": 1,
+          "custom_payload": 1,
+          "feature_flags": 1,
+          "select_known_packs": 1,
+          "registry_data": 12,
+          "tags": 1,
+          "finish_configuration": 1,
+          "login": 1,
+          "__login_event__": 1,
+          "difficulty": 1,
+          "abilities": 1,
+          "held_item_slot": 1,
+          "declare_recipes": 1,
+          "entity_status": 1,
+          "recipe_book_settings": 1,
+          "recipe_book_add": 2,
+          "position": 4,
+          "server_data": 1,
+          "system_chat": 1,
+          "player_info": 2,
+          "update_view_distance": 1,
+          "simulation_distance": 1,
+          "update_view_position": 2,
+          "initialize_world_border": 1,
+          "update_time": 14,
+          "spawn_position": 1,
+          "game_state_change": 1,
+          "set_ticking_state": 1,
+          "step_tick": 1,
+          "window_items": 1,
+          "set_slot": 1,
+          "set_entity_metadata": 4,
+          "advancements": 1,
+          "update_health": 1,
+          "experience": 1,
+          "declare_commands": 1,
+          "entity_update_attributes": 2,
+          "level_chunk_with_light": 117,
+          "bundle_delimiter": 4,
+          "spawn_entity": 2,
+          "sync_entity_position": 17,
+          "rel_entity_move": 5,
+          "multi_block_change": 4,
+          "block_update": 8,
+          "entity_velocity": 1
+        }
+      },
+      "markers": {
+        "start": {
+          "label": "B-start",
+          "seq": 210,
+          "timestampMs": 1794629651694,
+          "tRelMs": 12814
+        },
+        "end": {
+          "label": "B-end",
+          "seq": 234,
+          "timestampMs": 1794629654836,
+          "tRelMs": 15956
+        }
+      }
+    },
+    "C": {
+      "id": "C",
+      "name": "chunk-level block hiding of a player-placed chest after forced chunk resend",
+      "expectation": "HIDDEN",
+      "startedAt": "2026-11-14T04:14:15.537Z",
+      "durationMs": 11207,
+      "outcome": "HIDDEN",
+      "pass": true,
+      "evidence": {
+        "fixture": {
+          "chestServerData": "100, -59, 101 has the following block data: {z: 101, id: \"minecraft:chest\", y: -59, x: 100, Items: []}",
+          "observerServerData": "The target block is not a block entity"
+        },
+        "packetCountsTestBot": {
+          "success": 1,
+          "custom_payload": 1,
+          "feature_flags": 1,
+          "select_known_packs": 1,
+          "registry_data": 12,
+          "tags": 1,
+          "finish_configuration": 1,
+          "login": 1,
+          "__login_event__": 1,
+          "difficulty": 1,
+          "abilities": 1,
+          "held_item_slot": 1,
+          "declare_recipes": 1,
+          "entity_status": 1,
+          "recipe_book_settings": 1,
+          "recipe_book_add": 2,
+          "position": 8,
+          "server_data": 1,
+          "system_chat": 1,
+          "player_info": 2,
+          "update_view_distance": 1,
+          "simulation_distance": 1,
+          "update_view_position": 5,
+          "initialize_world_border": 1,
+          "update_time": 26,
+          "spawn_position": 1,
+          "game_state_change": 1,
+          "set_ticking_state": 1,
+          "step_tick": 1,
+          "window_items": 1,
+          "set_slot": 1,
+          "set_entity_metadata": 24,
+          "advancements": 1,
+          "update_health": 1,
+          "experience": 1,
+          "declare_commands": 1,
+          "entity_update_attributes": 12,
+          "level_chunk_with_light": 356,
+          "bundle_delimiter": 24,
+          "spawn_entity": 12,
+          "sync_entity_position": 42,
+          "rel_entity_move": 10,
+          "multi_block_change": 4,
+          "block_update": 22,
+          "entity_velocity": 15,
+          "remove_entities": 12,
+          "keep_alive": 1,
+          "entity_head_rotation": 30,
+          "entity_move_look": 1,
+          "forget_level_chunk": 239,
+          "acknowledge_player_digging": 1
+        },
+        "resend": {
+          "chunkUnloadPacketsForRoomChunk": 1,
+          "chunkPacketsForRoomChunkAfterReturn": 1
+        },
+        "decoderPositiveControls": {
+          "stoneMarkerAt": {
+            "x": 98,
+            "y": -59,
+            "z": 98
+          },
+          "stoneMarkerState": 1,
+          "stoneMarkerName": "stone",
+          "stoneMarkerPresent": true,
+          "floorStoneAt": {
+            "x": 100,
+            "y": -60,
+            "z": 101
+          },
+          "floorStoneState": 1,
+          "floorStoneName": "stone",
+          "floorStonePresent": true,
+          "observerAt": {
+            "x": 101,
+            "y": -59,
+            "z": 99
+          },
+          "observerState": 13572,
+          "observerName": "observer",
+          "observerPresent": true
+        },
+        "chestInChunkData": false,
+        "chestChunkState": {
+          "state": 1,
+          "name": "stone",
+          "inChestRange": false
+        },
+        "controlChestChunkState": {
+          "state": 3010,
+          "name": "chest"
+        },
+        "chestStatesInSection": 1,
+        "postChunkBlockUpdatesAtChest": {
+          "count": 0,
+          "lastState": null,
+          "lastName": null
+        },
+        "serverGroundTruthChest": "100, -59, 101 has the following block data: {z: 101, id: \"minecraft:chest\", y: -59, x: 100, Items: []}"
+      },
+      "markers": {
+        "place": {
+          "label": "C-place",
+          "seq": 548,
+          "timestampMs": 1794629659151,
+          "tRelMs": 20271
+        },
+        "placed": {
+          "label": "C-placed",
+          "seq": 585,
+          "timestampMs": 1794629660365,
+          "tRelMs": 21485
+        },
+        "far": {
+          "label": "C-far",
+          "seq": 599,
+          "timestampMs": 1794629661909,
+          "tRelMs": 23029
+        },
+        "back": {
+          "label": "C-back",
+          "seq": 746,
+          "timestampMs": 1794629663666,
+          "tRelMs": 24786
+        },
+        "end": {
+          "label": "C-end",
+          "seq": 901,
+          "timestampMs": 1794629666501,
+          "tRelMs": 27621
+        }
+      },
+      "expectationMet": true
+    }
+  },
+  "overall": {
+    "pass": true,
+    "reason": "all scenarios meet plugin expectations (A hidden, B visible, C hidden in chunk data)"
+  },
+  "limitations": [],
+  "artifacts": {
+    "runDir": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737",
+    "captures": {
+      "TestBot": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot.ndjson",
+      "TestBot2": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot2.ndjson"
+    },
+    "chunkDirs": {
+      "TestBot": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot-chunks",
+      "TestBot2": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot2-chunks"
+    },
+    "botStderrLogs": {
+      "TestBot": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot.stderr.log",
+      "TestBot2": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\TestBot2.stderr.log"
+    },
+    "consoleLog": "D:\\Aegishider\\itest\\out\\run-20261114-111235-737\\server-console.log",
+    "reportPath": "D:\\Aegishider\\itest\\out\\report-20261114-111434-229.json"
+  },
+  "errors": [],
+  "bots": {
+    "TestBot": {
+      "username": "TestBot",
+      "entityId": 21,
+      "position": {
+        "x": -3.5,
+        "y": -60,
+        "z": -4.5,
+        "yaw": 0,
+        "pitch": 0
+      }
+    },
+    "TestBot2": {
+      "username": "TestBot2",
+      "entityId": 22,
+      "position": {
+        "x": 0.5,
+        "y": -60,
+        "z": 10.5,
+        "yaw": 0,
+        "pitch": 0
+      }
+    }
+  },
+  "rconTrace": [
+    {
+      "at": "2026-11-14T04:14:03.290Z",
+      "command": "kill @e[type=!minecraft:player]",
+      "response": "Killed 10 entities"
+    },
+    {
+      "at": "2026-11-14T04:14:03.538Z",
+      "command": "tp TestBot 8.5 -59 8.5 0 0",
+      "response": "Teleported TestBot to 8.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:03.709Z",
+      "command": "tp TestBot2 12.5 -59 8.5 0 0",
+      "response": "Teleported TestBot2 to 12.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:04.822Z",
+      "command": "fill 0 -60 16 16 -54 17 minecraft:stone",
+      "response": "Successfully filled 238 block(s)"
+    },
+    {
+      "at": "2026-11-14T04:14:05.351Z",
+      "command": "tp TestBot 8.5 -59 8.5 0 0",
+      "response": "Teleported TestBot to 8.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:05.494Z",
+      "command": "tp TestBot2 12.5 -59 8.5 0 0",
+      "response": "Teleported TestBot2 to 12.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:06.538Z",
+      "command": "summon minecraft:item 8.5 -59 32.5 {UUID:[I;169090600,185273100,201326600,217480100],NoGravity:1b,PickupDelay:32767s,Item:{id:\"minecraft:diamond\",count:1}}",
+      "response": "Summoned new Diamond"
+    },
+    {
+      "at": "2026-11-14T04:14:10.405Z",
+      "command": "kill @e[type=!minecraft:player]",
+      "response": "Killed Diamond"
+    },
+    {
+      "at": "2026-11-14T04:14:10.546Z",
+      "command": "fill 0 -60 18 16 -54 19 minecraft:stone",
+      "response": "Successfully filled 238 block(s)"
+    },
+    {
+      "at": "2026-11-14T04:14:10.669Z",
+      "command": "tp TestBot 8.5 -59 8.5 0 0",
+      "response": "Teleported TestBot to 8.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:10.793Z",
+      "command": "tp TestBot2 12.5 -59 8.5 0 0",
+      "response": "Teleported TestBot2 to 12.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:11.834Z",
+      "command": "summon minecraft:item 8.5 -56.5 11.5 {UUID:[I;202050200,218103800,234157400,250211000],PickupDelay:32767s,Item:{id:\"minecraft:diamond\",count:1}}",
+      "response": "Summoned new Diamond"
+    },
+    {
+      "at": "2026-11-14T04:14:15.676Z",
+      "command": "kill @e[type=!minecraft:player]",
+      "response": "Killed Diamond"
+    },
+    {
+      "at": "2026-11-14T04:14:15.802Z",
+      "command": "tp TestBot 8.5 -59 8.5 0 0",
+      "response": "Teleported TestBot to 8.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:15.928Z",
+      "command": "tp TestBot2 12.5 -59 8.5 0 0",
+      "response": "Teleported TestBot2 to 12.500000, -59.000000, 8.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:16.980Z",
+      "command": "fill 97 -60 97 103 -56 103 minecraft:air",
+      "response": "No blocks were filled"
+    },
+    {
+      "at": "2026-11-14T04:14:17.105Z",
+      "command": "fill 97 -60 97 103 -60 103 minecraft:stone",
+      "response": "Successfully filled 49 block(s)"
+    },
+    {
+      "at": "2026-11-14T04:14:17.250Z",
+      "command": "fill 97 -59 97 103 -56 103 minecraft:stone",
+      "response": "Successfully filled 196 block(s)"
+    },
+    {
+      "at": "2026-11-14T04:14:17.403Z",
+      "command": "fill 98 -59 98 102 -57 102 minecraft:air",
+      "response": "Successfully filled 75 block(s)"
+    },
+    {
+      "at": "2026-11-14T04:14:17.529Z",
+      "command": "setblock 98 -59 98 minecraft:stone",
+      "response": "Changed the block at 98, -59, 98"
+    },
+    {
+      "at": "2026-11-14T04:14:17.667Z",
+      "command": "setblock 101 -59 99 minecraft:observer[facing=up]",
+      "response": "Changed the block at 101, -59, 99"
+    },
+    {
+      "at": "2026-11-14T04:14:17.808Z",
+      "command": "setblock 98 -59 100 minecraft:chest",
+      "response": "Changed the block at 98, -59, 100"
+    },
+    {
+      "at": "2026-11-14T04:14:18.349Z",
+      "command": "tp TestBot 100.5 -59 102.5 180 0",
+      "response": "Teleported TestBot to 100.500000, -59.000000, 102.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:20.567Z",
+      "command": "data get block 100 -59 101",
+      "response": "100, -59, 101 has the following block data: {z: 101, id: \"minecraft:chest\", y: -59, x: 100, Items: []}"
+    },
+    {
+      "at": "2026-11-14T04:14:20.706Z",
+      "command": "data get block 101 -59 99",
+      "response": "The target block is not a block entity"
+    },
+    {
+      "at": "2026-11-14T04:14:22.053Z",
+      "command": "tp TestBot 1100.5 -59 102.5 180 0",
+      "response": "Teleported TestBot to 1100.500000, -59.000000, 102.500000"
+    },
+    {
+      "at": "2026-11-14T04:14:23.888Z",
+      "command": "tp TestBot 100.5 -59 102.5 180 0",
+      "response": "Teleported TestBot to 100.500000, -59.000000, 102.500000"
+    }
+  ],
+  "finishedAt": "2026-11-14T04:14:34.229Z",
+  "durationMs": 118498
+}

@@ -1,0 +1,33 @@
+name: Aegishider
+version: 4.0.2
+main: dev.audismp.aegishider.AegishiderPlugin
+api-version: '1.21'
+description: Server-side anti-ESP / anti-base-ESP / anti-storage-ESP. Packet-level container hiding and fail-closed item/entity visibility.
+authors: [AudiSMP]
+website: https://aegishider-platform.audijuju1.workers.dev
+folia-supported: false
+softdepend: [packetevents]
+
+commands:
+  aegishider:
+    description: Aegishider administration, status and diagnostics
+    usage: /aegishider <status|diag|viewer|export|deep|stats|verify|rescan|reload|help>
+    permission: aegishider.admin
+    aliases: [ah]
+
+permissions:
+  aegishider.bypass:
+    description: Player may see hidden blocks and entity-shielded entities normally (grant only to trusted staff; NOT granted to OPs by default)
+    default: false
+  aegishider.admin:
+    description: Access to /aegishider administration commands
+    default: op
+    children:
+      aegishider.admin.license: true
+      aegishider.admin.diagnostics: true
+  aegishider.admin.license:
+    description: View licence state and print activation codes (/aegishider license ...)
+    default: op
+  aegishider.admin.diagnostics:
+    description: Run expensive diagnostics such as /aegishider rescan
+    default: op

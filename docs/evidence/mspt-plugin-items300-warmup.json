@@ -1,0 +1,145 @@
+{
+  "label": "plugin-items300-warmup",
+  "items": 300,
+  "startedAt": "2026-11-14T05:11:24.503Z",
+  "botPosition": {
+    "x": 2.5,
+    "y": -60,
+    "z": 6.5,
+    "yaw": 0,
+    "pitch": 0
+  },
+  "pluginPresent": true,
+  "idle": {
+    "mspt1": {
+      "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 3.7/1.2/14.6, 3.9/1.2/14.6, 3.2/1.2/308.6",
+      "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+      "samples": [
+        {
+          "avg": 3.7,
+          "min": 1.2,
+          "max": 14.6
+        },
+        {
+          "avg": 3.9,
+          "min": 1.2,
+          "max": 14.6
+        },
+        {
+          "avg": 3.2,
+          "min": 1.2,
+          "max": 308.6
+        }
+      ]
+    },
+    "mspt2": {
+      "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 3.6/1.2/14.6, 3.8/1.2/14.6, 3.2/1.2/308.6",
+      "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+      "samples": [
+        {
+          "avg": 3.6,
+          "min": 1.2,
+          "max": 14.6
+        },
+        {
+          "avg": 3.8,
+          "min": 1.2,
+          "max": 14.6
+        },
+        {
+          "avg": 3.2,
+          "min": 1.2,
+          "max": 308.6
+        }
+      ]
+    },
+    "diag": {
+      "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 33 / 221 / 38067 us | p50/p95/p99: 100/400/1800 us | overruns: 6\nEngine time (item/block) last: 1/15 us max: 26/38026 us\nRaycasts: 0 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=0 revealedPairs=0 dirtyQueue=0 viewerIndexChunks=1 itemChunks=0 evals=0\nBlock engine: viewers=1 revealedMarkers=0 pendingCandidates=0 occlusionRevision=1 evals=0\nDiscovery queue: 64 | resync pending: 0 | occlusion rev: 1\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=1 blocks=2 chunks=1 indexRevision=1\n-----------------------",
+      "tickLastUs": 33,
+      "tickAvgUs": 221,
+      "tickMaxUs": 38067,
+      "p50Us": 100,
+      "p95Us": 400,
+      "p99Us": 1800,
+      "itemDecisionMaxUs": 26,
+      "blockDecisionMaxUs": 38026,
+      "raycasts": 0,
+      "raycastsDeferred": 0,
+      "trackedItems": 0,
+      "itemEvals": 0,
+      "blockEvals": 0,
+      "chunkSanitized": 0,
+      "chunkFailClosed": 0,
+      "packetDetectedBlocks": 0,
+      "errors": 0,
+      "tickOverruns": 6
+    }
+  },
+  "itemsSpawned": 300,
+  "loaded": {
+    "mspt1": {
+      "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 3.5/1.3/8.6, 3.8/1.3/9.6, 4.2/1.0/62.7",
+      "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+      "samples": [
+        {
+          "avg": 3.5,
+          "min": 1.3,
+          "max": 8.6
+        },
+        {
+          "avg": 3.8,
+          "min": 1.3,
+          "max": 9.6
+        },
+        {
+          "avg": 4.2,
+          "min": 1,
+          "max": 62.7
+        }
+      ]
+    },
+    "mspt2": {
+      "raw": "Server tick times (avg/min/max) from last 5s, 10s, 1m:\n◴ 3.6/1.3/10.2, 3.9/1.3/10.2, 4.2/1.0/62.7",
+      "line": "Server tick times (avg/min/max) from last 5s, 10s, 1m:",
+      "samples": [
+        {
+          "avg": 3.6,
+          "min": 1.3,
+          "max": 10.2
+        },
+        {
+          "avg": 3.9,
+          "min": 1.3,
+          "max": 10.2
+        },
+        {
+          "avg": 4.2,
+          "min": 1,
+          "max": 62.7
+        }
+      ]
+    },
+    "diag": {
+      "raw": "--- Aegishider diag ---\nSecurity tick last/avg/max: 124 / 391 / 38067 us | p50/p95/p99: 200/1000/3000 us | overruns: 31\nEngine time (item/block) last: 89/18 us max: 28301/38026 us\nRaycasts: 1043 | deferred by budget: 0 | budget remaining: 300/300\nItem engine: tracked=300 revealedPairs=185 dirtyQueue=0 viewerIndexChunks=1 itemChunks=4 evals=1221\nBlock engine: viewers=1 revealedMarkers=0 pendingCandidates=0 occlusionRevision=1 evals=0\nDiscovery queue: 49 | resync pending: 0 | occlusion rev: 1\nAsync: submitted=0 rejected=0 queue=0/512 threads=4\nErrors/config warnings: 0/0\nGateway: state=ACTIVE chunkSanitized=0 chunkFailClosed=0 blockFaked=0 itemSpawnBlocked=0 entityChosenPacketsCancelled=0 errors=0 packetDetectedBlocks=0 packetDetectedOverflow=0\nIndex: w=2 blocks=2 chunks=1 indexRevision=1\n-----------------------",
+      "tickLastUs": 124,
+      "tickAvgUs": 391,
+      "tickMaxUs": 38067,
+      "p50Us": 200,
+      "p95Us": 1000,
+      "p99Us": 3000,
+      "itemDecisionMaxUs": 28301,
+      "blockDecisionMaxUs": 38026,
+      "raycasts": 1043,
+      "raycastsDeferred": 0,
+      "trackedItems": 300,
+      "itemEvals": 1221,
+      "blockEvals": 0,
+      "chunkSanitized": 0,
+      "chunkFailClosed": 0,
+      "packetDetectedBlocks": 0,
+      "errors": 0,
+      "tickOverruns": 31
+    }
+  },
+  "finishedAt": "2026-11-14T05:12:34.867Z"
+}
