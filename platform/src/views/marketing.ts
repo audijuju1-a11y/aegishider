@@ -73,7 +73,7 @@ export function marketingHome(
   const featured = products.slice(0, 3);
   return html`
   ${content.announcement
-    ? html`<div class="announcement"><div class="shell">${content.announcement}</div></div>`
+    ? html`<div class="announcement"><div class="shell"><span>${content.announcement}</span><a href="/changelog">ดูการอัปเดต ${icon("arrow")}</a></div></div>`
     : raw("")}
   <section class="hero">
     <div class="shell hero-grid">
@@ -86,7 +86,7 @@ export function marketingHome(
           <a class="btn btn-primary btn-lg" href="/plugins">${content.primaryCta} ${icon("arrow")}</a>
           <a class="btn btn-ghost btn-lg" href="/docs/getting-started">${content.secondaryCta}</a>
         </div>
-        <p class="hero-note">ทำงานบน Cloudflare Workers · D1 · R2 · Queues — ไม่มีเซิร์ฟเวอร์ให้ดูแลเอง</p>
+        <p class="hero-note">แพลตฟอร์มคลาวด์ที่ตรวจสอบได้ — ไม่มีเซิร์ฟเวอร์ให้ดูแลเอง</p>
         <div class="hero-stats">
           <div class="hero-stat"><b>${products.length}</b><span>ผลิตภัณฑ์ที่พร้อมใช้ฟรี</span></div>
           <div class="hero-stat"><b>Ed25519</b><span>ลายเซ็นใบอนุญาต</span></div>
@@ -99,17 +99,27 @@ export function marketingHome(
 
   <div class="trust-strip">
     <div class="shell trust-strip__inner">
-      <span class="trust-strip__label">สร้างบน</span>
-      ${["Cloudflare Workers", "D1 · R2 · Queues", "ฟรี 100%", "Ed25519", "OTP Email"].map(
+      <span class="trust-strip__label">มาตรฐาน</span>
+      ${["Email + Password", "Ed25519", "ฟรี 100%", "ไม่ส่งชื่อผู้เล่น/IP", "สถานะโปร่งใส"].map(
         (item) => html`<span class="trust-pill">${item}</span>`,
       )}
       <span class="trust-strip__right">ไม่ต้องดูแลเซิร์ฟเวอร์เอง</span>
     </div>
   </div>
 
-  <section class="section">
+  <nav class="section-nav" aria-label="เมนูหน้าแรก">
     <div class="shell">
-      ${sectionHead("ผลิตภัณฑ์", "ปลั๊กอินที่พร้อมใช้งานจริง", "ทุกผลิตภัณฑ์มีหน้าเฉพาะ เอกสาร และช่องทางรับไลเซนส์ฟรี — เพิ่มผลิตภัณฑ์ใหม่ได้จากคอนโซลผู้ดูแล", html`<a class="btn btn-ghost btn-sm" href="/plugins">ทั้งหมด ${icon("arrow")}</a>`)}
+      <a href="#products">ผลิตภัณฑ์</a>
+      <a href="#features">ฟีเจอร์</a>
+      <a href="#start">เริ่มใช้งาน</a>
+      <a href="#security">ความปลอดภัย</a>
+      <a href="/docs">เอกสาร</a>
+    </div>
+  </nav>
+
+  <section class="section" id="products">
+    <div class="shell">
+      ${sectionHead("ผลิตภัณฑ์", "ปลั๊กอินที่พร้อมใช้งานจริง", "ทุกผลิตภัณฑ์มีหน้าเฉพาะ เอกสาร และช่องทางรับไลเซนส์ฟรีที่ตรวจสอบได้", html`<a class="btn btn-ghost btn-sm" href="/plugins">ทั้งหมด ${icon("arrow")}</a>`)}
       ${featured.length > 0
         ? html`<div class="product-grid">${featured.map((product) => productCard(product, lang))}
             ${featured.length === 1
@@ -126,52 +136,21 @@ export function marketingHome(
                 </article>`
               : raw("")}
           </div>`
-        : emptyState("ยังไม่มีผลิตภัณฑ์ที่เผยแพร่", html`<a class="btn btn-primary btn-sm" href="/admin">เปิดคอนโซลผู้ดูแล</a>`)}
+        : emptyState("ยังไม่มีผลิตภัณฑ์ที่เผยแพร่", html`<a class="btn btn-primary btn-sm" href="/contact">ติดต่อทีมงาน</a>`)}
     </div>
   </section>
 
-  <section class="section section--alt" id="free">
-    <div class="shell">
-      ${sectionHead("ฟรี 100%", "ไม่มีระบบเสียเงิน — สมัครแล้วใช้ได้ทันที", "แพลตฟอร์มนี้ไม่มีกระเป๋าเงิน ไม่มีคำสั่งซื้อ และไม่มีการชำระเงิน ทุกฟีเจอร์สำหรับเจ้าของเซิร์ฟเวอร์เปิดให้ใช้ฟรีทั้งหมด")}
-      <div class="grid-3">
-        ${[
-          { icon: "user", title: "สมัครบัญชีฟรี", text: "เข้าสู่ระบบด้วยอีเมล ไม่ต้องผูกบัตร ไม่ต้องเติมเงิน — บัญชีเดียวใช้ได้ทุกผลิตภัณฑ์" },
-          { icon: "key", title: "ไลเซนส์ฟรีอัตโนมัติ", text: "รับไลเซนส์ทันทีที่สมัครหรือกดเปิดใช้งาน รหัสยาว 240 บิต สุ่มด้วย CSPRNG และเก็บในฐานข้อมูลเป็น hash" },
-          { icon: "shield", title: "ป้องกันการเดารหัส", text: "ผิด 5 ครั้งล็อก 5 นาที ผิด 10 ครั้งล็อก 10 นาที และเพิ่มขึ้นเรื่อย ๆ พร้อมบันทึก IP, ปลั๊กอิน และชื่อเซิร์ฟเวอร์" },
-        ].map((item) => html`<article class="feature-card">
-          <div class="feature-icon">${icon(item.icon)}</div>
-          <h3>${item.title}</h3>
-          <p>${item.text}</p>
-        </article>`)}
-      </div>
-      <div class="payment-flow">
-        ${[
-          ["01", "สมัครบัญชี", "ยืนยันอีเมลด้วย OTP หรือลิงก์ครั้งเดียว"],
-          ["02", "รับไลเซนส์", "ระบบออกไลเซนส์ฟรีพร้อมรหัสยาวให้ทันที"],
-          ["03", "เชื่อมเซิร์ฟเวอร์", "รัน /aegishider license link แล้วกรอกรหัสในพอร์ทัล"],
-          ["04", "ติดตาม", "ดู heartbeat, TPS/MSPT และการตรวจพบเชิงลึกได้ฟรี"],
-        ].map(
-          (step) => html`<div class="payment-flow__step">
-            <span class="mono">${step[0]}</span>
-            <b>${step[1]}</b>
-            <p>${step[2]}</p>
-          </div>`,
-        )}
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
+  <section class="section" id="features">
     <div class="shell">
       ${sectionHead("ทำไมต้องแพลตฟอร์มนี้", "ครบตั้งแต่สมัครจนถึงใบอนุญาต", "ไม่ใช่แค่หน้าเว็บสวย ๆ แต่เป็นระบบที่เชื่อมกันจริง ตั้งแต่การสมัคร การออกไลเซนส์ การเปิดใช้งาน ไปจนถึงการติดตามสุขภาพเซิร์ฟเวอร์")}
       <div class="grid-3">
         ${[
-          { icon: "key", title: "ไลเซนส์ที่ตรวจสอบได้", text: "ออกใบอนุญาตด้วย Ed25519 เก็บเฉพาะ hash ของ license key และรองรับ offline grace เมื่อ Cloudflare ล่ม" },
+          { icon: "key", title: "ไลเซนส์ที่ตรวจสอบได้", text: "ออกใบอนุญาตด้วย Ed25519 เก็บเฉพาะ hash ของ license key และรองรับ offline grace เมื่อแพลตฟอร์มออฟไลน์" },
           { icon: "users", title: "พอร์ทัลเจ้าของเซิร์ฟเวอร์", text: "เห็นไลเซนส์ เซิร์ฟเวอร์ การเปิดใช้งาน ข้อมูลเชิงลึก และเปิดตั๋วช่วยเหลือได้เอง — ฟรีทุกฟีเจอร์" },
           { icon: "shield", title: "คอนโซลผู้ดูแล", text: "จัดการลูกค้า ผลิตภัณฑ์ รีลีส ปลั๊กอิน และดู audit trail ทุกการกระทำสำคัญ" },
-          { icon: "activity", title: "Telemetry ที่ไม่รุกล้ำ", text: "รับเฉพาะข้อมูลปฏิบัติการแบบรวม ไม่มีชื่อผู้เล่น IP หรือพิกัด และแยกข้อมูลตามองค์กร" },
+          { icon: "activity", title: "Telemetry ที่ไม่รุกล้ำ", text: "รับเฉพาะข้อมูลปฏิบัติการแบบรวม ไม่มีชื่อผู้เล่น IP หรือพิกัด; ข้อมูลโลกเป็นแบบรวมและเห็นเฉพาะเจ้าของ" },
           { icon: "package", title: "รองรับหลายผลิตภัณฑ์", text: "โครงสร้างข้อมูลออกแบบให้เพิ่มปลั๊กอินตัวใหม่ได้โดยไม่ต้องสร้างระบบไลเซนส์ใหม่" },
-          { icon: "layers", title: "Cloudflare-native", text: "Workers + D1 + R2 + Queues ทำงานร่วมกัน พร้อมขยายตามจำนวนลูกค้าโดยไม่ต้องดูแลเซิร์ฟเวอร์" },
+          { icon: "layers", title: "ตรวจสอบย้อนกลับได้", text: "ทุกการเปิดใช้งานและคำสั่งสำคัญมีบันทึกที่ตรวจสอบได้ โดยไม่เปิดเผยข้อมูลลูกค้ารายอื่น" },
         ].map((item) => html`<article class="feature-card">
           <div class="feature-icon">${icon(item.icon)}</div>
           <h3>${item.title}</h3>
@@ -181,15 +160,15 @@ export function marketingHome(
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="start">
     <div class="shell grid-2">
       <div>
         ${sectionHead("ขั้นตอน", "เริ่มใช้ในสามขั้น", "ไม่มีขั้นตอนซับซ้อน และทุกอย่างตรวจสอบย้อนกลับได้")}
         <div class="stack">
           ${[
-            { n: "01", title: "สมัครและรับไลเซนส์", text: "เข้าสู่ระบบด้วยอีเมล ระบบออกไลเซนส์ฟรีพร้อมรหัสยาวให้อัตโนมัติ ไลเซนส์จะปรากฏในพอร์ทัลทันที" },
+            { n: "01", title: "สมัครและรับไลเซนส์", text: "เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน ระบบออกไลเซนส์ฟรีพร้อมรหัสยาวให้อัตโนมัติ ไลเซนส์จะปรากฏในพอร์ทัลทันที" },
             { n: "02", title: "เชื่อมเซิร์ฟเวอร์", text: "รัน /aegishider license link บนเซิร์ฟเวอร์ แล้วนำรหัส 16 ตัวไปกรอกในพอร์ทัล" },
-            { n: "03", title: "ติดตาม", text: "ดู heartbeat, TPS/MSPT การตรวจพบ และเหตุการณ์ล่าสุด — ฟรี ไม่มีวันหมดอายุ" },
+            { n: "03", title: "ติดตาม", text: "ดู heartbeat, TPS/MSPT และเหตุการณ์ล่าสุด — ฟรี ไลเซนส์ไม่มีวันหมดอายุ" },
           ].map((step) => html`<div class="card card-pad">
             <div class="row" style="gap:.7rem;align-items:flex-start">
               <span class="mono" style="color:var(--accent)">${step.n}</span>
@@ -198,15 +177,15 @@ export function marketingHome(
           </div>`)}
         </div>
       </div>
-      <div>
+      <div id="security">
         ${sectionHead("ความปลอดภัย", "ออกแบบแบบ fail-closed", "ทุกจุดที่ตัดสินใจเรื่องสิทธิ์ใช้ค่าเริ่มต้นเป็นการปฏิเสธ และบันทึกสิ่งที่เกิดขึ้น")}
         <div class="card card-pad">
           ${bulletList([
             "ใบอนุญาตลงลายเซ็น Ed25519 และตรวจที่ฝั่งเซิร์ฟเวอร์",
             "License key เก็บเป็น HMAC-SHA256 ไม่เก็บ plaintext",
             "ทุกคำสั่งของเจ้าของเซิร์ฟเวอร์ถูกจำกัดด้วย org_id",
-            "ผู้ดูแลต้องผ่าน Cloudflare Access และมีสิทธิ์ในฐานข้อมูล",
-            "ผิดรหัสซ้ำ ๆ ถูกล็อกแบบทวีคูณและบันทึกหลักฐาน",
+            "ผู้ดูแลใช้ session ที่ผูกกับบทบาทในฐานข้อมูล; ชั้นเสริมภายนอกเป็นทางเลือก",
+            "คำขอที่ผิดซ้ำ ๆ ถูกจำกัดอัตราและบันทึกเหตุการณ์ความปลอดภัย",
           ])}
           <div style="margin-top:1rem"><a class="btn btn-ghost btn-sm" href="/docs/security">อ่านรายละเอียดความปลอดภัย ${icon("arrow")}</a></div>
         </div>
@@ -297,6 +276,27 @@ export function productDetail(
           <p class="text-2" style="margin-top:1.1rem;font-size:1.02rem;line-height:1.8">${product.tagline}</p>
           <div class="prose" style="margin-top:1.2rem">${paragraphs(product.description)}</div>
 
+          ${latest
+            ? html`<div class="download-card card" style="margin-top:1.2rem">
+                <div class="spread" style="align-items:flex-start">
+                  <div>
+                    <p class="eyebrow">LATEST RELEASE</p>
+                    <h2 style="font-size:1.3rem;margin-top:.3rem">v${latest.version}</h2>
+                    <p class="muted" style="font-size:.8rem;margin-top:.3rem">${formatDate(latest.released_at, options.lang)} · ฟรี 100%</p>
+                  </div>
+                  ${latest.artifact_url
+                    ? html`<a class="btn btn-primary" href="${latest.artifact_url}" download>${icon("download")} ดาวน์โหลดไจาร์</a>`
+                    : html`<span class="badge">ยังไม่มีไฟล์</span>`}
+                </div>
+                <div class="detail-list" style="margin-top:1rem">
+                  <div><dt>Minecraft</dt><dd>${minecraft.join(", ") || "—"}</dd></div>
+                  <div><dt>Java</dt><dd>${java.join(", ") || "—"}</dd></div>
+                  <div><dt>ต้องมีเพิ่ม</dt><dd>${requires.join(", ") || "—"}</dd></div>
+                </div>
+                ${latest.artifact_sha256 ? html`<p class="mono" style="font-size:.54rem;word-break:break-all;margin-top:.7rem">SHA-256 ${latest.artifact_sha256}</p>` : raw("")}
+              </div>`
+            : raw("")}
+
           ${product.featuresList.length > 0
             ? html`<div style="margin-top:2rem">
                 <h2 style="font-size:1.2rem;margin-bottom:.8rem">ความสามารถหลัก</h2>
@@ -313,7 +313,7 @@ export function productDetail(
           <div style="margin-top:1rem" class="card">
             <div class="card-head"><h3>เปิดใช้งานก่อนใช้งาน</h3></div>
             <div class="card-body">
-              <p class="muted" style="max-width:70ch">ไจาร์ 4.0.4 ถูก gate ด้วยไลเซนส์: protection จะเริ่มทำงานหลังยืนยันเซิร์ฟเวอร์บนเว็บนี้แล้วเท่านั้น (ฟรี 100%)</p>
+              <p class="muted" style="max-width:70ch">${latest ? `ไจาร์ ${latest.version}` : "ไจาร์"} ถูก gate ด้วยไลเซนส์: protection จะเริ่มทำงานหลังยืนยันเซิร์ฟเวอร์บนเว็บนี้แล้วเท่านั้น (ฟรี 100%)</p>
               <ol style="margin:.8rem 0 0;padding-left:1.2rem;display:grid;gap:.45rem;font-size:.82rem;color:var(--text-2)">
                 <li>วางไจาร์และ <code>PacketEvents</code> ใน <code>plugins/</code> แล้วรีสตาร์ท</li>
                 <li>รัน <code>/aegishider license link</code> — จะได้รหัส 16 ตัวและ URL</li>
@@ -324,26 +324,28 @@ export function productDetail(
             </div>
           </div>
 
-          <div style="margin-top:2rem" id="evidence">
-            <h2 style="font-size:1.2rem;margin-bottom:.6rem">ผลทดสอบจริง · A–F</h2>
-            <p class="muted" style="margin-bottom:1rem;max-width:72ch">ไคลเอนต์จำลองสองตัวเชื่อมต่อ Paper แล้วถอดรหัส chunk และทะเบียน block entity ฝั่งไคลเอนต์ — ตารางด้านล่างคือผลจริงบนไบล์ที่ obfuscate แล้ว</p>
-            <div class="card" style="margin-top:1rem">
-              <div class="card-body">
+          <details class="card evidence-card" id="evidence" style="margin-top:2rem">
+            <summary><span>ผลทดสอบเชิงเทคนิค · A–H</span><span class="muted" style="font-size:.7rem">เปิดเพื่อดูตาราง</span></summary>
+            <div class="card-body">
+              <p class="muted" style="margin-bottom:1rem;max-width:72ch">ไคลเอนต์จำลองเชื่อมต่อเซิร์ฟเวอร์ทดสอบและถอดรหัส chunk/block entity — ตารางคือผลจริงบนไบล์ที่ obfuscate แล้ว ไม่มีข้อมูลเซิร์ฟเวอร์ลูกค้า</p>
+              <div class="table-wrap">
                 <table class="evidence-table">
                   <thead><tr><th>สถานการณ์</th><th>BaseHider 3.0.0</th><th>Aegishider 4.0.4</th></tr></thead>
                   <tbody>
                     <tr><th>A · ไอเท็มไกลหลังกำแพง</th><td class="bad">LEAK · 1 spawn/client</td><td class="good">HIDDEN · 0 spawn</td></tr>
-                    <tr><th>B · ไอเท็มใกล้ 3 บล็อก</th><td class="good">VISIBLE</td><td class="good">VISIBLE · 12–35 ms</td></tr>
+                    <tr><th>B · ไอเท็มใกล้ 3 บล็อก</th><td class="good">VISIBLE</td><td class="good">VISIBLE</td></tr>
                     <tr><th>C · หีบใน chunk ที่ resend</th><td class="bad">LEAK · chest states=2</td><td class="good">HIDDEN · chest states=0</td></tr>
                     <tr><th>D · block entity 160/336 บล็อก</th><td class="bad">LEAK ทั้งสองระยะ</td><td class="good">HIDDEN ทั้งสองระยะ</td></tr>
                     <tr><th>E · ทะเบียน block entity ฝั่งไคลเอนต์</th><td class="bad">DIRTY · hidden BEs=6</td><td class="good">CLEAN · hidden BEs=0</td></tr>
                     <tr><th>F · cache replay (Bobby / DH)</th><td class="bad">CACHE LEAK · final=chest</td><td class="good">RE-HIDE · final=stone</td></tr>
+                    <tr><th>G · Y-shield จากพื้นผิว</th><td class="bad">ไม่มีการป้องกัน</td><td class="good">HIDDEN · 213/213 chunks</td></tr>
+                    <tr><th>H · บล็อกฐาน/block entity ใต้ดิน</th><td class="bad">LEAK</td><td class="good">0 hidden states / 0 hidden BEs</td></tr>
                   </tbody>
                 </table>
               </div>
+              <p class="mono" style="margin-top:.8rem;font-size:.54rem;letter-spacing:.03em;color:var(--muted-2)">PAPER 1.21.11 + 1.21.4 · PACKETEVENTS 2.14.0 · 152 UNIT TESTS · LIVE BOT CHECK</p>
             </div>
-            <p class="mono" style="margin-top:.8rem;font-size:.58rem;letter-spacing:.04em;color:var(--muted-2)">PAPER 1.21.4 BUILD 232 · PACKETEVENTS 2.14.0 · 2 CLIENTS · 152 UNIT TESTS · SMOKE: 1.21.1 / 1.21.5 / 1.21.11 / 26.3</p>
-          </div>
+          </details>
 
           <div style="margin-top:2rem" class="card">
             <div class="card-head"><h3>ความเข้ากันได้</h3></div>
@@ -448,6 +450,7 @@ export function productDetail(
 export function pricingPage(products: ProductView[]): SafeHtml {
   return html`<section class="section">
     <div class="shell">
+      <nav class="breadcrumb" aria-label="breadcrumb"><a href="/">หน้าแรก</a><span>/</span><span>ฟรี 100%</span></nav>
       <p class="eyebrow">FREE</p>
       <h1 style="font-size:clamp(1.9rem,3.5vw,2.8rem)">ฟรี 100%</h1>
       <p class="muted" style="margin-top:.6rem;max-width:64ch">ไม่มีระบบชำระเงิน ไม่มีกระเป๋าเงิน และไม่มีค่าบริการแอบแฝง — สมัครบัญชีแล้วรับไลเซนส์ได้ทันที</p>
@@ -466,7 +469,7 @@ export function pricingPage(products: ProductView[]): SafeHtml {
                 <ul>
                   <li>ป้องกันหีบและไอเท็มเต็มรูปแบบ</li>
                   <li>Telemetry และแดชบอร์ดเชิงลึก</li>
-                  <li>แจ้งเตือนการตรวจพบและล็อก IP อัตโนมัติ</li>
+                  <li>จำกัดอัตราและบันทึกเหตุการณ์ความปลอดภัย</li>
                   <li>ไลเซนส์รหัสยาว 240 บิต ตรวจลายเซ็น Ed25519</li>
                 </ul>
               </div>
@@ -514,12 +517,13 @@ export function changelogPage(
 
 export function statusPage(report: StatusReport, lang: Lang): SafeHtml {
   return html`<section class="section">
-    <div class="shell">
+    <div class="shell narrow">
+      <nav class="breadcrumb" aria-label="breadcrumb"><a href="/">หน้าแรก</a><span>/</span><span>สถานะระบบ</span></nav>
       <p class="eyebrow">STATUS</p>
       <div class="spread" style="align-items:flex-start">
         <div>
           <h1 style="font-size:clamp(1.9rem,3.5vw,2.8rem)">สถานะระบบ</h1>
-          <p class="muted" style="margin-top:.6rem">ข้อมูลสดจากฐานข้อมูลจริง — ไม่ใช่ค่าจำลอง</p>
+          <p class="muted" style="margin-top:.6rem;line-height:1.8">แสดงเฉพาะสถานะการทำงานแบบรวม เพื่อไม่ให้เปิดเผยจำนวนลูกค้า ข้อมูลภายใน หรือรายละเอียดโครงสร้างพื้นฐาน</p>
         </div>
         <div>${badge(report.overall, lang)}</div>
       </div>
@@ -527,18 +531,22 @@ export function statusPage(report: StatusReport, lang: Lang): SafeHtml {
       <div class="stack" style="margin-top:2rem">
         ${report.components.map((component) => html`<div class="card">
           <div class="card-body spread">
-            <div><div class="row"><b>${component.name}</b>${badge(component.status, lang)}</div><p class="muted" style="font-size:.76rem;margin-top:.3rem">${component.detail}</p></div>
+            <div><div class="row"><b>${component.name}</b>${badge(component.status, lang)}</div><p class="muted" style="font-size:.8rem;margin-top:.35rem">${component.detail}</p></div>
           </div>
         </div>`)}
       </div>
 
-      <div class="stat-grid" style="margin-top:1.5rem">
-        <div class="stat"><div class="label">Installs ที่ใช้งาน 24 ชม.</div><div class="value">${report.metrics.activeInstallations24h}</div></div>
-        <div class="stat"><div class="label">ผลิตภัณฑ์ที่เผยแพร่</div><div class="value">${report.metrics.publishedProducts}</div></div>
-        <div class="stat"><div class="label">ไลเซนส์ที่ใช้งาน</div><div class="value">${report.metrics.activeLicenses}</div></div>
-        <div class="stat"><div class="label">Telemetry ค้างประมวลผล</div><div class="value">${report.metrics.pendingTelemetry}</div></div>
+      <div class="card card-pad" style="margin-top:1.5rem">
+        <div class="row" style="gap:.7rem;align-items:flex-start">
+          <span class="feature-icon" style="margin:0">${icon("lock")}</span>
+          <div>
+            <b style="font-size:.9rem">ข้อมูลที่หน้านี้ไม่แสดง</b>
+            <p class="muted" style="font-size:.8rem;line-height:1.75;margin-top:.3rem">จำนวนไลเซนส์และ installation, จำนวนคิว, ผู้ให้บริการโครงสร้างพื้นฐาน, ที่อยู่ภายใน, ค่า latency และคีย์แจ้งเตือนภายในจะไม่ถูกเปิดเผยต่อสาธารณะ</p>
+          </div>
+        </div>
       </div>
-      <p class="muted" style="font-size:.7rem;margin-top:1rem">สร้างเมื่อ ${formatDateTime(report.generatedAt, lang)}</p>
+
+      <p class="muted" style="font-size:.7rem;margin-top:1rem">ตรวจสอบเมื่อ ${formatDateTime(report.generatedAt, lang)} · <a href="/support">แจ้งปัญหา</a></p>
     </div>
   </section>`;
 }
@@ -550,6 +558,7 @@ export function statusPage(report: StatusReport, lang: Lang): SafeHtml {
 export function docsIndex(_lang: Lang): SafeHtml {
   return html`<section class="section">
     <div class="shell">
+      <nav class="breadcrumb" aria-label="breadcrumb"><a href="/">หน้าแรก</a><span>/</span><span>เอกสาร</span></nav>
       <p class="eyebrow">DOCUMENTATION</p>
       <h1 style="font-size:clamp(1.9rem,3.5vw,2.8rem)">เอกสารการใช้งาน</h1>
       <p class="muted" style="margin-top:.6rem;max-width:64ch">คู่มือสำหรับลูกค้า นักพัฒนา และผู้ดูแลระบบ — เขียนจากสิ่งที่ระบบทำจริง</p>
@@ -592,7 +601,7 @@ export function docPage(doc: DocPage, _lang: Lang): SafeHtml {
 const SUPPORT_FAQ = [
   {
     q: "ต้องมีบัญชีไหมก่อนรับไลเซนส์?",
-    a: "ต้องมีครับ ระบบใช้การเข้าสู่ระบบด้วยอีเมล (ไม่มีรหัสผ่าน) เพื่อผูกไลเซนส์กับองค์กรของคุณ — สมัครฟรีและได้ไลเซนส์ทันที",
+    a: "ต้องมีครับ ระบบใช้การเข้าสู่ระบบด้วยอีเมลและรหัสผ่าน เพื่อผูกไลเซนส์กับองค์กรของคุณ — สมัครฟรีและได้ไลเซนส์ทันที",
   },
   {
     q: "มีค่าใช้จ่ายไหม?",
@@ -616,6 +625,7 @@ export function supportPage(options: { siteKey: string; csrf: string; authed: bo
   return html`<section class="section">
     <div class="shell grid-2" style="align-items:start;gap:2.5rem">
       <div>
+        <nav class="breadcrumb" aria-label="breadcrumb"><a href="/">หน้าแรก</a><span>/</span><span>ช่วยเหลือ</span></nav>
         <p class="eyebrow">SUPPORT</p>
         <h1 style="font-size:clamp(1.9rem,3.5vw,2.8rem)">ศูนย์ช่วยเหลือ</h1>
         <p class="muted" style="margin-top:.6rem;line-height:1.8">อ่านคำตอบด้านล่าง หรือเปิดตั๋วถึงทีมงานได้จากพอร์ทัล</p>
@@ -644,9 +654,9 @@ export function supportPage(options: { siteKey: string; csrf: string; authed: bo
             </div>
             <div class="field"><label for="topic">หัวข้อ</label>
               <select class="select" id="topic" name="topic">
-                <option value="sales">สอบถามการใช้งาน/ไลเซนส์</option>
+                <option value="license">การใช้งาน/ไลเซนส์</option>
                 <option value="technical">ปัญหาเทคนิค</option>
-                <option value="billing">ปัญหาไลเซนส์/การเปิดใช้งาน</option>
+                <option value="account">บัญชี/การเข้าสู่ระบบ</option>
                 <option value="security">ความปลอดภัย</option>
                 <option value="other">อื่น ๆ</option>
               </select>
@@ -654,7 +664,7 @@ export function supportPage(options: { siteKey: string; csrf: string; authed: bo
             <div class="field"><label for="message">รายละเอียด</label><textarea class="textarea" id="message" name="message" required maxlength="5000" placeholder="อธิบายสิ่งที่เกิดขึ้น พร้อมเวอร์ชันและข้อความผิดพลาด (ไม่ต้องแนบข้อมูลส่วนตัว)"></textarea></div>
             ${turnstileWidget(options.siteKey)}
             <button class="btn btn-primary" type="submit">${icon("mail")} ส่งข้อความ</button>
-            <p class="muted" style="font-size:.68rem">การส่งข้อความถือว่าคุณยอมรับนโยบายความเป็นส่วนตัว</p>
+            <p class="muted" style="font-size:.68rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
           </form>
         </div>
       </div>
@@ -665,6 +675,7 @@ export function supportPage(options: { siteKey: string; csrf: string; authed: bo
 export function contactPage(options: { siteKey: string; csrf: string; lang: Lang }): SafeHtml {
   return html`<section class="section">
     <div class="shell narrow">
+      <nav class="breadcrumb" aria-label="breadcrumb"><a href="/">หน้าแรก</a><span>/</span><span>ติดต่อเรา</span></nav>
       <p class="eyebrow">CONTACT</p>
       <h1 style="font-size:clamp(1.9rem,3.5vw,2.6rem)">ติดต่อเรา</h1>
       <p class="muted" style="margin-top:.6rem;line-height:1.8">สอบถามการใช้งาน ปัญหาเทคนิค หรือเรื่องความปลอดภัย — เราอ่านทุกข้อความ</p>
@@ -678,9 +689,9 @@ export function contactPage(options: { siteKey: string; csrf: string; lang: Lang
             </div>
             <div class="field"><label for="topic">หัวข้อ</label>
               <select class="select" id="topic" name="topic">
-                <option value="sales">สอบถามการใช้งาน/ไลเซนส์</option>
+                <option value="license">การใช้งาน/ไลเซนส์</option>
                 <option value="technical">ปัญหาเทคนิค</option>
-                <option value="billing">ปัญหาไลเซนส์/การเปิดใช้งาน</option>
+                <option value="account">บัญชี/การเข้าสู่ระบบ</option>
                 <option value="security">ความปลอดภัย</option>
                 <option value="other">อื่น ๆ</option>
               </select>
@@ -688,6 +699,7 @@ export function contactPage(options: { siteKey: string; csrf: string; lang: Lang
             <div class="field"><label for="message">รายละเอียด</label><textarea class="textarea" id="message" name="message" required maxlength="5000"></textarea></div>
             ${turnstileWidget(options.siteKey)}
             <button class="btn btn-primary" type="submit">${icon("mail")} ส่งข้อความ</button>
+            <p class="muted" style="font-size:.68rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
           </form>
         </div>
       </div>
@@ -758,7 +770,7 @@ export function legalPage(kind: "terms" | "privacy", _lang: Lang): SafeHtml {
 
 - อีเมลและข้อมูลบัญชีที่จำเป็นต่อการเข้าสู่ระบบ
 - ข้อมูลไลเซนส์และการเปิดใช้งาน
-- ข้อมูลปฏิบัติการของเซิร์ฟเวอร์ที่เชื่อมต่อ (เวอร์ชัน, TPS/MSPT, จำนวนผู้เล่นออนไลน์, เหตุการณ์ผิดพลาด)
+- ข้อมูลปฏิบัติการของเซิร์ฟเวอร์ที่เชื่อมต่อ (เวอร์ชัน, TPS/MSPT, จำนวนผู้เล่นออนไลน์, ชื่อโลกและจำนวนรวมต่อโลก, เหตุการณ์ผิดพลาด)
 - บันทึกความปลอดภัย เช่น การเข้าสู่ระบบและ IP แบบ hash
 
 ## ข้อมูลที่เราไม่เก็บ

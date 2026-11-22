@@ -772,7 +772,7 @@ export function adminServerDetailPage(
                 { label: "Gateway / Protection", value: `${gatewayState ?? "—"} · ${protection ?? "—"}` },
                 { label: "License state", value: `${stringField(aegishider, "license_state") ?? "—"} · ${stringField(aegishider, "lease_source") ?? "—"}` },
               ])
-            : html`<p class="muted" style="font-size:.8rem;line-height:1.7">Heartbeat นี้ยังไม่มีข้อมูล server health เชิงลึก — อัปเดตปลั๊กอินเป็น 4.0.3 ขึ้นไปเพื่อส่ง TPS/MSPT/CPU/Heap/Worlds/Entities และสถานะ protection</p>`}
+            : html`<p class="muted" style="font-size:.8rem;line-height:1.7">Heartbeat นี้ยังไม่มีข้อมูล server health เชิงลึก — อัปเดตปลั๊กอินเป็น 4.0.4 ขึ้นไปเพื่อส่ง TPS/MSPT/CPU/Heap/Worlds/Entities และสถานะ protection</p>`}
         </div>
       </div>
     </div>
@@ -1052,7 +1052,6 @@ export function adminSettingsPage(
         <div class="card-body">
           <form class="form" method="post" action="/admin/settings" data-lock>
             ${csrfInput(csrf)}
-            <div class="field"><label>อีเมลสนับสนุน</label><input class="input" name="support_email" value="${settings["platform.support_email"] ?? ""}" maxlength="200"></div>
             <div class="field"><label>เปิดรับลงทะเบียน</label>
               <select class="select" name="registration_open">
                 <option value="true" ${settings["platform.registration_open"] === "true" ? raw("selected") : raw("")}>เปิด</option>

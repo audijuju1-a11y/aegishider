@@ -574,6 +574,24 @@ body::after{
 .badge--version{text-transform:none;letter-spacing:.04em;font-family:var(--mono)}
 
 .announcement{border-bottom:1px solid rgba(236,201,121,.18);background:linear-gradient(90deg,rgba(236,201,121,.16),rgba(236,201,121,.04));color:var(--accent-hi);font-size:.76rem;text-align:center;padding:.55rem 0}
+.announcement .shell{display:flex;align-items:center;justify-content:center;gap:.7rem;flex-wrap:wrap}
+.announcement a{display:inline-flex;align-items:center;gap:.3rem;color:var(--text);border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);padding-bottom:1px}
+.announcement a .ico{width:14px;height:14px}
+.section-nav{position:sticky;top:72px;z-index:35;background:color-mix(in srgb,var(--bg) 94%,transparent);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.section-nav .shell{display:flex;gap:.35rem;overflow-x:auto;padding-block:.55rem;scrollbar-width:none}
+.section-nav .shell::-webkit-scrollbar{display:none}
+.section-nav a{font-size:.76rem;color:var(--muted);border:1px solid transparent;border-radius:99px;padding:.3rem .7rem;white-space:nowrap}
+.section-nav a:hover{color:var(--text);border-color:var(--line-2);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.download-card{padding:1.15rem}
+.download-card h2{line-height:1.2}
+.evidence-card{overflow:hidden}
+.evidence-card summary{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.15rem;cursor:pointer;list-style:none;font-size:.9rem;font-weight:500}
+.evidence-card summary::-webkit-details-marker{display:none}
+.evidence-card summary::after{content:"+";font-family:var(--mono);font-size:1rem;color:var(--accent)}
+.evidence-card[open] summary::after{content:"−"}
+.evidence-card .card-body{border-top:1px solid var(--line)}
+@media (max-width:1000px){.section-nav{top:64px}}
+@media (max-width:700px){.section-nav{top:64px}.section-nav .shell{padding-block:.45rem}.download-card{padding:1rem}.announcement{font-size:.68rem}.announcement .shell{gap:.35rem}}
 
 
 /* Brand logo */

@@ -109,5 +109,4 @@ INSERT OR REPLACE INTO product_releases (
   (CAST(strftime('%s','now') AS INTEGER) * 1000) - 300000
 );
 
-INSERT OR REPLACE INTO system_settings (key, value, updated_at)
-VALUES ('platform.support_email', 'audijuju1@gmail.com', (CAST(strftime('%s','now') AS INTEGER) * 1000));
+DELETE FROM system_settings WHERE key = 'platform.support_email';

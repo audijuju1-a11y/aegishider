@@ -34,9 +34,6 @@
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
     "EMAIL_PROVIDER": "none",
-    "MAIL_FROM": "Aegishider <audijuju1@gmail.com>",
-    "SUPPORT_EMAIL": "audijuju1@gmail.com",
-    "ADMIN_EMAILS": "audijuju1@gmail.com",
     "EMAIL_OTP_TTL_MINUTES": "15",
     "AUTH_OTP_ENABLED": "false",
     // Optional HTTP log/alert sink; leave empty for console-only logging.

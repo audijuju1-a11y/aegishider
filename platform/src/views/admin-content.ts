@@ -29,9 +29,8 @@ export function adminContentPage(content: SiteContent, csrf: string): SafeHtml {
           </div>
         </div>
         <div class="card card-pad">
-          <p class="eyebrow">SUPPORT & PRICING</p>
-          <h3 style="font-size:1.05rem;margin-bottom:.8rem">ข้อมูลติดต่อและราคา</h3>
-          ${field("supportEmail", "อีเมลซัพพอร์ต")}
+          <p class="eyebrow">PRICING</p>
+          <h3 style="font-size:1.05rem;margin-bottom:.8rem">ข้อความราคา</h3>
           ${field("pricingNote", "หมายเหตุใต้ราคา", true)}
           <div class="alert alert--info" style="margin-top:1rem">${icon("shield")}<div>ข้อความทั้งหมดถูก escape ก่อนแสดงผล — ไม่สามารถ inject HTML/สคริปต์ได้</div></div>
           <button class="btn btn-primary btn-block" type="submit">${icon("check")} บันทึกเนื้อหาเว็บ</button>

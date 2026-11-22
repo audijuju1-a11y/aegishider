@@ -9,12 +9,11 @@ export interface SiteContent {
   heroLead: string;
   primaryCta: string;
   secondaryCta: string;
-  supportEmail: string;
   pricingNote: string;
 }
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
-  announcement: "อัปเดต Aegishider 4.0.4 — ซ่อนบล็อกฐานครบชุด + Y-shield ปิดห้องใต้ดิน + ตรวจกำแพงมอน/สัตว์",
+  announcement: "อัปเดต 4.0.4 — Y-shield ปิดห้องใต้ดิน, บล็อกฐานครบชุด และตรวจกำแพงมอน/สัตว์",
   heroEyebrow: "AEGISHIDER CONTROL PLATFORM",
   heroTitle: "ปลั๊กอิน Minecraft",
   heroTitleAccent: "ฟรี พร้อมไลเซนส์จริง",
@@ -22,8 +21,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     "Aegishider Control Platform รวมหน้าร้าน พอร์ทัลเจ้าของเซิร์ฟเวอร์ และคอนโซลผู้ดูแลไว้ในระบบเดียว — ฟรี 100% ไม่มีกระเป๋าเงินหรือการชำระเงิน ใบอนุญาตลงลายเซ็น Ed25519 ตรวจสอบได้ทุกใบ",
   primaryCta: "ดูผลิตภัณฑ์",
   secondaryCta: "เริ่มต้นใช้งาน",
-  supportEmail: "audijuju1@gmail.com",
-  pricingNote: "ทุกฟีเจอร์ฟรี · ไม่มีระบบชำระเงิน · ไม่มีวันหมดอายุ",
+  pricingNote: "ทุกฟีเจอร์ฟรี · ไม่มีระบบชำระเงิน · ไลเซนส์ไม่มีวันหมดอายุ",
 };
 
 export async function getSiteContent(env: Env): Promise<SiteContent> {

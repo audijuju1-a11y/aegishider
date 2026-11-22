@@ -48,10 +48,15 @@ if (!app) {
 const policies = await call("GET", `/access/apps/${app.id}/policies`);
 let policy = (policies.json?.result ?? [])[0];
 if (!policy) {
+  const ownerEmail = process.env.CF_ACCESS_EMAIL;
+  if (!ownerEmail) {
+    console.error("CF_ACCESS_EMAIL is required to create the owner policy");
+    process.exit(1);
+  }
   policy = (await call("POST", `/access/apps/${app.id}/policies`, {
     name: "Owner only",
     decision: "allow",
-    include: [{ email: { email: "audijuju1@gmail.com" } }],
+    include: [{ email: { email: ownerEmail } }],
   })).json?.result;
 }
 console.log("RESULT", JSON.stringify({ teamDomain, appId: app.id, aud: app.aud, policyId: policy?.id ?? null }));

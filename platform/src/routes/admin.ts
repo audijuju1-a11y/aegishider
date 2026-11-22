@@ -686,7 +686,6 @@ adminRoutes.post("/content", async (c) => {
     heroLead: formValue(values, "heroLead", 800),
     primaryCta: formValue(values, "primaryCta", 80),
     secondaryCta: formValue(values, "secondaryCta", 80),
-    supportEmail: formValue(values, "supportEmail", 200),
     pricingNote: formValue(values, "pricingNote", 500),
   };
   await saveSiteContent(c.env, content);
@@ -839,7 +838,6 @@ adminRoutes.post("/settings", async (c) => {
   guard(c, "settings.write");
   const values = await readForm(c);
   const updates: Array<[string, string]> = [
-    ["platform.support_email", formValue(values, "support_email", 200)],
     ["platform.registration_open", formValue(values, "registration_open", 10) === "true" ? "true" : "false"],
     ["telemetry.retention_days", String(Math.max(1, Math.min(3650, Number.parseInt(formValue(values, "retention_days", 8) || "90", 10) || 90)))],
   ];

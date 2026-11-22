@@ -78,7 +78,7 @@ export function ensureCsrfCookie(c: Ctx): string {
   }
   const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
   setCookie(c, CSRF_COOKIE, token, {
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "Lax",
     secure: isProduction(c.env),
     path: "/",

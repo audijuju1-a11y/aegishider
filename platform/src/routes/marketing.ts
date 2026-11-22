@@ -42,7 +42,7 @@ marketingRoutes.get("/", async (c) => {
   ]);
   return publicPage(c, {
     title: "แพลตฟอร์มปลั๊กอิน Minecraft ฟรี",
-    description: "พอร์ทัลเจ้าของเซิร์ฟเวอร์และคอนโซลผู้ดูแล พร้อมไลเซนส์ Ed25519, telemetry และไบล์ปลั๊กอินฟรี บน Cloudflare",
+    description: "พอร์ทัลเจ้าของเซิร์ฟเวอร์และคอนโซลผู้ดูแล พร้อมไลเซนส์ Ed25519, telemetry และไบล์ปลั๊กอินฟรี",
     body: marketingHome(products, langOf(c), content),
   });
 });

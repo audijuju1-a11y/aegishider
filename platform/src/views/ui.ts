@@ -76,12 +76,12 @@ export function iconSprite(): SafeHtml {
 /* -------------------------------------------------------------------------- */
 
 const PUBLIC_NAV: Array<{ href: string; label: string }> = [
+  { href: "/", label: "หน้าแรก" },
   { href: "/plugins", label: "ผลิตภัณฑ์" },
-  { href: "/pricing", label: "ฟรี 100%" },
   { href: "/docs", label: "เอกสาร" },
   { href: "/changelog", label: "อัปเดต" },
+  { href: "/status", label: "สถานะ" },
   { href: "/support", label: "ช่วยเหลือ" },
-  { href: "/status", label: "สถานะระบบ" },
 ];
 
 export interface LayoutOptions {
@@ -144,7 +144,7 @@ function footerMarkup(_lang: Lang): SafeHtml {
       <div class="footer-grid">
         <div class="footer-brand">
           ${brandMarkup("/")}
-          <p>แพลตฟอร์มฟรีสำหรับจัดการไลเซนส์ปลั๊กอิน Minecraft ทำงานบน Cloudflare — ตรวจสอบได้ทุกขั้นตอน ไม่มีระบบชำระเงิน</p>
+          <p>แพลตฟอร์มฟรีสำหรับจัดการไลเซนส์ปลั๊กอิน Minecraft — ตรวจสอบได้ทุกขั้นตอน ไม่มีระบบชำระเงิน และไม่เปิดเผยข้อมูลเซิร์ฟเวอร์ลูกค้าต่อสาธารณะ</p>
         </div>
         <div class="footer-col">
           <h3>ผลิตภัณฑ์</h3>
@@ -158,6 +158,7 @@ function footerMarkup(_lang: Lang): SafeHtml {
           <a href="/docs">เอกสาร</a>
           <a href="/docs/api">API</a>
           <a href="/docs/licensing">ไลเซนส์</a>
+          <a href="/docs/security">ความปลอดภัย</a>
           <a href="/status">สถานะระบบ</a>
         </div>
         <div class="footer-col">
@@ -171,7 +172,7 @@ function footerMarkup(_lang: Lang): SafeHtml {
       <p class="footer-notes">Aegishider ไม่ได้สังกัด Mojang Studios หรือ Microsoft · Minecraft คือเครื่องหมายการค้าของ Mojang Studios · FastUtil (Apache-2.0) ถูก bundle ในไจาร์ · PacketEvents (GPL-3.0) เป็นปลั๊กอินภายนอก</p>
       <div class="footer-bottom">
         <span>© 2026 Aegishider · สร้างโดย AudiSMP</span>
-        <span>Cloudflare Workers · D1 · R2 · Queues</span>
+        <span>แพลตฟอร์มคลาวด์ · ตรวจสอบย้อนกลับได้</span>
       </div>
     </div>
   </footer>`;

@@ -70,16 +70,22 @@ export async function securityHeaders(c: Ctx, next: Next): Promise<void> {
     "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   );
   headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  headers.set("Cross-Origin-Resource-Policy", "same-origin");
+  headers.set("X-Permitted-Cross-Domain-Policies", "none");
+  headers.set("X-DNS-Prefetch-Control", "off");
+  headers.set("Origin-Agent-Cluster", "?1");
   headers.set(
     "Content-Security-Policy",
     [
       "default-src 'self'",
       "base-uri 'none'",
+      "object-src 'none'",
       "form-action 'self'",
       "frame-ancestors 'none'",
       "img-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' https://challenges.cloudflare.com",
+      "script-src-attr 'none'",
       "frame-src https://challenges.cloudflare.com",
       "connect-src 'self' https://challenges.cloudflare.com",
       "font-src 'self'",
@@ -89,8 +95,10 @@ export async function securityHeaders(c: Ctx, next: Next): Promise<void> {
   if (isProduction(c.env)) {
     headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   }
-  if (c.req.path.startsWith("/app") || c.req.path.startsWith("/admin")) {
+  if (c.req.path.startsWith("/app") || c.req.path.startsWith("/admin")
+      || c.req.path.startsWith("/auth")) {
     headers.set("Cache-Control", "no-store");
+    headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 }
 
@@ -125,7 +133,7 @@ export async function csrfMiddleware(c: Ctx, next: Next): Promise<void> {
   } else if (!c.req.path.startsWith("/api/")) {
     const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
     setCookie(c, "bh_csrf", token, {
-      httpOnly: false,
+      httpOnly: true,
       sameSite: "Lax",
       secure: isProduction(c.env),
       path: "/",
