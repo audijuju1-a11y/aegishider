@@ -428,6 +428,43 @@ class ChunkSanitizerTest {
     }
 
     @Test
+    void yShieldFillsWholeUndergroundVolumeAndPreservesSurfaceLayers() {
+        FakeSection lower = new FakeSection();
+        lower.set(5, 5, 5, AIR_STATE);
+        lower.set(6, 6, 6, CHEST_STATE);
+        FakeSection upper = new FakeSection();
+        upper.set(1, 0, 1, STONE_STATE);   // y=16, below the line
+        upper.set(2, 3, 2, AIR_STATE);     // y=19, below the line
+        upper.set(3, 4, 3, BOOKSHELF_STATE); // y=20, exactly at the line
+        upper.set(4, 15, 4, STONE_STATE);  // y=31, surface terrain
+        Column column = new Column(0, 0, true, new BaseChunk[]{lower, upper},
+                new TileEntity[0]);
+
+        FakeSection filler = new FakeSection();
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    filler.set(x, y, z, FILLER_STATE);
+                }
+            }
+        }
+
+        int masked = ChunkSanitizer.maskBelowY(column, 0, 20, FILLER_STATE, filler);
+
+        assertEquals(2, masked);
+        BaseChunk[] sections = column.getChunks();
+        assertNotNull(sections[0]);
+        assertEquals(FILLER_STATE, ((FakeSection) sections[0]).peek(5, 5, 5),
+                "air inside a room must become stone, not stay visible");
+        assertEquals(FILLER_STATE, upper.peek(1, 0, 1));
+        assertEquals(FILLER_STATE, upper.peek(2, 3, 2));
+        assertEquals(BOOKSHELF_STATE, upper.peek(3, 4, 3),
+                "a block exactly at hide-below-y is not below the line");
+        assertEquals(STONE_STATE, upper.peek(4, 15, 4),
+                "surface terrain in the straddling section is preserved");
+    }
+
+    @Test
     void nonHiddenTileEntityTypeIsPreserved() {
         FakeSection section = new FakeSection();
         section.set(1, 1, 1, STONE_STATE);

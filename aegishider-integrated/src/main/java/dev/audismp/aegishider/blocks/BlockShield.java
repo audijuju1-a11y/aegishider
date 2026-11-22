@@ -358,6 +358,14 @@ public final class BlockShield {
                 blockVisibility.markHidden(viewer.playerId(), pos);
                 continue;
             }
+            if (settings.yShield().masksBlock(viewer.eyeY(), BlockPosUtil.decodeY(pos))) {
+                // The viewer crossed above the Y-shield line. Re-hide immediately instead
+                // of waiting for the chunk refresh spread over the next ticks.
+                blockVisibility.markHidden(viewer.playerId(), pos);
+                sendFake(viewer.player(), world, pos, settings);
+                metrics.recordBlockRehidden();
+                continue;
+            }
             double dx = BlockPosUtil.decodeX(pos) + 0.5 - viewer.eyeX();
             double dy = BlockPosUtil.decodeY(pos) + 0.5 - viewer.eyeY();
             double dz = BlockPosUtil.decodeZ(pos) + 0.5 - viewer.eyeZ();
@@ -443,6 +451,11 @@ public final class BlockShield {
             int x = BlockPosUtil.decodeX(pos);
             int y = BlockPosUtil.decodeY(pos);
             int z = BlockPosUtil.decodeZ(pos);
+            if (settings.yShield().masksBlock(viewer.eyeY(), y)) {
+                // Never reveal a protected block through the Y-shield filler, even when a
+                // real cave line of sight happens to exist from the surface.
+                continue;
+            }
             double centerX = x + 0.5;
             double centerY = y + 0.5;
             double centerZ = z + 0.5;
@@ -508,11 +521,13 @@ public final class BlockShield {
 
     private void sendFake(Player player, World world, long pos, WorldSettings settings) {
         long worldId = dev.audismp.aegishider.core.WorldKeys.idOf(world);
-        Material material = plugin.hiddenBlockIndex().filler(worldId, pos,
+        int y = BlockPosUtil.decodeY(pos);
+        Material material = settings.yShield().masksBlock(player.getEyeLocation().getY(), y)
+                ? settings.yShield().filler()
+                : plugin.hiddenBlockIndex().filler(worldId, pos,
                 settings.blockProtection().replaceWith());
         BlockData filler = fillerFor(material);
         int x = BlockPosUtil.decodeX(pos);
-        int y = BlockPosUtil.decodeY(pos);
         int z = BlockPosUtil.decodeZ(pos);
         player.sendBlockChange(new Location(world, x, y, z), filler);
     }

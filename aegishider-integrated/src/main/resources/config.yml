@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Aegishider 4.0.0 - server-side anti-ESP visibility control
+# Aegishider 4.0.4 - server-side anti-ESP visibility control
 #
 # Security model: FAIL-CLOSED.
 #   * A protected block/entity is hidden from a viewer unless the visibility
@@ -47,26 +47,24 @@ worlds:
 
     block-protection:
       enabled: true
-      # These blocks are hidden at packet level. They are discovered from real
-      # block-entity data (natural structures included) and tracked on place/
-      # break/explosion/piston events plus a background reconciliation sweep.
-      # Tile-entity backed materials are the normal path. Plain BOOKSHELF is the
-      # explicit non-tile-entity exception; other unsupported entries are rejected
-      # with a console warning instead of being silently ignored.
-      # Loot-bearing containers and storage tiles are hidden by default. Public or
-      # decorative landmarks are opt-in: BEACON and plain BOOKSHELF are intentionally
-      # not hidden out of the box because they are common in spawn hubs and libraries.
-      # Add them under hidden-blocks when a base world wants them covered.
-      # ANVIL, SMITHING_TABLE and similar non-tile-entity workstations are rejected
-      # with a warning instead of being silently unprotected. Note blocks and jukeboxes
-      # stay out by default: they are decorative and made redstone/music builds look
-      # broken without revealing base loot.
+      # These blocks are hidden at packet level. Tile-entity storage is discovered
+      # from real chunk data and tracked on place/break/explosion/piston events.
+      # Base blocks without a block entity (bookshelf, pistons, workstations, anvils,
+      # cauldrons, observers, redstone) use the palette-prefiltered block-state scan
+      # and are tracked on placement, so they are hidden even when they were placed
+      # before the plugin started.
+      # This is the full base-defining default set. Public landmarks such as a spawn
+      # beacon, library bookshelves or a shared workstation can be removed here; they
+      # are still visible within the 24-block reveal distance and when unobstructed.
+      # NOTE_BLOCK and JUKEBOX stay opt-in: they are decorative redstone/music blocks
+      # and hiding them server-wide makes public builds look broken.
       hidden-blocks:
         - CHEST
         - TRAPPED_CHEST
         - BARREL
         - ENDER_CHEST
         - ENCHANTING_TABLE
+        - BEACON
         - SHULKER_BOX
         - WHITE_SHULKER_BOX
         - ORANGE_SHULKER_BOX
@@ -97,10 +95,37 @@ worlds:
         - CRAFTER
         - DECORATED_POT
         - CHISELED_BOOKSHELF
+        - BOOKSHELF
         - LECTERN
-        # Opt-in (public landmarks):
-        # - BEACON
-        # - BOOKSHELF
+        - CRAFTING_TABLE
+        - CARTOGRAPHY_TABLE
+        - FLETCHING_TABLE
+        - SMITHING_TABLE
+        - LOOM
+        - STONECUTTER
+        - GRINDSTONE
+        - ANVIL
+        - CHIPPED_ANVIL
+        - DAMAGED_ANVIL
+        - OBSERVER
+        - TARGET
+        - COMPOSTER
+        - DAYLIGHT_DETECTOR
+        - CAULDRON
+        - WATER_CAULDRON
+        - LAVA_CAULDRON
+        - POWDER_SNOW_CAULDRON
+        - PISTON
+        - STICKY_PISTON
+        - MOVING_PISTON
+        - PISTON_HEAD
+        - RESPAWN_ANCHOR
+        - BELL
+        - LODESTONE
+        - CONDUIT
+        # Optional decorative/redstone blocks (base farms, music halls):
+        # - NOTE_BLOCK
+        # - JUKEBOX
       # CONTEXTUAL = mimic the surrounding blocks (grass/dirt/stone/wall material); STONE = fixed
       replace-with: CONTEXTUAL
 
@@ -190,15 +215,20 @@ worlds:
         # The thrower sees their own item only for the first 2 seconds or within 8 blocks
         # (bounded on purpose: an unbounded owner exemption would keep own items in ESP).
         owner-grace: true
-      # Living mobs (monsters, slimes, golems, the dragon): hide only when a wall or
-      # terrain blocks the line of sight. Distance and FOV are ignored, so turning around
-      # never makes them pop in/out. Both the centre and the head are sampled, and anything
-      # within 4 blocks is always shown, so a mob peeking over a fence/ledge or fighting you
-      # never blinks out. Items, minecarts, armor stands and item frames keep the strict
-      # distance + line-of-sight policy (those are the real loot/base ESP targets).
-      # Set false to restore the strict policy for every entity type.
+      # Living mobs (monsters, animals, villagers, slimes, golems, the dragon): hide when
+      # a wall or terrain blocks the line of sight. Distance and FOV are ignored, so
+      # turning around never makes them pop in/out. The centre and head are sampled; a
+      # fence, glass pane, bars or a low ledge remains see-through, while a solid wall
+      # hides the mob even at close range.
+      # mob-melee-visible-distance is the light-medium wall check: only a truly touching
+      # mob (default 1 block) is shown without a line-of-sight test. 0 = strict at all
+      # ranges, 4 = the old always-visible close range.
+      # Items, minecarts, armor stands and item frames keep the strict distance +
+      # line-of-sight policy (those are the real loot/base ESP targets).
+      # Set monster-occlusion-only false to restore the strict FOV/distance policy too.
       monster-occlusion-only: true
       monster-max-distance: 96.0
+      mob-melee-visible-distance: 1.0
       # Protect every living entity (monsters, animals, villagers, golems, allays,
       # armor stands...) without listing each type. Farms, animal pens and villagers
       # inside a hidden base are never sent to a viewer that is not supposed to see
@@ -243,14 +273,21 @@ worlds:
       # Dead band around underground-y; lower the margin only if you want stricter floor
       # separation. Set underground-y: 512 to restore the old always-on vertical band.
       band-margin: 12.0
-    # Distance-only Y-level shield: while the viewer is above hide-below-y, chunks farther
-    # than real-chunk-radius are sent with every section below hide-below-y replaced by
-    # solid filler. This hides natural caves and deep bases from the surface / cheat ESP
-    # while keeping nearby chunks (and any cave the player actually enters) real.
+    # Full Y-level shield: while the viewer's eye is at or above hide-below-y + 2, every
+    # block below hide-below-y in every sent chunk is replaced with the filler. This
+    # closes entire cave rooms, not only the containers inside them: a surface viewer
+    # looking down sees solid stone where the base volume is, even if every chest was
+    # already replaced. Block updates, block-entity data, animations and tracked entities
+    # below the line are suppressed for that viewer as well.
+    # Crossing the line re-sends the chunks around the viewer, so a player who descends
+    # into the base (or a legal cave) sees the real world again. The 2-block margin keeps
+    # the viewer's own feet/body space real at the boundary.
+    # real-chunk-radius: 0 masks every chunk in view. Set 1-16 only if a server wants a
+    # small near-viewer area to stay real from above (not recommended for anti-ESP).
     y-shield:
-      enabled: false
+      enabled: true
       hide-below-y: 40
-      real-chunk-radius: 4
+      real-chunk-radius: 0
       filler: STONE
     # Tunnel / dug-hole shield: remember mined blocks and send the original material to
     # distant viewers instead of the new air, so cheat clients cannot see player-dug

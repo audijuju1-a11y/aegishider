@@ -284,6 +284,55 @@ public final class ChunkSanitizer {
         return new Result(changed, filteredTileEntities, true, detectedPositions, stateScanStats);
     }
 
+    /**
+     * Replaces every block strictly below {@code hideBelowY} with the filler state. Sections
+     * fully below the line are replaced with the shared filler prototype in O(1); only the
+     * section that straddles the line is edited layer by layer, so surface terrain above the
+     * line is preserved. This is the room/cave closure used by the Y-shield: replacing only
+     * containers still leaves the cave visible, while filling the volume makes the base read
+     * as solid stone from above.
+     *
+     * @return number of sections replaced or edited
+     */
+    public static int maskBelowY(Column column, int minSectionY, int hideBelowY,
+                                 int fillerStateId, BaseChunk fillerSection) {
+        if (column == null || fillerStateId <= 0) {
+            return 0;
+        }
+        BaseChunk[] sections = column.getChunks();
+        if (sections == null) {
+            return 0;
+        }
+        BaseChunk prototype = fillerSection != null ? fillerSection : BaseChunk.create();
+        int masked = 0;
+        for (int i = 0; i < sections.length; i++) {
+            int sectionY = (minSectionY + i) << 4;
+            if (sectionY + 16 <= hideBelowY) {
+                sections[i] = prototype;
+                masked++;
+                continue;
+            }
+            if (sectionY >= hideBelowY) {
+                continue;
+            }
+            BaseChunk section = sections[i];
+            if (section == null) {
+                section = BaseChunk.create();
+            }
+            int layers = hideBelowY - sectionY;
+            for (int localY = 0; localY < layers; localY++) {
+                for (int localX = 0; localX < 16; localX++) {
+                    for (int localZ = 0; localZ < 16; localZ++) {
+                        section.set(localX, localY, localZ, fillerStateId);
+                    }
+                }
+            }
+            sections[i] = section;
+            masked++;
+        }
+        return masked;
+    }
+
     private static boolean isHiddenTileEntityType(StateIdMapper mapper, ClientVersion version,
                                                   TileEntity tileEntity,
                                                   Set<String> hiddenTileEntityTypes) {

@@ -42,6 +42,14 @@ public interface PacketGateway {
     void drainDetectedBlockPositions();
 
     /**
+     * Main thread, every tick: registers entity UUIDs whose spawn packet arrived before the
+     * main thread tracked the entity (items loaded outside the player sweep). The packet was
+     * already cancelled fail-closed; registering lets the normal visibility engine reveal
+     * the entity if it is legitimately visible.
+     */
+    void drainPendingEntityRegistrations();
+
+    /**
      * Pre-loads PacketEvents block-state mappings and the configured protected materials so
      * the first player/chunk send does not pay lazy mapping/class-load cost.
      * @return number of resolved materials (0 when the gateway is unavailable)

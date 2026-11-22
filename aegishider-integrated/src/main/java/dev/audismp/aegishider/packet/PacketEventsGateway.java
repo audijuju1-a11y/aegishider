@@ -82,6 +82,10 @@ public final class PacketEventsGateway implements PacketGateway {
     private final AtomicLong lastErrorLogMs = new AtomicLong();
     private final ConcurrentHashMap<Integer, BaseChunk> yFillerSections = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, ConcurrentHashMap<Long, Integer>> pendingChunkResends = new ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentLinkedQueue<PendingEntityRegistration> pendingEntityRegistrations =
+            new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private record PendingEntityRegistration(UUID uuid, long worldId) {
+    }
 
     private volatile ByteBufOperator bufferOperator;
     private volatile PacketListenerCommon listener;
@@ -343,6 +347,18 @@ public final class PacketEventsGateway implements PacketGateway {
     }
 
     @Override
+    public void drainPendingEntityRegistrations() {
+        PendingEntityRegistration pending;
+        while ((pending = pendingEntityRegistrations.poll()) != null) {
+            org.bukkit.entity.Entity entity = plugin.getServer().getEntity(pending.uuid());
+            if (entity == null || WorldKeys.idOf(entity.getWorld()) != pending.worldId()) {
+                continue;
+            }
+            itemShield.onEntityAvailable(entity);
+        }
+    }
+
+    @Override
     public String diagnostics() {
         return "state=" + state
                 + " chunkSanitized=" + metrics.chunkPacketsSanitized()
@@ -477,10 +493,8 @@ public final class PacketEventsGateway implements PacketGateway {
             return;
         }
         dev.audismp.aegishider.config.WorldSettings.YShield yShield = currentInfo.yShield();
-        boolean yMask = yShield.enabled()
-                && session.eyeY() > yShield.hideBelowY()
-                && (Math.abs(chunkX - session.chunkX()) > yShield.realChunkRadius()
-                || Math.abs(chunkZ - session.chunkZ()) > yShield.realChunkRadius());
+        boolean yMask = yShield.masksViewer(session.eyeY())
+                && yShield.masksChunk(chunkX, chunkZ, session.chunkX(), session.chunkZ());
         boolean tunnelTracked = currentInfo.tunnelShield().enabled()
                 && plugin.tunnelShield() != null
                 && plugin.tunnelShield().hasTunnelsInChunk(worldId, chunkX, chunkZ);
@@ -587,25 +601,38 @@ public final class PacketEventsGateway implements PacketGateway {
                     + " stateScanPrefiltered=" + result.stateScan().sectionsPrefiltered()
                     + " stateScanBlocksRead=" + result.stateScan().blocksRead());
         }
+        int tunnelMasked = 0;
+        if (plugin.tunnelShield() != null && currentInfo.tunnelShield().enabled()) {
+            Player tunnelViewer = session.player();
+            if (tunnelViewer != null) {
+                tunnelMasked = plugin.tunnelShield().maskColumn(column, tunnelViewer, worldId,
+                        chunkX, chunkZ, session.minSectionY(), currentInfo.tunnelShield());
+            }
+        }
         int ySectionsMasked = 0;
         TileEntity[] yFilteredTileEntities = null;
         if (yMask) {
-            BaseChunk[] sections = column.getChunks();
-            if (sections != null) {
-                int fillerId = stateIdMapper.fillerStateId(protocolVersion, yShield.filler());
-                BaseChunk fillerSection = yFillerSection(fillerId);
-                for (int i = 0; i < sections.length; i++) {
-                    int sectionY = (session.minSectionY() + i) << 4;
-                    if (sectionY < yShield.hideBelowY()) {
-                        sections[i] = fillerSection;
-                        ySectionsMasked++;
-                    }
-                }
+            // Y-shield wins over Tunnel Shield: the whole volume below the line is filler
+            // for this viewer, including cave rooms whose containers were already hidden.
+            // Tunnel Shield runs first above, then this pass overwrites its real blocks.
+            int fillerId = stateIdMapper.fillerStateId(protocolVersion, yShield.filler());
+            if (fillerId <= 0) {
+                // Cannot resolve a safe filler: never send the real underground.
+                event.setCancelled(true);
+                metrics.recordChunkFailClosed();
+                queueChunkResend(viewerId, worldId, chunkX, chunkZ);
+                return;
             }
-            TileEntity[] originalTileEntities = column.getTileEntities();
-            if (originalTileEntities != null && originalTileEntities.length > 0) {
-                java.util.List<TileEntity> kept = new java.util.ArrayList<>(originalTileEntities.length);
-                for (TileEntity tileEntity : originalTileEntities) {
+            ySectionsMasked = ChunkSanitizer.maskBelowY(column, session.minSectionY(),
+                    yShield.hideBelowY(), fillerId, yFillerSection(fillerId));
+            // Filter the ALREADY sanitized list. Starting from column.getTileEntities()
+            // would re-introduce hidden container/sign block entities above the line that
+            // ChunkSanitizer just removed.
+            TileEntity[] sanitizedTileEntities = result.tileEntities() != null
+                    ? result.tileEntities() : column.getTileEntities();
+            if (sanitizedTileEntities != null && sanitizedTileEntities.length > 0) {
+                java.util.List<TileEntity> kept = new java.util.ArrayList<>(sanitizedTileEntities.length);
+                for (TileEntity tileEntity : sanitizedTileEntities) {
                     if (tileEntity != null && tileEntity.getYShort() < yShield.hideBelowY()) {
                         continue;
                     }
@@ -613,17 +640,9 @@ public final class PacketEventsGateway implements PacketGateway {
                         kept.add(tileEntity);
                     }
                 }
-                if (kept.size() != originalTileEntities.length) {
+                if (kept.size() != sanitizedTileEntities.length) {
                     yFilteredTileEntities = kept.toArray(new TileEntity[0]);
                 }
-            }
-        }
-        int tunnelMasked = 0;
-        if (plugin.tunnelShield() != null && currentInfo.tunnelShield().enabled()) {
-            Player tunnelViewer = session.player();
-            if (tunnelViewer != null) {
-                tunnelMasked = plugin.tunnelShield().maskColumn(column, tunnelViewer, worldId,
-                        chunkX, chunkZ, session.minSectionY(), currentInfo.tunnelShield());
             }
         }
         TileEntity[] finalTileEntities = yFilteredTileEntities != null ? yFilteredTileEntities
@@ -699,6 +718,19 @@ public final class PacketEventsGateway implements PacketGateway {
             event.setCancelled(true);
             return;
         }
+        WorldSettings.YShield yShield = info.yShield();
+        if (yShield.masksBlock(context.session().eyeY(), y)) {
+            int fillerId = materialCache.fillerStateId(protocolVersion, yShield.filler());
+            if (fillerId <= 0) {
+                event.setCancelled(true);
+                return;
+            }
+            WrapperPlayServerBlockChange wrapper = new WrapperPlayServerBlockChange(event);
+            wrapper.setBlockID(fillerId);
+            event.markForReEncode(true);
+            metrics.recordBlockChangeFaked();
+            return;
+        }
         long worldId = context.session().worldId();
         if (plugin.tunnelShield() != null && info.tunnelShield().enabled()) {
             Player viewer = context.session().player();
@@ -769,8 +801,19 @@ public final class PacketEventsGateway implements PacketGateway {
             return;
         }
         boolean changed = false;
+        WorldSettings.YShield yShield = info.yShield();
         for (WrapperPlayServerMultiBlockChange.EncodedBlock block : blocks) {
             long blockPos = BlockPosUtil.encode(block.getX(), block.getY(), block.getZ());
+            if (yShield.masksBlock(context.session().eyeY(), block.getY())) {
+                int fillerId = materialCache.fillerStateId(protocolVersion, yShield.filler());
+                if (fillerId <= 0) {
+                    event.setCancelled(true);
+                    return;
+                }
+                block.setBlockId(fillerId);
+                changed = true;
+                continue;
+            }
             if (plugin.tunnelShield() != null && info.tunnelShield().enabled()) {
                 Player viewer = context.session().player();
                 int tunnelState = viewer == null ? -1 : plugin.tunnelShield().maskBlockUpdate(
@@ -840,8 +883,17 @@ public final class PacketEventsGateway implements PacketGateway {
             event.setCancelled(true);
             return;
         }
+        int blockY = unpackBlockY(packedPosition);
         long blockPos = BlockPosUtil.encode(unpackBlockX(packedPosition),
-                unpackBlockY(packedPosition), unpackBlockZ(packedPosition));
+                blockY, unpackBlockZ(packedPosition));
+        if (info.yShield().masksBlock(context.session().eyeY(), blockY)) {
+            // Chest/container NBT, note-block/chest animations and other block actions
+            // below the line would announce the hidden room even though its blocks are
+            // filler. Suppress them for surface viewers.
+            event.setCancelled(true);
+            metrics.recordBlockEntityBlocked();
+            return;
+        }
         if (!isProtectedBlock(context.session().worldId(), blockPos)) {
             // Same lagging-index rule as block updates: BLOCK_ENTITY_DATA whose payload
             // type is a protected tile entity must die even at unregistered positions,
@@ -893,8 +945,15 @@ public final class PacketEventsGateway implements PacketGateway {
             event.setCancelled(true);
             return;
         }
+        int breakY = unpackBlockY(position);
         long blockPos = BlockPosUtil.encode(unpackBlockX(position),
-                unpackBlockY(position), unpackBlockZ(position));
+                breakY, unpackBlockZ(position));
+        WorldHidden info = worldHidden(context.session().worldName());
+        if (info != null && info.yShield().masksBlock(context.session().eyeY(), breakY)) {
+            event.setCancelled(true);
+            metrics.recordBlockActionBlocked();
+            return;
+        }
         if (!isProtectedBlock(context.session().worldId(), blockPos)) {
             return;
         }
@@ -941,6 +1000,7 @@ public final class PacketEventsGateway implements PacketGateway {
         }
         boolean spawn = type == PacketType.Play.Server.SPAWN_ENTITY;
         com.github.retrooper.packetevents.protocol.entity.type.EntityType spawnType = null;
+        UUID spawnUuid = null;
         int entityId;
         if (spawn) {
             // PacketEvents decodes the spawn layout for the actual server version; raw peeks
@@ -950,6 +1010,7 @@ public final class PacketEventsGateway implements PacketGateway {
                         .WrapperPlayServerSpawnEntity(event);
                 entityId = spawnWrapper.getEntityId();
                 spawnType = spawnWrapper.getEntityType();
+                spawnUuid = spawnWrapper.getUUID().orElse(null);
             } catch (RuntimeException exception) {
                 event.setCancelled(true);
                 return;
@@ -1000,9 +1061,14 @@ public final class PacketEventsGateway implements PacketGateway {
                 return;
             }
             if (tracked == null) {
-                // An item spawn that was not registered by the main thread: this must not
-                // happen (ItemSpawnEvent/EntitiesLoadEvent are synchronous before tracking),
-                // but fail closed if it does.
+                // An item spawn that was not registered by the main thread (typically an
+                // item outside the periodic player sweep). Cancel fail-closed, but ask the
+                // main thread to register it by UUID so the normal visibility engine can
+                // show it instead of leaving a legitimate item permanently invisible.
+                if (spawnUuid != null && pendingEntityRegistrations.size() < 256) {
+                    pendingEntityRegistrations.add(new PendingEntityRegistration(
+                            spawnUuid, session.worldId()));
+                }
                 event.setCancelled(true);
                 metrics.recordUnexpectedItemSpawnBlocked();
                 warnUnexpectedItemSpawn(entityId);

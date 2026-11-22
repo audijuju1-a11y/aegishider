@@ -143,9 +143,15 @@ public final class PlayerShield {
             // towers and elytra flight stay visible.
             boolean verticalBlocked = !bypass && !sameTeam && !combatGrace
                     && heightShield.separates(eye.getY(), centerY);
+            // The Y-shield is the block-level base cover. Reflect the same rule for player
+            // entities: a viewer above the line must not receive player positions from a
+            // masked room below it. Teams, combat grace and bypass keep normal play intact.
+            boolean yShieldBlocked = !bypass && !sameTeam && !combatGrace
+                    && settings.yShield().masksEntity(eye.getY(), centerY);
             boolean inFov = true;
             boolean lineOfSight = true;
-            if (distanceHiding && !verticalBlocked && !bypass && !sameTeam && !combatGrace
+            if (distanceHiding && !verticalBlocked && !yShieldBlocked && !bypass && !sameTeam
+                    && !combatGrace
                     && distance > policy.alwaysVisibleDistance()
                     && distance <= policy.hideDistance()) {
                 inFov = OcclusionEngine.insideFov(eye.getX(), eye.getY(), eye.getZ(),
@@ -160,7 +166,7 @@ public final class PlayerShield {
                 }
             }
             PlayerVisibilityPolicy.Action action;
-            if (verticalBlocked) {
+            if (verticalBlocked || yShieldBlocked) {
                 action = PlayerVisibilityPolicy.Action.HIDE;
             } else if (!distanceHiding) {
                 action = PlayerVisibilityPolicy.Action.SHOW;

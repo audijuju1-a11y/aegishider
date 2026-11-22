@@ -16,9 +16,9 @@ import java.util.TreeSet;
 /**
  * Resolver for material/pattern lists used by the visibility engine.
  *
- * <p>Tile-entity backed materials are discovered from world block entities. Plain
- * {@code BOOKSHELF} is the explicit state-scan exception because it has no block entity;
- * its positions come from the packet layer's palette-prefiltered state scan and targeted
+ * <p>Tile-entity backed materials are discovered from world block entities. Base-defining
+ * blocks without a block entity (bookshelf, pistons, workstations, anvils, cauldrons,
+ * observers...) use the packet layer's palette-prefiltered block-state scan and targeted
  * index verification, not a full world scan. Other unsupported {@code hidden-blocks}
  * entries are rejected with a warning instead of silently producing a partial protection
  * guarantee.
@@ -30,12 +30,20 @@ public final class MaterialSets {
 
     /**
      * Blocks with no block entity that still need a block-state hiding path. These are
-     * deliberately few: the packet layer can spot their states through a chunk section
-     * palette, but the main-thread index only learns positions from packet detection,
-     * player placement and targeted re-verification (never from a full world scan).
+     * the base-defining blocks players notice immediately when a base is exposed: shelving,
+     * workstations, anvils, redstone components and piston parts. Their positions come from
+     * the packet-layer state scan, player placement and targeted re-verification.
      */
     private static final Set<Material> EXPLICIT_STATE_ONLY_MATERIALS = EnumSet.of(
-            Material.BOOKSHELF
+            Material.BOOKSHELF,
+            Material.CRAFTING_TABLE, Material.CARTOGRAPHY_TABLE, Material.FLETCHING_TABLE,
+            Material.SMITHING_TABLE, Material.LOOM, Material.STONECUTTER, Material.GRINDSTONE,
+            Material.ANVIL, Material.CHIPPED_ANVIL, Material.DAMAGED_ANVIL,
+            Material.OBSERVER, Material.TARGET, Material.COMPOSTER,
+            Material.CAULDRON, Material.WATER_CAULDRON, Material.LAVA_CAULDRON,
+            Material.POWDER_SNOW_CAULDRON,
+            Material.PISTON, Material.STICKY_PISTON, Material.PISTON_HEAD, Material.MOVING_PISTON,
+            Material.RESPAWN_ANCHOR
     );
 
     private static final Set<Material> EXPLICIT_TILE_ENTITY_MATERIALS = EnumSet.of(
@@ -46,7 +54,7 @@ public final class MaterialSets {
             Material.BEACON, Material.CONDUIT, Material.LECTERN, Material.JUKEBOX,
             Material.CAMPFIRE, Material.SOUL_CAMPFIRE, Material.DECORATED_POT,
             Material.CHISELED_BOOKSHELF, Material.CRAFTER, Material.ENCHANTING_TABLE,
-            Material.NOTE_BLOCK, Material.PISTON, Material.STICKY_PISTON, Material.MOVING_PISTON,
+            Material.NOTE_BLOCK, Material.MOVING_PISTON, Material.BELL, Material.LODESTONE,
             Material.DAYLIGHT_DETECTOR, Material.BEEHIVE, Material.BEE_NEST,
             Material.SCULK_SENSOR, Material.CALIBRATED_SCULK_SENSOR, Material.SCULK_SHRIEKER,
             Material.SUSPICIOUS_SAND, Material.SUSPICIOUS_GRAVEL,

@@ -61,6 +61,8 @@ public final class ViewerSession {
     private volatile long chunkRevision;
     private volatile int chunkX;
     private volatile int chunkZ;
+    /** True when the last main-thread decision put this viewer above the Y-shield line. */
+    private volatile boolean yShieldMasked;
     /** Last tick this session's transform was refreshed. */
     private int lastTransformTick;
 
@@ -206,6 +208,11 @@ public final class ViewerSession {
     public long revision() { return revision; }
     public long chunkRevision() { return chunkRevision; }
     public int lastTransformTick() { return lastTransformTick; }
+    public boolean yShieldMasked() { return yShieldMasked; }
+
+    public void setYShieldMasked(boolean yShieldMasked) {
+        this.yShieldMasked = yShieldMasked;
+    }
 
     @Override
     public String toString() {

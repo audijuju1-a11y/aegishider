@@ -1,4 +1,4 @@
-# Aegishider 4.0.3
+# Aegishider 4.0.4
 
 Server-side **anti-ESP / anti-base-ESP / anti-storage-ESP** for **Paper 1.21.1 – 26.3**
 (Java 21; Paper 26.x runs on Java 25). Protected data is removed from outgoing packets
@@ -16,7 +16,7 @@ The licence is a separate product gate (see below).
 The shipped `platform.yml` uses `enforcement: enforce`. The plugin loads and exposes its
 commands, but **protection stays disabled until this server is activated on the platform**:
 
-1. Put the matching `Aegishider-4.0.3-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
+1. Put the matching `Aegishider-4.0.4-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
 2. Start the server. Protection is intentionally inactive.
 3. Run `/aegishider license link`; the server registers an Ed25519 installation identity
    and prints a 16-character activation code plus the portal URL.
@@ -47,16 +47,58 @@ Folia is not supported. PacketEvents 2.14.0+ is required for block/container pro
 without it the plugin still protects entities/items but block protection is reported
 `INACTIVE` (never a send-then-patch fallback).
 
+### Upgrading from 4.0.3
+
+`config.yml` is never rewritten on upgrade. Add the new base blocks from the shipped
+`hidden-blocks` list (pistons, bookshelf, workstations, anvils, cauldrons, redstone),
+set `y-shield.enabled: true` with `real-chunk-radius: 0`, and add
+`item-protection.mob-melee-visible-distance: 1.0`. Alternatively, back up your config
+and delete it once to let 4.0.4 write the new secure defaults.
+
+## 4.0.4 base-block and Y-shield changes
+
+- **The full base-defining block set is hidden by default.** Piston, sticky piston, piston
+  head, bookshelf, crafting/cartography/fletching/smithing tables, loom, stonecutter,
+  grindstone, all three anvils, observer, target, composter, daylight detector, all
+  cauldrons, respawn anchor, bell, lodestone and beacon join the storage tiles. Note block
+  and jukebox remain opt-in so public music/redstone builds do not turn into stone.
+- **Stationary pistons and workstations now have a real discovery path.** They have no
+  block entity, so they are handled by the palette-prefiltered block-state scan (the same
+  path as bookshelf), registered on placement and detected from outgoing chunks. A
+  piston/bookshelf behind any number of solid blocks stays hidden; line of sight is still
+  required before the 24-block reveal can show it.
+- **Y-shield is on by default and covers every chunk.** While a viewer's eye is at least
+  2 blocks above `hide-below-y` (default 40), every block below the line is replaced with
+  stone, including the air inside cave rooms, not just the containers. The straddling
+  section is edited layer by layer so surface terrain above the line is preserved.
+  `real-chunk-radius: 0` means even the viewer's own chunk is masked; a positive value
+  restores the old nearby-real behaviour.
+- **The underground is consistently suppressed above the line.** Block changes,
+  multi-block changes, block-entity data, block actions, break animations and tracked
+  entities below the line are filtered for that viewer, so a chest opening, piston or
+  falling item cannot announce a base through the filler.
+- **Crossing the line re-sends chunks.** A viewer who descends into a cave/base gets the
+  real world back; ascending re-masks it. The re-send is spread across ticks to avoid a
+  teleport-time spike. The bypass permission refresh also re-filters a client that was
+  previously bypassing.
+- **`BEACON` and `BOOKSHELF` are back in the default hidden set.** Servers with public
+  spawn landmarks can remove them from `hidden-blocks`; they remain visible within the
+  normal 24-block reveal radius and with clear line of sight regardless.
+- **Living-mob wall check (light-medium).** Monsters and animals now require a real
+  line of sight everywhere except inside a 1-block touching radius
+  (`item-protection.mob-melee-visible-distance`, 0-4). A cow or zombie directly behind a
+  solid wall is hidden even at 2-4 blocks, while a fence, glass pane, bars, or a head
+  peeking over a ledge still shows it. The check samples the body centre and the head;
+  there is no extra raycast tax for far mobs beyond the existing occlusion pass.
+
 ## 4.0.0 behaviour changes
 
-- **Public landmarks are opt-in.** Ender chests, enchanting tables, shulker boxes, hoppers,
-  chiseled bookshelves, lecterns and the other storage tiles stay in the default hidden
-  set. `BEACON` and plain `BOOKSHELF` are intentionally *not* hidden out of the box: they
-  are common in spawn hubs and libraries, and hiding them makes built landmarks vanish.
-  Add them under `hidden-blocks` when a base world wants them covered. Plain `BOOKSHELF`
-  uses the palette-prefiltered state scan; removing it from the default set also restores
-  the chunk fast path for servers that do not opt in. Anvils and other non-tile-entity
-  workstations are still rejected with a warning instead of being silently unprotected.
+- **Public landmarks.** 4.0.0 made `BEACON` and plain `BOOKSHELF` opt-in; 4.0.4 puts them
+  back in the default base set together with pistons, workstations, anvils and redstone
+  components. Servers with a public spawn beacon or library should remove those entries
+  from `hidden-blocks`. Plain `BOOKSHELF` and the other non-tile-entity base blocks use the
+  palette-prefiltered state scan. Anvils and other non-tile-entity workstations are no
+  longer rejected: they are state-scanned and can be hidden reliably.
 - **Ghost blocks fixed.** Breaking a hidden container while it was rendered as filler used
   to have the air update rewritten back to the filler, so the block “came back” forever.
   Air removals are now passed through; Tunnel Shield still masks its own dug-block updates.
@@ -97,21 +139,29 @@ without it the plugin still protects entities/items but block protection is repo
   spawners, trial spawners, vaults, ...) discovered from real chunk data.
 - Tunnel / dug-hole shield (defaults off): player-mined blocks beyond 28 blocks are shown
   as their original material; walking close reveals the real tunnel.
+- Full Y-shield (default on, `hide-below-y: 40`): surface viewers receive stone for the
+  complete underground volume, not only for containers. Descending below the line restores
+  the real chunks.
 - Player vertical height shield (default on) plus an opt-in same-floor distance shield
   (`player-protection.distance-hiding`, default off).
 
 Server-side gameplay is unchanged: pickups, merging, physics, despawn timers, containers
 and item stacks behave like vanilla. Hidden items can still be picked up.
 
-## Player-fair defaults (4.0.3)
+## Player-fair defaults (4.0.4)
 
 - **FOV is disabled (360°)** so F5 front view and fast turns never hide something that is
   visibly on screen.
 - **Height shield has a 12-block dead band** around `underground-y`: a deep base is still
   hidden from the surface, but two players at y=40/y=70 across a ravine or mineshaft stay
   visible when they can actually see each other.
-- **`BEACON` and plain `BOOKSHELF` are opt-in**, so spawn hubs and libraries keep their
-  landmarks; the state-only scan (and its chunk cost) is also off by default.
+- **Base blocks are hidden, public landmarks can be opted out.** `BEACON`, `BOOKSHELF`,
+  pistons, workstations and redstone components are in the default set. Spawn hubs and
+  libraries can remove those entries from `hidden-blocks`; anything close and unobstructed
+  is still shown by the reveal policy.
+- **Y-shield starts 2 blocks above the line** so the viewer's own feet and body space stay
+  real; the line is absolute Y, so choose a value below normal surface terrain (40 by
+  default, raise it for a deep cave base).
 - **Ray budget reserves a third of the pool (max 60) for entities/items**, so a dense
   storage room cannot starve a dropped item next to the player.
 - **Player shield gets 15% of the tick budget** (was 7.5%) so a 50-player sweep does not
@@ -199,13 +249,13 @@ pipeline additionally needs its venv and an Ed25519 release key outside the repo
 
 ```bash
 cd aegishider-integrated
-mvn -B test                                  # 148 tests
+mvn -B test                                  # 152 tests
 mvn -B -Pmc1211 -Dmaven.test.skip=true package
 
 # local hardened build: all six profiles + string encryption + ProGuard + SHA256SUMS
 JAVA21_HOME=... JAVA25_HOME=... MVN=... PROGUARD_JAR=... ASM_JAR=... \
   STRINGCRYPT_CLASSES=... bash ../scripts/harden-local.sh
-# artifacts: dist/obf/Aegishider-4.0.3-*.jar + dist/obf/SHA256SUMS
+# artifacts: dist/obf/Aegishider-4.0.4-*.jar + dist/obf/SHA256SUMS
 # or run the whole matrix + string encryption + ProGuard + manifests:
 cd ..
 SENTINEL_PY=/d/sentinel-shield/.venv/Scripts/python.exe bash scripts/release.sh
@@ -217,10 +267,10 @@ obfuscated; signed manifest sidecars only when using the Sentinel pipeline) and
 
 ## Verification snapshot
 
-- 148 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
+- 152 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
 - A–F packet harness PASS on Paper 1.21.4 (plain and ProGuard-obfuscated jar); the same
   harness detects A/C/D/E/F leaks in the legacy BaseHider 3.0.0 baseline.
-- 4.0.3 live verification: Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with
+- 4.0.4 live verification: Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with
   PacketEvents 2.14.0 and the obfuscated jars. Both start `protection=WAITING_FOR_LICENSE`,
   restore the cached signed lease after activation/restart, then report
   `gateway=ACTIVE` on `V_1_21_11` / `V_26_3` and `protection=ACTIVE`.

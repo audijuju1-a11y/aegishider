@@ -14,7 +14,7 @@ export interface SiteContent {
 }
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
-  announcement: "อัปเดต Aegishider 4.0.3 — Player-fair defaults, license gate แน่นขึ้น, รองรับ Paper 1.21.1 ถึง 26.3",
+  announcement: "อัปเดต Aegishider 4.0.4 — ซ่อนบล็อกฐานครบชุด + Y-shield ปิดห้องใต้ดิน + ตรวจกำแพงมอน/สัตว์",
   heroEyebrow: "AEGISHIDER CONTROL PLATFORM",
   heroTitle: "ปลั๊กอิน Minecraft",
   heroTitleAccent: "ฟรี พร้อมไลเซนส์จริง",

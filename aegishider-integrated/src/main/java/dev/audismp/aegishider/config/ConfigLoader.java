@@ -39,7 +39,14 @@ public final class ConfigLoader {
             "BLUE_SHULKER_BOX", "BROWN_SHULKER_BOX", "GREEN_SHULKER_BOX", "RED_SHULKER_BOX",
             "BLACK_SHULKER_BOX", "HOPPER", "DROPPER", "DISPENSER", "FURNACE", "BLAST_FURNACE",
             "SMOKER", "BREWING_STAND", "SPAWNER", "TRIAL_SPAWNER", "VAULT",
-            "CRAFTER", "DECORATED_POT", "CHISELED_BOOKSHELF", "BOOKSHELF", "LECTERN"
+            "CRAFTER", "DECORATED_POT", "CHISELED_BOOKSHELF", "BOOKSHELF", "LECTERN",
+            "CRAFTING_TABLE", "CARTOGRAPHY_TABLE", "FLETCHING_TABLE", "SMITHING_TABLE",
+            "LOOM", "STONECUTTER", "GRINDSTONE",
+            "ANVIL", "CHIPPED_ANVIL", "DAMAGED_ANVIL",
+            "OBSERVER", "TARGET", "COMPOSTER", "DAYLIGHT_DETECTOR",
+            "CAULDRON", "WATER_CAULDRON", "LAVA_CAULDRON", "POWDER_SNOW_CAULDRON",
+            "PISTON", "STICKY_PISTON", "MOVING_PISTON", "PISTON_HEAD",
+            "RESPAWN_ANCHOR", "BELL", "LODESTONE", "CONDUIT"
     };
 
     public static AegishiderConfig load(FileConfiguration cfg, long revision) {
@@ -133,7 +140,8 @@ public final class ConfigLoader {
             return builtinDefault
                     ? new WorldSettings(true, bypassPermission, builtinBlockProtection(warnings, worldName),
                     builtinItemProtection(warnings, worldName), WorldSettings.PlayerProtection.disabled(),
-                    new EntityHeightShield(true, 16.0, 50.0, 12.0), WorldSettings.YShield.disabled(),
+                    new EntityHeightShield(true, 16.0, 50.0, 12.0),
+                    new WorldSettings.YShield(true, 40, 0, Material.STONE),
                     WorldSettings.TunnelShield.disabled())
                     : WorldSettings.disabled(bypassPermission);
         }
@@ -287,9 +295,18 @@ public final class ConfigLoader {
                 ? clampDouble(itemSection.getDouble("monster-max-distance", 96.0), 16.0, 256.0,
                 warnings, worldName, "item-protection.monster-max-distance")
                 : 96.0;
+        // Light-medium wall check: beyond this very short melee radius a living mob must
+        // prove a clear line of sight (body + head samples). A cow/monster directly behind
+        // a solid wall is hidden; a pen behind a fence, glass or bars stays visible. Set 0
+        // for strict at all ranges or 4 for the old close-range always-visible behaviour.
+        double mobMeleeVisibleDistance = itemSection != null
+                ? clampDouble(itemSection.getDouble("mob-melee-visible-distance", 1.0),
+                0.0, 4.0, warnings, worldName,
+                "item-protection.mob-melee-visible-distance")
+                : 1.0;
         ItemProtection itemProtection = new ItemProtection(itemsEnabled, WorldSettings.copyEntityTypes(hiddenTypes),
-                itemDistance, itemFov, ownerGrace, updateInterval, occlusionOnlyMonsters, monsterMaxDistance,
-                protectAllLiving);
+                itemDistance, itemFov, ownerGrace, updateInterval, occlusionOnlyMonsters,
+                monsterMaxDistance, mobMeleeVisibleDistance, protectAllLiving);
 
         // ── Player entity protection (anti player-ESP) ─────────────────────
         ConfigurationSection playerSection = section.getConfigurationSection("player-protection");
@@ -342,15 +359,19 @@ public final class ConfigLoader {
                 heightUndergroundY, heightBandMargin);
 
         ConfigurationSection ySection = section.getConfigurationSection("y-shield");
-        boolean yEnabled = ySection != null && ySection.getBoolean("enabled", false);
+        // Y-shield is part of the secure default: a surface viewer must not receive any
+        // block below the configured line, including cave rooms whose containers were
+        // already replaced. Servers that need the old distant-only behaviour can set
+        // real-chunk-radius > 0; 0 masks every chunk in view.
+        boolean yEnabled = ySection == null || ySection.getBoolean("enabled", true);
         int yBelow = ySection != null
                 ? clampInt(ySection.getInt("hide-below-y", 40), -256, 512,
                 warnings, worldName, "y-shield.hide-below-y")
                 : 40;
         int yRadius = ySection != null
-                ? clampInt(ySection.getInt("real-chunk-radius", 4), 0, 16,
+                ? clampInt(ySection.getInt("real-chunk-radius", 0), 0, 16,
                 warnings, worldName, "y-shield.real-chunk-radius")
-                : 4;
+                : 0;
         String rawYFiller = ySection != null ? ySection.getString("filler", "STONE") : "STONE";
         Material yFiller = parseMaterial(rawYFiller, Material.STONE, warnings, worldName,
                 "y-shield.filler");
@@ -392,7 +413,7 @@ public final class ConfigLoader {
     private static ItemProtection builtinItemProtection(List<String> warnings, String worldName) {
         Set<EntityType> types = EnumSet.of(EntityType.ITEM);
         return new ItemProtection(true, WorldSettings.copyEntityTypes(types), 24.0, 360.0, true, 2,
-                true, 96.0, true);
+                true, 96.0, 1.0, true);
     }
 
     private static Material parseMaterial(String raw, Material fallback, List<String> warnings,

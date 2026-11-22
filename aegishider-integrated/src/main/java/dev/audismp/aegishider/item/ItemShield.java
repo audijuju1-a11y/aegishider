@@ -698,6 +698,12 @@ public final class ItemShield {
         if (viewer.bypass()) {
             return EvalOutcome.VISIBLE;
         }
+        // A surface viewer never receives entities from below the Y-shield line: dropped
+        // loot, item frames, storage minecarts and villagers inside the base volume are
+        // hidden even when the line of sight passes through the real, now-masked cave.
+        if (settings.yShield().masksEntity(viewer.eyeY(), tracked.centerY)) {
+            return EvalOutcome.HIDDEN;
+        }
         double distSq = OcclusionEngine.distanceSq(viewer, tracked.centerX, tracked.centerY, tracked.centerZ);
         double maxDist = policy.revealDistance();
         // Owner grace is deliberately bounded: the thrower only sees their own item while
@@ -734,19 +740,25 @@ public final class ItemShield {
         if (distSq > allowedDistance * allowedDistance) {
             return EvalOutcome.HIDDEN;
         }
+        if (livingMob) {
+            // Light-medium wall check: only a truly touching mob skips the line-of-sight
+            // test. Beyond that, a solid wall hides it even at close range; transparent
+            // pens (fence/glass/bars) and a head that peeks over low cover still show it.
+            double melee = policy.mobMeleeVisibleDistance();
+            if (distSq <= melee * melee) {
+                return EvalOutcome.VISIBLE;
+            }
+        }
         if (!occlusionOnly) {
-            // Very close objects are always visible to avoid frustrating near-camera pop-out.
-            if (distSq <= 4.0) {
+            // Very close non-living objects are always visible to avoid frustrating
+            // near-camera pop-out (living mobs use mob-melee-visible-distance above).
+            if (!livingMob && distSq <= 4.0) {
                 return EvalOutcome.VISIBLE;
             }
             if (!OcclusionEngine.insideFov(viewer, tracked.centerX, tracked.centerY, tracked.centerZ,
                     policy.fovCosHalf())) {
                 return EvalOutcome.HIDDEN;
             }
-        } else if (distSq <= 16.0) {
-            // Monsters in melee range are never hidden: a fence, stair or half slab under
-            // the centre ray must not make a mob blink out during a fight.
-            return EvalOutcome.VISIBLE;
         }
         if (!plugin.raycastBudget().tryConsume()) {
             metrics.recordRaycastDeferred();

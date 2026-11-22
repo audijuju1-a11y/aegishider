@@ -38,12 +38,25 @@ class ConfigLoaderTest {
         assertTrue(defaults.hiddenEntityTypes().contains(org.bukkit.entity.EntityType.ITEM));
         assertTrue(defaults.itemProtection().protectAllLiving());
         assertTrue(defaults.itemProtection().isHiddenType(org.bukkit.entity.EntityType.COW));
+        assertEquals(1.0, defaults.itemProtection().mobMeleeVisibleDistance(), 1e-9);
         assertTrue(defaults.entityHeightShield().enabled());
         assertEquals(16.0, defaults.entityHeightShield().maxVerticalDistance(), 1e-9);
         assertEquals(50.0, defaults.entityHeightShield().undergroundY(), 1e-9);
         assertEquals(12.0, defaults.entityHeightShield().bandMargin(), 1e-9);
         assertEquals(360.0, defaults.blockProtection().fovDegrees(), 1e-9);
         assertEquals(360.0, defaults.itemProtection().fovDegrees(), 1e-9);
+        assertTrue(defaults.yShield().enabled(), "Y-shield is part of the secure default");
+        assertEquals(40, defaults.yShield().hideBelowY());
+        assertEquals(0, defaults.yShield().realChunkRadius(),
+                "0 means every chunk is masked, including nearby cave rooms");
+        assertTrue(defaults.yShield().masksViewer(100.0));
+        assertFalse(defaults.yShield().masksViewer(40.0),
+                "the viewer's own body space at the line must stay real");
+        assertTrue(defaults.hiddenMaterials().contains(Material.BOOKSHELF));
+        assertTrue(defaults.hiddenMaterials().contains(Material.PISTON));
+        assertTrue(defaults.hiddenMaterials().contains(Material.STICKY_PISTON));
+        assertTrue(defaults.hiddenMaterials().contains(Material.CRAFTING_TABLE));
+        assertTrue(defaults.hiddenMaterials().contains(Material.ANVIL));
         assertTrue(config.failClosed());
         assertTrue(config.raycastBudgetPerTick() > 0);
     }
@@ -231,6 +244,43 @@ class ConfigLoaderTest {
     }
 
     @Test
+    void yShieldMasksEveryChunkBelowTheLine(@TempDir Path tempDir) throws IOException {
+        AegishiderConfig config = load("""
+                worlds:
+                  default:
+                    y-shield:
+                      enabled: true
+                      hide-below-y: 20
+                      real-chunk-radius: 0
+                """, tempDir);
+        WorldSettings.YShield yShield = config.world("test").yShield();
+        assertTrue(yShield.masksViewer(30.0));
+        assertFalse(yShield.masksViewer(21.0), "near the line the viewer's body stays real");
+        assertTrue(yShield.masksChunk(0, 0, 0, 0), "radius 0 masks the viewer's own chunk");
+        assertTrue(yShield.masksBlock(30.0, 19));
+        assertFalse(yShield.masksBlock(30.0, 20));
+        assertFalse(yShield.masksBlock(21.0, 0), "a viewer below the line sees the real world");
+        assertTrue(yShield.masksEntity(30.0, 19.5));
+        assertFalse(yShield.masksEntity(30.0, 20.0));
+    }
+
+    @Test
+    void yShieldNearRadiusIsOptIn(@TempDir Path tempDir) throws IOException {
+        AegishiderConfig config = load("""
+                worlds:
+                  default:
+                    y-shield:
+                      enabled: true
+                      hide-below-y: 20
+                      real-chunk-radius: 4
+                """, tempDir);
+        WorldSettings.YShield yShield = config.world("test").yShield();
+        assertFalse(yShield.masksChunk(2, 2, 0, 0));
+        assertFalse(yShield.masksChunk(4, 4, 0, 0));
+        assertTrue(yShield.masksChunk(5, 0, 0, 0));
+    }
+
+    @Test
     void packetGatewayMinimumVersionIsParsed(@TempDir Path tempDir) throws IOException {
         AegishiderConfig config = load("""
                 security:
@@ -254,6 +304,27 @@ class ConfigLoaderTest {
         assertEquals(360.0, settings.playerProtection().fovDegrees(), 1e-9);
         assertTrue(settings.blockProtection().fovCosHalf() < 0.0,
                 "360 degrees must be the disabled sentinel, not a 90-degree half-cone");
+    }
+
+    @Test
+    void mobWallCheckMeleeDistanceIsConfigurableAndClamped(@TempDir Path tempDir) throws IOException {
+        AegishiderConfig config = load("""
+                worlds:
+                  default:
+                    item-protection:
+                      mob-melee-visible-distance: 0
+                """, tempDir);
+        assertEquals(0.0, config.world("test").itemProtection().mobMeleeVisibleDistance(), 1e-9);
+
+        AegishiderConfig clamped = load("""
+                worlds:
+                  default:
+                    item-protection:
+                      mob-melee-visible-distance: 99
+                """, tempDir);
+        assertEquals(4.0, clamped.world("test").itemProtection().mobMeleeVisibleDistance(), 1e-9);
+        assertTrue(clamped.warnings().stream()
+                .anyMatch(w -> w.contains("mob-melee-visible-distance")));
     }
 
     @Test
@@ -319,23 +390,36 @@ class ConfigLoaderTest {
             assertFalse(settings.playerProtection().distanceHiding());
             assertTrue(settings.itemProtection().protectAllLiving());
             assertTrue(settings.itemProtection().isHiddenType(org.bukkit.entity.EntityType.COW));
+            assertEquals(1.0, settings.itemProtection().mobMeleeVisibleDistance(), 1e-9);
             assertTrue(settings.entityHeightShield().enabled());
             assertEquals(16.0, settings.entityHeightShield().maxVerticalDistance(), 1e-9);
             assertEquals(50.0, settings.entityHeightShield().undergroundY(), 1e-9);
-            assertFalse(settings.yShield().enabled());
+            assertTrue(settings.yShield().enabled());
+            assertEquals(40, settings.yShield().hideBelowY());
+            assertEquals(0, settings.yShield().realChunkRadius());
             assertFalse(settings.tunnelShield().enabled());
             assertTrue(settings.hiddenMaterials().contains(Material.CRAFTER));
             assertTrue(settings.hiddenMaterials().contains(Material.DECORATED_POT));
             assertTrue(settings.hiddenMaterials().contains(Material.CHISELED_BOOKSHELF));
-            assertFalse(settings.hiddenMaterials().contains(Material.BOOKSHELF));
+            assertTrue(settings.hiddenMaterials().contains(Material.BOOKSHELF));
             assertTrue(settings.hiddenMaterials().contains(Material.LECTERN));
             assertTrue(settings.hiddenMaterials().contains(Material.ENDER_CHEST));
             assertTrue(settings.hiddenMaterials().contains(Material.ENCHANTING_TABLE));
-            assertFalse(settings.hiddenMaterials().contains(Material.BEACON));
+            assertTrue(settings.hiddenMaterials().contains(Material.BEACON));
+            assertTrue(settings.hiddenMaterials().contains(Material.PISTON));
+            assertTrue(settings.hiddenMaterials().contains(Material.STICKY_PISTON));
+            assertTrue(settings.hiddenMaterials().contains(Material.PISTON_HEAD));
+            assertTrue(settings.hiddenMaterials().contains(Material.CRAFTING_TABLE));
+            assertTrue(settings.hiddenMaterials().contains(Material.ANVIL));
+            assertTrue(settings.hiddenMaterials().contains(Material.CAULDRON));
+            assertTrue(settings.hiddenMaterials().contains(Material.OBSERVER));
+            assertTrue(settings.hiddenMaterials().contains(Material.CONDUIT));
             assertFalse(settings.hiddenMaterials().contains(Material.JUKEBOX));
             assertFalse(settings.hiddenMaterials().contains(Material.NOTE_BLOCK));
             assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.BOOKSHELF),
                     "plain bookshelf uses the block-state scan path, not the block-entity path");
+            assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.PISTON));
+            assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.STICKY_PISTON));
         }
     }
 

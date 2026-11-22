@@ -61,7 +61,7 @@ export const docs: DocPage[] = [
     category: "ผลิตภัณฑ์",
     updated: "2026-11",
     markdown: `
-# ติดตั้ง Aegishider 4.0.3
+# ติดตั้ง Aegishider 4.0.4
 
 ## สิ่งที่ต้องมี
 
@@ -84,7 +84,7 @@ export const docs: DocPage[] = [
 6. รัน \`/aegishider license refresh\` เพื่อรับ lease ที่เซ็นชื่อ
 7. รัน \`/aegishider status\` และตรวจว่า protection ขึ้น **ACTIVE**
 
-> 4.0.3 บังคับ enforcement=enforce: ถ้ายังไม่ activate, protection จะไม่เริ่มทำงาน (เปลี่ยนเป็น warn/ปิดได้ใน platform.yml)
+> 4.0.4 บังคับ enforcement=enforce: ถ้ายังไม่ activate, protection จะไม่เริ่มทำงาน (เปลี่ยนเป็น warn/ปิดได้ใน platform.yml)
 
 ## คำสั่ง
 

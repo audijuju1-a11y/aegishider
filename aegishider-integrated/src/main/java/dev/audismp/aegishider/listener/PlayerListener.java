@@ -34,6 +34,8 @@ public final class PlayerListener implements Listener {
         Player player = event.getPlayer();
         ViewerSession session = plugin.sessions().create(player, plugin.currentTick());
         session.updateEye(player.getEyeLocation());
+        session.setYShieldMasked(plugin.config().world(player.getWorld().getName())
+                .yShield().masksViewer(session.eyeY()));
         session.setBypass(player.hasPermission(plugin.config()
                 .world(player.getWorld().getName()).bypassPermission()));
         plugin.itemShield().onViewerJoin(session);
@@ -88,6 +90,7 @@ public final class PlayerListener implements Listener {
             return;
         }
         session.updateEye(player.getEyeLocation());
+        plugin.updateYShieldState(player);
         plugin.itemShield().onViewerMoved(session, chunkChanged, true);
         if (chunkChanged) {
             recordRaidVisit(player, session);
@@ -169,6 +172,7 @@ public final class PlayerListener implements Listener {
         }
         session.setBypass(player.hasPermission(plugin.config()
                 .world(player.getWorld().getName()).bypassPermission()));
+        plugin.updateYShieldState(player);
         plugin.metrics().setOnlineSessions(plugin.sessions().size());
     }
 }

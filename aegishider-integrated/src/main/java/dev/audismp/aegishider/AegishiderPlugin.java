@@ -46,12 +46,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -107,6 +109,20 @@ public final class AegishiderPlugin extends JavaPlugin {
     private long lastBudgetWarnMs;
     private long configRevision = 1L;
     private boolean packetWarmupDone;
+
+    /**
+     * Chunks being re-sent after a Y-shield crossing. A viewer who descends below the line
+     * already has masked chunks client-side, so the real world only reappears when those
+     * chunks are sent again; ascending needs the opposite. Spread over ticks to avoid a
+     * teleport-time burst of the whole view distance.
+     */
+    private final ArrayDeque<YShieldRefresh> yShieldRefreshes = new ArrayDeque<>();
+    private static final int Y_SHIELD_REFRESH_PER_TICK = 12;
+    private static final int Y_SHIELD_REFRESH_MAX_QUEUE = 64;
+
+    private record YShieldRefresh(UUID playerId, long worldId, int centerChunkX, int centerChunkZ,
+                                  int radius, int index, int total) {
+    }
 
     @Override
     public void onEnable() {
@@ -380,6 +396,7 @@ public final class AegishiderPlugin extends JavaPlugin {
             }
             if (packetGateway != null) {
                 packetGateway.drainDetectedBlockPositions();
+                packetGateway.drainPendingEntityRegistrations();
             }
             double budgetMs = current.mainThreadBudgetMs();
             // Engine budgets deliberately add up to 90% of the tick budget: the remaining
@@ -396,6 +413,7 @@ public final class AegishiderPlugin extends JavaPlugin {
             // Process a small slice of the discovery queue every tick so reconciliation
             // never spikes the main thread; enqueue/rescan once per second below.
             processReconciliation();
+            processYShieldRefreshes();
             if (tickCounter % 20 == 0) {
                 refreshViewerSessions();
                 packetGateway.resendDroppedChunks();
@@ -434,11 +452,97 @@ public final class AegishiderPlugin extends JavaPlugin {
             session.updateTransform(player.getLocation(), tickCounter);
             session.updateEye(player.getEyeLocation());
             WorldSettings settings = config.world(player.getWorld().getName());
+            boolean yMasked = settings.yShield().masksViewer(session.eyeY());
+            if (session.yShieldMasked() != yMasked) {
+                session.setYShieldMasked(yMasked);
+                if (!session.bypass()) {
+                    queueYShieldRefresh(player);
+                }
+            }
             boolean bypass = player.hasPermission(settings.bypassPermission());
             if (session.bypass() != bypass) {
                 session.setBypass(bypass);
                 itemShield.onViewerMoved(session, true, true);
                 blockShield.onViewerBypassChanged(session);
+                if (!bypass) {
+                    // The bypass client may be holding unsanitized chunks from before the
+                    // permission change. Re-send them through the normal filters.
+                    queueYShieldRefresh(player);
+                }
+            }
+        }
+    }
+
+    /** Re-evaluates the Y-shield state for one viewer and refreshes chunks on a crossing. */
+    public void updateYShieldState(Player player) {
+        if (player == null || !player.isOnline()) {
+            return;
+        }
+        ViewerSession session = sessions.get(player.getUniqueId());
+        if (session == null) {
+            return;
+        }
+        WorldSettings settings = config.world(player.getWorld().getName());
+        boolean yMasked = settings.yShield().masksViewer(session.eyeY());
+        if (session.yShieldMasked() == yMasked) {
+            return;
+        }
+        session.setYShieldMasked(yMasked);
+        if (!session.bypass()) {
+            queueYShieldRefresh(player);
+        }
+    }
+
+    /** Queues a full view-distance chunk re-send for one viewer after a Y-shield crossing. */
+    public void queueYShieldRefresh(Player player) {
+        if (player == null || !player.isOnline()) {
+            return;
+        }
+        UUID playerId = player.getUniqueId();
+        // A new crossing supersedes any partially processed refresh for the same viewer.
+        yShieldRefreshes.removeIf(refresh -> refresh.playerId().equals(playerId));
+        while (yShieldRefreshes.size() >= Y_SHIELD_REFRESH_MAX_QUEUE) {
+            yShieldRefreshes.pollFirst();
+        }
+        int radius = Math.max(1, Math.min(getServer().getViewDistance(), 12));
+        int width = radius * 2 + 1;
+        Location location = player.getLocation();
+        yShieldRefreshes.addLast(new YShieldRefresh(playerId, WorldKeys.idOf(player.getWorld()),
+                location.getBlockX() >> 4, location.getBlockZ() >> 4, radius, 0,
+                width * width));
+    }
+
+    private void processYShieldRefreshes() {
+        for (int processed = 0; processed < Y_SHIELD_REFRESH_PER_TICK; processed++) {
+            YShieldRefresh refresh = yShieldRefreshes.pollFirst();
+            if (refresh == null) {
+                return;
+            }
+            Player player = getServer().getPlayer(refresh.playerId());
+            if (player == null || !player.isOnline()
+                    || WorldKeys.idOf(player.getWorld()) != refresh.worldId()) {
+                continue;
+            }
+            int width = refresh.radius() * 2 + 1;
+            int dx = refresh.index() % width - refresh.radius();
+            int dz = refresh.index() / width - refresh.radius();
+            int chunkX = refresh.centerChunkX() + dx;
+            int chunkZ = refresh.centerChunkZ() + dz;
+            try {
+                if (player.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                    player.getWorld().refreshChunk(chunkX, chunkZ);
+                }
+            } catch (RuntimeException exception) {
+                // A failed refresh keeps the client's previous (masked) copy, which is the
+                // fail-closed direction; the next crossing or world change will retry.
+                getLogger().log(Level.FINE, "Y-shield chunk refresh failed: "
+                        + exception.getMessage());
+            }
+            int next = refresh.index() + 1;
+            if (next < refresh.total()) {
+                yShieldRefreshes.addLast(new YShieldRefresh(refresh.playerId(),
+                        refresh.worldId(), refresh.centerChunkX(), refresh.centerChunkZ(),
+                        refresh.radius(), next, refresh.total()));
             }
         }
     }

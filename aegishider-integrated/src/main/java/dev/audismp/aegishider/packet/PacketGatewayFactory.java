@@ -82,6 +82,11 @@ public final class PacketGatewayFactory {
         }
 
         @Override
+        public void drainPendingEntityRegistrations() {
+            // No packet layer: there are no spawn-packet registrations to drain.
+        }
+
+        @Override
         public int warmupMaterialMappings() {
             return 0;
         }

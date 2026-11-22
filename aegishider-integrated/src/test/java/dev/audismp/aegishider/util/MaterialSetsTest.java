@@ -24,6 +24,26 @@ class MaterialSetsTest {
         assertTrue(MaterialSets.isDiscoverableBlockEntityMaterial(Material.BEACON));
         assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.BOOKSHELF));
         assertFalse(MaterialSets.isDiscoverableBlockEntityMaterial(Material.BOOKSHELF));
+        // Base-defining blocks with no block entity use the palette-prefiltered state scan.
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.PISTON));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.STICKY_PISTON));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.PISTON_HEAD));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.CRAFTING_TABLE));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.CARTOGRAPHY_TABLE));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.FLETCHING_TABLE));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.SMITHING_TABLE));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.LOOM));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.STONECUTTER));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.GRINDSTONE));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.ANVIL));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.OBSERVER));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.TARGET));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.CAULDRON));
+        assertTrue(MaterialSets.isStateOnlyHiddenMaterial(Material.RESPAWN_ANCHOR));
+        assertFalse(MaterialSets.isDiscoverableBlockEntityMaterial(Material.PISTON),
+                "a stationary piston has no block entity; state scanning must cover it");
+        assertTrue(MaterialSets.isDiscoverableBlockEntityMaterial(Material.BELL));
+        assertTrue(MaterialSets.isDiscoverableBlockEntityMaterial(Material.LODESTONE));
         assertTrue(MaterialSets.isDiscoverableBlockEntityMaterial(Material.RED_SHULKER_BOX));
         assertTrue(MaterialSets.isDiscoverableBlockEntityMaterial(Material.SPAWNER));
         assertTrue(MaterialSets.isDiscoverableBlockEntityMaterial(Material.TRIAL_SPAWNER));

@@ -67,6 +67,7 @@ public final class WorldSettings {
             int updateIntervalTicks,
             boolean occlusionOnlyMonsters,
             double monsterMaxDistance,
+            double mobMeleeVisibleDistance,
             boolean protectAllLiving
     ) {
         public boolean isHiddenType(EntityType type) {
@@ -85,8 +86,42 @@ public final class WorldSettings {
      * replaced by a solid filler, hiding caves and underground bases from the surface view.
      */
     public record YShield(boolean enabled, int hideBelowY, int realChunkRadius, Material filler) {
+        /**
+         * Safety gap above the cut line. A player standing on the line must keep their own
+         * feet/body space real, otherwise the client can receive filler inside its own
+         * collision box and rubber-band while walking at the threshold.
+         */
+        public static final double VIEWER_MARGIN = 2.0;
+
+        /** True when this viewer is high enough above the line to receive a masked world. */
+        public boolean masksViewer(double eyeY) {
+            return enabled && eyeY >= hideBelowY + VIEWER_MARGIN;
+        }
+
+        /** True when this chunk should be masked for the viewer's current chunk position. */
+        public boolean masksChunk(int chunkX, int chunkZ, int viewerChunkX, int viewerChunkZ) {
+            if (!enabled) {
+                return false;
+            }
+            if (realChunkRadius <= 0) {
+                return true;
+            }
+            return Math.abs(chunkX - viewerChunkX) > realChunkRadius
+                    || Math.abs(chunkZ - viewerChunkZ) > realChunkRadius;
+        }
+
+        /** True when a block at {@code y} must be filler for this viewer. */
+        public boolean masksBlock(double eyeY, int y) {
+            return masksViewer(eyeY) && y < hideBelowY;
+        }
+
+        /** True when an entity at {@code entityY} must be hidden for this viewer. */
+        public boolean masksEntity(double eyeY, double entityY) {
+            return masksViewer(eyeY) && entityY < hideBelowY;
+        }
+
         public static YShield disabled() {
-            return new YShield(false, 40, 4, Material.STONE);
+            return new YShield(false, 40, 0, Material.STONE);
         }
     }
 
@@ -184,7 +219,8 @@ public final class WorldSettings {
         return new WorldSettings(false, bypassPermission,
                 new BlockProtection(false, Collections.emptySet(), Material.STONE, false,
                         24.0, 360.0, 1.6, 4, false, 40, 8),
-                new ItemProtection(false, Collections.<EntityType>emptySet(), 24.0, 360.0, true, 2, true, 96.0, true),
+                new ItemProtection(false, Collections.<EntityType>emptySet(), 24.0, 360.0, true, 2,
+                        true, 96.0, 1.0, true),
                 PlayerProtection.disabled(), EntityHeightShield.disabled(), YShield.disabled(),
                 TunnelShield.disabled());
     }

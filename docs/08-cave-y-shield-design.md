@@ -1,8 +1,10 @@
 # Design proposal — contextual filler, Y-level shield, cave/tunnel hiding
 
-Status: **design/ brainstorm only** (not implemented yet). This file records the problem
-analysis, options, recommended phasing and the questions that need product decisions before
-code is written. The reveal/ghost-block bug fix (3.3.8) is separate and already verified.
+Status: **implemented in 4.0.4** as the full `ALL` y-shield: every block below
+`hide-below-y` is filler for viewers above the line, block updates/block entities/entities
+are filtered, and crossing the line re-sends the view. `real-chunk-radius > 0` keeps the
+old distance-only variant. The reveal/ghost-block bug fix (3.3.8) is separate and already
+verified. This file remains as the original problem analysis and option record.
 
 ## 1. Problems to solve
 
