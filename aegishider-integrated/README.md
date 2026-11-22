@@ -276,6 +276,10 @@ obfuscated; signed manifest sidecars only when using the Sentinel pipeline) and
   `gateway=ACTIVE` on `V_1_21_11` / `V_26_3` and `protection=ACTIVE`.
 - Real-server behaviour test: an open zombie behind the player's back stays visible while a
   zombie behind a wall is hidden; a filler block that is mined becomes air (no ghost loop).
+- 4.0.4 packet-level Y-shield test on Paper 1.21.11 + PacketEvents 2.14.0: a 1.21.4 client
+  at y=78 received 213/213 checked chunks with every block below y=40 replaced by stone;
+  a spectator moved to the base received 238 real chunks with 0 hidden block states and
+  0 hidden block entities. This exercises the obfuscated hardened jar, not the plain build.
 - Licence gate test: with no lease, `protection=WAITING_FOR_LICENSE`, gateway `NOT_STARTED`.
 
 ## Known limitations
