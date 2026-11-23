@@ -90,12 +90,15 @@ Each test resets mutable tables so tests are order-independent.
 
 ~~~bash
 cd ../aegishider-integrated
-mvn test
+mvn -B -Pmc1215 clean test   # repeat for mc1211/mc1214/mc12111 on JDK 21
+mvn -B -Pmc261 clean test    # and mc263 on JDK 25
 ~~~
 
-102 tests, including 17 platform-client tests: JSON parser/writer, canonical signing string,
-installation identity persistence and signing, lease signature/claims/expiry/tampering
-rejection, and config parsing/clamping. The live smoke used
+153 tests per profile, run on all six profiles (1.21.1, 1.21.4, 1.21.5, 1.21.11, 26.1.2, 26.3):
+912 passed, 6 POSIX-only skips on Windows, 0 failures. The suite includes 17 platform-client
+tests: JSON parser/writer, canonical signing string, installation identity persistence and
+signing, lease signature/claims/expiry/tampering rejection, and config parsing/clamping.
+The live smoke used
 `dev.audismp.aegishider.platform.PlatformLiveSmoke` against the local platform:
 register -> activation code -> portal claim -> signed lease verified locally -> heartbeat
 accepted.

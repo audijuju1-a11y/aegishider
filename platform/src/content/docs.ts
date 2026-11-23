@@ -477,13 +477,16 @@ Payload คือ JSON canonical ที่มี \`license_id\`, \`installation_
 
 ## ถ้าไม่มี PacketEvents
 
+ทดสอบจริง 2026-11-23 บน Paper 1.21.5 build 114: ปลั๊กอิน **ไม่สามารถเปิดทำงานได้**
+
 | ชั้นป้องกัน | ผล |
 |---|---|
-| Block/container/chunk | **INACTIVE** — ซ่อนไม่ได้ เพราะต้องแก้ packet ขาออก |
-| Item/entity visibility | ทำงานต่อผ่าน Paper per-player visibility API |
-| สถานะ | \`/aegishider status\` แสดง Packet gateway: MISSING และ Block protection: INACTIVE |
+| ทั้งปลั๊กอิน | **DISABLED** — Paper รายงาน \`NoClassDefFoundError: com/github/retrooper/packetevents/protocol/player/ClientVersion\` ตอน \`onEnable\` แล้วปิด plugin |
+| Block/container/chunk | ไม่ทำงาน (ไม่มี gateway) |
+| Item/entity visibility | ไม่ทำงาน (plugin ถูกปิดก่อนเริ่มระบบ) |
+| วิธีแก้ | ติดตั้ง PacketEvents 2.14.0+ ใน \`plugins/\` แล้วรีสตาร์ท |
 
-เราไม่เรียกสถานะนี้ว่า fail-closed สำหรับ block layer: เอกสารและหน้า status ระบุตรงกันว่า block protection ปิดอยู่จนกว่าจะติดตั้ง PacketEvents 2.14.0+ และรีสตาร์ท
+นี่คือ fail-closed ในระดับ plugin (ไม่มีข้อมูลใดถูกส่งออกขณะป้องกันไม่ได้) แต่ไม่ใช่ graceful degradation — บิลด์ 4.0.5 ต้องมี PacketEvents เสมอ
 `.trim(),
   },
   {
@@ -686,16 +689,23 @@ Get-FileHash .\Aegishider-4.0.5-mc1.21.5.jar -Algorithm SHA256
 | เทสต์ | **46 ผ่าน / 46** |
 | ครอบคลุม | สมัคร→ไลเซนส์ฟรี, activation pairing, lease signature/replay, heartbeat, recovery codes/TOTP, redirect หลังสมัคร, rate limit ปิด TOTP |
 
-## Plugin suite — ผลบันทึกล่าสุด
+## Plugin suite — รันจริง 2026-11-23
 
-| รายการ | ผล |
-|---|---|
-| จำนวน \`@Test\` | 153 |
-| รันบน Windows | 152 ผ่าน, 1 POSIX-only ถูก skip |
-| รันบน Linux/WSL | 153 ผ่าน |
-| คำสั่ง | \`mvn -o test\` ใน \`aegishider-integrated\` |
+ติดตั้ง toolchain แบบ portable ใน \`.tools/\` (ไม่ commit): Temurin JDK 21.0.13.1+2, JDK 25.0.5.1+2 และ Maven 3.9.9
 
-> workspace นี้ไม่มี JDK 21/25 และ Maven จึง **ไม่ได้รันซ้ำ** ในรอบนี้ ตัวเลขนี้คือผลที่บันทึกไว้ใน \`platform/STATUS.md\` และ CI matrix
+| โปรไฟล์ | Paper API | JDK | ผล |
+|---|---|---|---|
+| \`mc1211\` | 1.21.1 | 21 | 152 ผ่าน, 1 skip |
+| \`mc1214\` | 1.21.4 | 21 | 152 ผ่าน, 1 skip |
+| \`mc1215\` | 1.21.5 | 21 | 152 ผ่าน, 1 skip |
+| \`mc12111\` | 1.21.11 | 21 | 152 ผ่าน, 1 skip |
+| \`mc261\` | 26.1.2 | 25 | 152 ผ่าน, 1 skip |
+| \`mc263\` | 26.3 | 25 | 152 ผ่าน, 1 skip |
+
+- คำสั่ง: \`mvn -B -P<profile> clean test\` (ต้อง \`clean\` เมื่อสลับ JDK เพราะ \`target/classes\` ข้าม major version ไม่ได้)
+- รวม 6 โปรไฟล์: **912 ผ่าน, 6 skip, 0 failure**; 153 \`@Test\` ต่อโปรไฟล์
+- 1 skip คือ POSIX file-permission check ใน \`InstallationIdentityTest\` บน Windows; บน Linux ครบ 153
+- ใช้ JDK 21 กับ 1.21.x และ JDK 25 กับ 26.x ตาม \`pom.xml\`
 
 ## Packet benchmark — ผลบันทึก
 
@@ -705,16 +715,32 @@ Get-FileHash .\Aegishider-4.0.5-mc1.21.5.jar -Algorithm SHA256
 - G: Y-shield จากพื้นผิว 213/213 chunks ถูกมาสก์
 - H: บล็อกฐานใต้ดิน 0 hidden states / 0 hidden BEs
 
+## PacketEvents และ offline grace — รันจริง 2026-11-23
+
+### มี PacketEvents
+- Paper 1.21.5 build 114 + PacketEvents 2.14.0 + Aegishider \`mc1.21.5\`
+- \`Packet gateway ACTIVE: PacketEvents 2.14.0 active on V_1_21_5\`; \`protection=ACTIVE\`, \`block-protection=ACTIVE\`, \`item-protection=ACTIVE\`
+- ใช้ \`platform.yml → enforcement: warn\` เฉพาะเซิร์ฟเวอร์ทดสอบเพื่อเริ่ม protection โดยไม่ต้อง activate licence
+
+### ไม่มี PacketEvents
+- Paper 1.21.5 build 114 ไม่มี PacketEvents
+- ผลจริง: \`NoClassDefFoundError: com/github/retrooper/packetevents/protocol/player/ClientVersion\` ที่ \`TunnelShield.<init>\` → \`Aegishider failed to enable - disabling plugin (no visibility data will be sent)\`
+- สรุป: fail-closed แต่ plugin ไม่ทำงานทั้งตัว — ต้องติดตั้ง PacketEvents 2.14.0+ ก่อนเปิดเซิร์ฟเวอร์
+
+### Offline grace
+- \`LeaseVerifierTest\` 7 tests + \`LeaseStateTest\` 3 tests ผ่านทั้ง 6 โปรไฟล์
+- ครอบคลุม: lease หมดอายุรับได้เฉพาะใน grace, เกิน grace ถูกปฏิเสธ, clock rollback ถูกปฏิเสธ, cached lease grace 3 วินาทีรับได้/0 วินาทีไม่รับ, lease ของ installation อื่นถูกเพิกเฉย
+
 ## Outage scenarios
 
 | สถานการณ์ | พฤติกรรมที่ออกแบบ | หลักฐาน |
 |---|---|---|
 | Cloudflare/Platform ล่ม | ใช้ lease ที่เซ็นแล้วต่อจนหมดอายุ + offline grace 72 ชม. (สูงสุด 168) | \`LeaseVerifier\`/\`LeaseState\` + unit tests |
 | lease หมดอายุและต่อไม่ได้ | protection gate ปิด (enforcement) — เซิร์ฟเวอร์ไม่ป้องกันจนกว่าจะต่อ lease ได้ | \`PlatformService\` |
-| PacketEvents หาย/ไม่ติดตั้ง | block layer INACTIVE, item/entity ยังทำงานผ่าน Paper API | \`/aegishider status\`, config comments |
+| PacketEvents หาย/ไม่ติดตั้ง | ปลั๊กอินปิดตัวเอง (fail-closed); ไม่มี visibility data ใด ๆ | ทดสอบจริงบน Paper 1.21.5 build 114 (2026-11-23) |
 | คิว telemetry ล้น | buffer 500, batch 50, flush 60 วินาที; ปิด telemetry ได้โดยไม่กระทบการป้องกัน | \`platform.yml\` |
 
-ยังไม่ได้จำลอง Cloudflare outage จริงหรือถอด PacketEvents ออกจากเซิร์ฟเวอร์ Production ในรอบนี้ — เป็นพฤติกรรมที่ยืนยันจากโค้ด/เทสต์ระดับหน่วย ไม่ใช่ live failover test
+ถอด PacketEvents ออกจาก local Paper และทดสอบแล้ว; ยังไม่ได้จำลอง Cloudflare outage จริงหรือถอด PacketEvents ออกจาก Production — offline grace เป็นผลจาก unit tests ไม่ใช่ live failover
 
 ## ยังไม่ได้ทดสอบ
 
