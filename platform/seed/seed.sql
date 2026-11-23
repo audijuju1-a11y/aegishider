@@ -9,7 +9,7 @@ INSERT OR IGNORE INTO products (
   featured, price_cents, currency, docs_url, compatibility, features,
   seo_title, seo_description, created_at, updated_at, published_at
 ) VALUES (
-  'prod_aegishider',
+  'prod_basehider',
   'aegishider',
   'Aegishider',
   'Aegishider',
@@ -39,10 +39,10 @@ INSERT OR IGNORE INTO product_plans (
   id, product_id, code, name, price_cents, currency, billing_interval, entitlements,
   activation_limit, active, created_at, updated_at
 ) VALUES
-  ('plan_bh_lite', 'prod_aegishider', 'lite', 'Free', 0, 'THB', 'one_time',
+  ('plan_bh_lite', 'prod_basehider', 'lite', 'Free', 0, 'THB', 'one_time',
    '["aegishider:block-protection","aegishider:item-shield","aegishider:diagnostics"]', 1, 1,
    (strftime('%s','now') * 1000), (strftime('%s','now') * 1000)),
-  ('plan_bh_pro', 'prod_aegishider', 'pro', 'Free', 0, 'THB', 'one_time',
+  ('plan_bh_pro', 'prod_basehider', 'pro', 'Free', 0, 'THB', 'one_time',
    '["aegishider:block-protection","aegishider:item-shield","aegishider:diagnostics"]', 5, 1,
    (strftime('%s','now') * 1000), (strftime('%s','now') * 1000));
 
@@ -50,7 +50,7 @@ INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
   supported_platforms, artifact_url, artifact_sha256, released_at, created_at
 ) VALUES (
-  'rel_ag_400', 'prod_aegishider', '4.0.0', 'stable', 'published',
+  'rel_ag_400', 'prod_basehider', '4.0.0', 'stable', 'published',
   'Aegishider 4.0.0 — six Paper builds (1.21.1–26.3), Sentinel Shield obfuscation with signed manifests, 123 unit tests, and the A–F packet harness PASS (hidden items, chunk/far-band containers, clean client BE registry, cache re-hidden). Upload the build artifact from /admin/releases to enable the download.',
   '["1.21.1","1.21.4","1.21.5","1.21.11","26.1.2","26.3"]', '["21","25"]', '["Paper"]',
   NULL, NULL,
@@ -59,20 +59,50 @@ INSERT OR IGNORE INTO product_releases (
 
 INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
-  supported_platforms, artifact_url, artifact_sha256, released_at, created_at
-) VALUES (
-  'rel_ag_405', 'prod_aegishider', '4.0.5', 'stable', 'published',
-  'Aegishider 4.0.5 — tick-safety release: bounded entity sweeps, batched block re-hides and capped packet-maintenance queues, on top of the full base-block set, room-volume Y-shield and the mob wall check. Six Paper builds (1.21.1–26.3). Upload each jar from /admin/releases; every build checksum is in docs/releases/Aegishider-4.0.5-SHA256SUMS.',
-  '["1.21.1","1.21.4","1.21.5","1.21.11","26.1.2","26.3"]', '["21","25"]', '["Paper"]',
-  NULL, NULL,
-  (strftime('%s','now') * 1000), (strftime('%s','now') * 1000)
-);
+  supported_platforms, artifact_url, artifact_sha256, released_at, created_at, artifact_r2_key
+) VALUES
+  ('rel_ag_405_mc1211', 'prod_basehider', '4.0.5', 'stable', 'published',
+   'Aegishider 4.0.5 for Paper 1.21.1 — tick-safety release with bounded sweeps, batched re-hides, the full base-block set, room-volume Y-shield and the mob wall check. SHA-256 is listed in /downloads/Aegishider-4.0.5-SHA256SUMS.',
+   '["1.21.1"]', '["21"]', '["Paper"]',
+   '/release/rel_ag_405_mc1211/download', 'ccd36e20a9e5867b15ace144a88c81669a04c11fe0bf1c36f0559dc34dcdbe41',
+   (strftime('%s','now') * 1000) + 6000, (strftime('%s','now') * 1000),
+   'releases/prod_basehider/4.0.5/Aegishider-4.0.5-mc1.21.1.jar'),
+  ('rel_ag_405_mc1214', 'prod_basehider', '4.0.5+mc1.21.4', 'stable', 'published',
+   'Aegishider 4.0.5 for Paper 1.21.4 — tick-safety release with bounded sweeps, batched re-hides, the full base-block set, room-volume Y-shield and the mob wall check. SHA-256 is listed in /downloads/Aegishider-4.0.5-SHA256SUMS.',
+   '["1.21.4"]', '["21"]', '["Paper"]',
+   '/release/rel_ag_405_mc1214/download', '256393a7c147525c9bff65bfff12a6c2e8f84fbf30dcdf42c31f3336f338129f',
+   (strftime('%s','now') * 1000) + 5000, (strftime('%s','now') * 1000),
+   'releases/prod_basehider/4.0.5+mc1.21.4/Aegishider-4.0.5-mc1.21.4.jar'),
+  ('rel_ag_405_mc1215', 'prod_basehider', '4.0.5+mc1.21.5', 'stable', 'published',
+   'Aegishider 4.0.5 for Paper 1.21.5 — tick-safety release with bounded sweeps, batched re-hides, the full base-block set, room-volume Y-shield and the mob wall check. SHA-256 is listed in /downloads/Aegishider-4.0.5-SHA256SUMS.',
+   '["1.21.5"]', '["21"]', '["Paper"]',
+   '/release/rel_ag_405_mc1215/download', 'be2bdcca5f0720038c13f5d480105efc70753a207b8a88cace7c481441aa81f3',
+   (strftime('%s','now') * 1000) + 4000, (strftime('%s','now') * 1000),
+   'releases/prod_basehider/4.0.5+mc1.21.5/Aegishider-4.0.5-mc1.21.5.jar'),
+  ('rel_ag_405_mc12111', 'prod_basehider', '4.0.5+mc1.21.11', 'stable', 'published',
+   'Aegishider 4.0.5 for Paper 1.21.11 — tick-safety release with bounded sweeps, batched re-hides, the full base-block set, room-volume Y-shield and the mob wall check. SHA-256 is listed in /downloads/Aegishider-4.0.5-SHA256SUMS.',
+   '["1.21.11"]', '["21"]', '["Paper"]',
+   '/release/rel_ag_405_mc12111/download', '156363cf7e8881ab8d4a6fbeeef24d13e16c7ad5d5f6cf6777191f715a4e44b6',
+   (strftime('%s','now') * 1000) + 3000, (strftime('%s','now') * 1000),
+   'releases/prod_basehider/4.0.5+mc1.21.11/Aegishider-4.0.5-mc1.21.11.jar'),
+  ('rel_ag_405_mc261', 'prod_basehider', '4.0.5+mc26.1', 'stable', 'published',
+   'Aegishider 4.0.5 for Paper 26.1 — tick-safety release with bounded sweeps, batched re-hides, the full base-block set, room-volume Y-shield and the mob wall check. Java 25. SHA-256 is listed in /downloads/Aegishider-4.0.5-SHA256SUMS.',
+   '["26.1.2"]', '["25"]', '["Paper"]',
+   '/release/rel_ag_405_mc261/download', '06bfcbda4edc924c063dafde2f21dcd43d1016c3b34f8d6b936795db1a3a7b2e',
+   (strftime('%s','now') * 1000) + 2000, (strftime('%s','now') * 1000),
+   'releases/prod_basehider/4.0.5+mc26.1/Aegishider-4.0.5-mc26.1.jar'),
+  ('rel_ag_405_mc263', 'prod_basehider', '4.0.5+mc26.3', 'stable', 'published',
+   'Aegishider 4.0.5 for Paper 26.3 — tick-safety release with bounded sweeps, batched re-hides, the full base-block set, room-volume Y-shield and the mob wall check. Java 25. SHA-256 is listed in /downloads/Aegishider-4.0.5-SHA256SUMS.',
+   '["26.3"]', '["25"]', '["Paper"]',
+   '/release/rel_ag_405_mc263/download', 'a8cd06ba585d972eab2163aa2c5286199b4f2fd0c83fa0aefd097d29b3183ece',
+   (strftime('%s','now') * 1000) + 1000, (strftime('%s','now') * 1000),
+   'releases/prod_basehider/4.0.5+mc26.3/Aegishider-4.0.5-mc26.3.jar');
 
 INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
   supported_platforms, artifact_url, artifact_sha256, released_at, created_at
 ) VALUES (
-  'rel_bh_361', 'prod_aegishider', '3.6.1', 'stable', 'deprecated',
+  'rel_bh_361', 'prod_basehider', '3.6.1', 'stable', 'deprecated',
   'Aegishider 3.6.1 — three-gap benchmark release: block-entity leak, pie-ray registry and Bobby/Distant Horizons cache replay all covered, plus a free licence platform with 16-character activation codes, 240-bit licence keys, escalating brute-force lockouts, HTTPS-only platform calls and Linux POSIX key permissions. 120 unit tests pass on Windows and Linux; Paper 1.21.4 A-F harness verified.',
   '["1.21.4"]', '["21"]', '["Paper"]',
   NULL,
@@ -84,7 +114,7 @@ INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
   supported_platforms, artifact_url, artifact_sha256, released_at, created_at
 ) VALUES (
-  'rel_bh_360', 'prod_aegishider', '3.6.0', 'stable', 'deprecated',
+  'rel_bh_360', 'prod_basehider', '3.6.0', 'stable', 'deprecated',
   'Aegishider 3.6.0 — Tunnel/Dug-hole Shield (hide player-dug tunnels beyond 28 blocks, re-mask on leave), Y-Shield, contextual filler and player ESP shield. 85 unit tests; verified running on a live Paper 1.21.4 server at TPS 20.0.',
   '["1.21.4"]', '["21"]', '["Paper"]',
   NULL,
@@ -96,7 +126,7 @@ INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
   supported_platforms, artifact_url, artifact_sha256, released_at, created_at
 ) VALUES (
-  'rel_bh_320', 'prod_aegishider', '3.2.0', 'stable', 'deprecated',
+  'rel_bh_320', 'prod_basehider', '3.2.0', 'stable', 'deprecated',
   'Aegishider 3.2.0 — startup warm-up, item spawn-storm priority lane, gateway watchdog, detected-position overflow alarm and async diagnostics snapshots. 75 unit tests, packet-level integration harness PASS on Paper 1.21.4.',
   '["1.21.4"]', '["21"]', '["Paper"]',
   NULL,
@@ -107,7 +137,7 @@ INSERT OR IGNORE INTO product_releases (
 INSERT OR IGNORE INTO system_settings (key, value, updated_at) VALUES
   ('platform.registration_open', 'true', (strftime('%s','now') * 1000));
 
--- 4.0.4 public catalogue copy (also available as seed/refresh_aegishider_404.sql).
+-- 4.0.5 public catalogue copy.
 UPDATE products
 SET tagline = 'ซ่อนหีบ บล็อกฐาน และห้องใต้ดินจาก ESP/X-ray โดยไม่รบกวนผู้เล่นจริง',
     description = 'Aegishider 4.0.5 คือปลั๊กอิน Paper 1.21.1–26.3 (6 ไบล์แยกตามรุ่น; Java 21/25) ที่ซ่อนหีบ บล็อกฐาน และห้องใต้ดินจาก ESP/X-ray ก่อนข้อมูลจะถูกส่งถึงไคลเอนต์ โดยผู้เล่นที่อยู่ใกล้และมองเห็นจริงยังเห็นของตามปกติ

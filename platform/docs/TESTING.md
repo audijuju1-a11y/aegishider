@@ -4,7 +4,7 @@
 
 ~~~bash
 pnpm typecheck        # strict TypeScript
-pnpm test             # 45 tests in 7 files: crypto, platform, auth, recovery/TOTP, licensing, tenancy, admin, telemetry, free licence, lockout ladder, dashboard
+pnpm test             # 46 tests in 7 files: crypto, platform, auth, recovery/TOTP, public docs pages, licensing, tenancy, admin, telemetry, free licence, lockout ladder, dashboard
 node scripts/e2e-license.mjs
 ~~~
 

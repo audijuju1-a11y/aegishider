@@ -345,7 +345,7 @@ export function productDetail(
                   </tbody>
                 </table>
               </div>
-              <p class="mono" style="margin-top:.8rem;font-size:.54rem;letter-spacing:.03em;color:var(--muted-2)">PAPER 1.21.11 + 1.21.4 · PACKETEVENTS 2.14.0 · 153 UNIT TESTS · LIVE BOT CHECK</p>
+              <p class="mono" style="margin-top:.8rem;font-size:.54rem;letter-spacing:.03em;color:var(--muted-2)">PAPER 1.21.1–26.3 (6 BUILDS) · PACKETEVENTS 2.14.0 · 153 UNIT TESTS · LIVE BOT CHECK</p>
             </div>
           </details>
 

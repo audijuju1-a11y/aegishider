@@ -72,7 +72,7 @@ export const docs: DocPage[] = [
 | PacketEvents | 2.14.0 ขึ้นไป (สำหรับซ่อนบล็อก) |
 | Folia | ไม่รองรับ |
 
-> เลือกไบล์ให้ตรงรุ่น: 1.21.1–1.21.4, 1.21.5–1.21.8, 1.21.9–1.21.11, 26.1.x, 26.2–26.3
+> 4.0.5 มี **6 ไฟล์**: \`mc1.21.1\`, \`mc1.21.4\`, \`mc1.21.5\`, \`mc1.21.11\`, \`mc26.1\`, \`mc26.3\` — เลือกให้ตรงรุ่นเซิร์ฟเวอร์ ห้ามใช้ไฟล์ข้ามรุ่น
 
 ## ขั้นตอน
 
@@ -85,6 +85,16 @@ export const docs: DocPage[] = [
 7. รัน \`/aegishider status\` และตรวจว่า protection ขึ้น **ACTIVE**
 
 > 4.0.5 บังคับ enforcement=enforce: ถ้ายังไม่ activate, protection จะไม่เริ่มทำงาน (เปลี่ยนเป็น warn/ปิดได้ใน platform.yml)
+
+## 1.21.5 ขึ้นไป
+
+- **1.21.5** → ใช้ \`mc1.21.5\` (Java 21)
+- **1.21.11** → ใช้ \`mc1.21.11\` (Java 21)
+- **26.1.x** → ใช้ \`mc26.1\` (Java 25)
+- **26.3** → ใช้ \`mc26.3\` (Java 25)
+- รุ่นที่ไม่มีการบิลด์ในรายการนี้ (เช่น 1.21.6–1.21.10 หรือ 26.2) **ยังไม่รองรับ** — อย่าคาดเดาจากเลขรุ่น ให้ดู [Compatibility Matrix](/docs/compatibility) ก่อนอัปเกรด
+
+> ตั้งแต่ 1.21.5 ขึ้นไป ตัว plugin ใช้ chunk/block-state API ของรุ่นนั้นโดยตรง; ถ้าใส่ไฟล์ผิดรุ่น เซิร์ฟเวอร์จะปิด block protection และแจ้งใน \`/aegishider status\`
 
 ## คำสั่ง
 
@@ -107,23 +117,31 @@ security:
   fail-closed: true
   main-thread-budget-ms: 1.5
   raycast-budget-per-tick: 180
+security:
+  fail-closed: true
+  main-thread-budget-ms: 1.5
+  raycast-budget-per-tick: 180
 worlds:
   default:
     block-protection:
       reveal:
-        max-distance: 12.0
-        fov-degrees: 120.0
+        max-distance: 24.0
+        fov-degrees: 360.0
     item-protection:
       reveal:
-        max-distance: 32.0
-        fov-degrees: 130.0
+        max-distance: 24.0
+        fov-degrees: 360.0
+    y-shield:
+      enabled: true
+      hide-below-y: 40
+    tunnel-shield:
+      enabled: false
 \`\`\`
 
 ## ข้อจำกัดที่ควรรู้
 
 - player-protection (ซ่อนผู้เล่นด้วยกัน) ปิดเป็นค่าเริ่มต้น — เปิดเองได้หากต้องการ anti player-ESP
 - ไม่กรองเสียง/อนุภาคของการเปิดหีบ
-- ยังไม่รองรับรูปแบบ chunk ของ Minecraft 1.21.5 ขึ้นไป
 - y-shield และ tunnel-shield ปิดเป็นค่าเริ่มต้น (opt-in) เพราะมีผลกับภาพโลกและการเล่น
 - ไอเท็มที่ซ่อนยังเก็บได้จริงฝั่งเซิร์ฟเวอร์
 `.trim(),
@@ -296,7 +314,7 @@ Base URL: \`https://<โดเมนแพลตฟอร์ม>/api/v1\`
   "installation_uuid": "3f1c2a90-...",
   "public_key": "<base64 SPKI DER>",
   "fingerprint_sha256": "<hex>",
-  "plugin_version": "3.3.0",
+  "plugin_version": "4.0.5",
   "minecraft_version": "1.21.11",
   "platform": "Paper",
   "java_version": "21"
@@ -420,6 +438,341 @@ Payload คือ JSON canonical ที่มี \`license_id\`, \`installation_
 - ช่วยติดตั้ง/ตั้งค่า/วิเคราะห์ปัญหา
 - ไม่รับแก้ไขปลั๊กอินอื่นหรือเซิร์ฟเวอร์ที่ไม่เกี่ยวข้อง
 - เวลาตอบกลับขึ้นกับภาระงาน ไม่มี SLA ที่ประกาศไว้
+`.trim(),
+  },
+  {
+    slug: "compatibility",
+    title: "Compatibility Matrix",
+    summary: "รุ่น Minecraft ที่มีบิลด์จริง, Java, PacketEvents และสิ่งที่ไม่รองรับ",
+    category: "ผลิตภัณฑ์",
+    updated: "2026-11-23",
+    markdown: `
+# Compatibility Matrix
+
+อัปเดต 2026-11-23 · อ้างอิงจาก \`pom.xml\`, \`plugin.yml\`, CI matrix และ
+\`docs/releases/Aegishider-4.0.5-SHA256SUMS\`
+
+| Minecraft | ไฟล์ที่ใช้ | Java | PacketEvents | สถานะ |
+|---|---|---|---|---|
+| 1.21.1 | \`Aegishider-4.0.5-mc1.21.1.jar\` | 21 | 2.14.0+ | รองรับ |
+| 1.21.4 | \`Aegishider-4.0.5-mc1.21.4.jar\` | 21 | 2.14.0+ | รองรับ |
+| 1.21.5 | \`Aegishider-4.0.5-mc1.21.5.jar\` | 21 | 2.14.0+ | รองรับ |
+| 1.21.11 | \`Aegishider-4.0.5-mc1.21.11.jar\` | 21 | 2.14.0+ | รองรับ |
+| 26.1.x | \`Aegishider-4.0.5-mc26.1.jar\` | 25 | 2.14.0+ | รองรับ |
+| 26.3 | \`Aegishider-4.0.5-mc26.3.jar\` | 25 | 2.14.0+ | รองรับ |
+
+## 1.21.5 ขึ้นไป
+
+- **1.21.5** ใช้ \`mc1.21.5\`; **1.21.11** ใช้ \`mc1.21.11\`
+- **26.1.x** ใช้ \`mc26.1\`; **26.3** ใช้ \`mc26.3\` และต้องรัน Java 25
+- รุ่นที่ไม่มีการบิลด์ (เช่น 1.21.6–1.21.10, 26.2) **ยังไม่รองรับ** — ไม่มีการรับประกันว่าไฟล์รุ่นใกล้เคียงจะโหลดได้
+- ต้องรีสตาร์ทเซิร์ฟเวอร์หลังเปลี่ยนไฟล์; \`/aegishider reload\` ไม่เปลี่ยน chunk/block-state API
+
+## สิ่งที่ไม่รองรับ
+
+- Folia
+- Proxy อย่าง Velocity/BungeeCord (ปลั๊กอินนี้ทำงานฝั่ง Paper เท่านั้น)
+- Bedrock/Geyser (เฉพาะผู้เล่น Java)
+- Java ต่ำกว่า 21 สำหรับ 1.21.x และต่ำกว่า 25 สำหรับ 26.x
+
+## ถ้าไม่มี PacketEvents
+
+| ชั้นป้องกัน | ผล |
+|---|---|
+| Block/container/chunk | **INACTIVE** — ซ่อนไม่ได้ เพราะต้องแก้ packet ขาออก |
+| Item/entity visibility | ทำงานต่อผ่าน Paper per-player visibility API |
+| สถานะ | \`/aegishider status\` แสดง Packet gateway: MISSING และ Block protection: INACTIVE |
+
+เราไม่เรียกสถานะนี้ว่า fail-closed สำหรับ block layer: เอกสารและหน้า status ระบุตรงกันว่า block protection ปิดอยู่จนกว่าจะติดตั้ง PacketEvents 2.14.0+ และรีสตาร์ท
+`.trim(),
+  },
+  {
+    slug: "defaults",
+    title: "Default Configuration",
+    summary: "ค่าเริ่มต้นของทุกระบบใน config.yml และ platform.yml",
+    category: "ผลิตภัณฑ์",
+    updated: "2026-11-23",
+    markdown: `
+# Default Configuration
+
+ค่าต่อไปนี้คือค่าเริ่มต้นของ 4.0.5 ใน \`config.yml\` และ \`platform.yml\` — เปลี่ยนได้รายโลกภายใต้ \`worlds:\`
+
+## security
+
+| ค่า | เริ่มต้น | ความหมาย |
+|---|---|---|
+| \`fail-closed\` | \`true\` | ไม่มีโหมดเร็วแต่ไม่ปลอดภัย |
+| \`anti-debug\` | \`true\` | ปฏิเสธการเริ่มป้องกันเมื่อมี debugger/agent |
+| \`allow-debug\` | \`false\` | เปิดเฉพาะเมื่อตั้งใจใช้ profiler |
+| \`packet-gateway.minimum-version\` | \`2.14.0\` | PacketEvents ขั้นต่ำ |
+| \`main-thread-budget-ms\` | \`1.5\` | งบเวลาต่อ tick |
+| \`raycast-budget-per-tick\` | \`180\` | งบ raycast ต่อ tick (0 = ซ่อนทั้งหมด) |
+
+## block-protection
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`enabled\` | \`true\` |
+| \`replace-with\` | \`CONTEXTUAL\` |
+| \`reveal.max-distance\` | \`24.0\` บล็อก |
+| \`reveal.fov-degrees\` | \`360.0\` (ปิด FOV gate) |
+| \`reveal.keep-distance-factor\` | \`1.6\` |
+| \`reveal.recheck-move-blocks\` | \`4\` |
+| \`reconcile.enabled\` | \`true\` |
+| \`reconcile.chunks-per-second\` | \`20\` |
+| \`reconcile.player-radius-chunks\` | \`8\` |
+
+ชุดบล็อกที่ซ่อนเริ่มต้นคือหีบ/barrel/hopper/furnace/spawner/vault/crafter, workstations, anvils, cauldrons, piston ทุกชนิด, observer, target, composter, beacon, bookshelf/chiseled bookshelf, lectern, bell, lodestone, conduit และ shulker box ทุกสี — ดูรายการเต็มใน \`config.yml\`; NOTE_BLOCK และ JUKEBOX เป็น opt-in
+
+## item-protection
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`enabled\` | \`true\` |
+| \`hide-all-living-entities\` | \`true\` |
+| \`monster-occlusion-only\` | \`true\` |
+| \`monster-max-distance\` | \`96.0\` |
+| \`mob-melee-visible-distance\` | \`1.0\` |
+| \`reveal.max-distance\` | \`24.0\` |
+| \`reveal.fov-degrees\` | \`360.0\` |
+| \`reveal.owner-grace\` | \`true\` (ไอเท็มของตัวเองใน 2 วินาที/8 บล็อก) |
+| \`update-interval-ticks\` | \`2\` |
+
+## player-protection
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`enabled\` | \`true\` |
+| \`distance-hiding\` | \`false\` (opt-in) |
+| \`hide-distance\` | \`48.0\` |
+| \`always-visible-distance\` | \`24.0\` |
+| \`fov-degrees\` | \`360.0\` |
+| \`require-line-of-sight\` | \`true\` |
+| \`team-aware\` | \`true\` |
+| \`combat-grace-seconds\` | \`8\` |
+| \`update-interval-ticks\` | \`4\` |
+
+## entity-height-shield
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`enabled\` | \`true\` |
+| \`max-vertical-distance\` | \`16.0\` |
+| \`underground-y\` | \`50.0\` |
+| \`band-margin\` | \`12.0\` |
+
+## y-shield
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`enabled\` | \`true\` |
+| \`hide-below-y\` | \`40\` |
+| \`real-chunk-radius\` | \`0\` (มาสก์ทุก chunk ในระยะมองเห็น) |
+| \`filler\` | \`STONE\` |
+
+## tunnel-shield
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`enabled\` | \`false\` (opt-in) |
+| \`hide-radius\` | \`28.0\` |
+| \`max-tracked-breaks\` | \`50000\` |
+
+## analytics และ debug
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`analytics.mining.enabled\` | \`false\` |
+| \`analytics.mining.xray-ore-rate-threshold-percent\` | \`5.0\` |
+| \`analytics.mining.min-samples\` | \`200\` |
+| \`analytics.raid.enabled\` | \`false\` |
+| \`debug.log-blocked-packets\` | \`false\` |
+| \`debug.log-budget-overruns\` | \`true\` |
+| \`debug.verbose-errors\` | \`false\` |
+
+## platform.yml
+
+| ค่า | เริ่มต้น |
+|---|---|
+| \`enabled\` | \`true\` |
+| \`api-base-url\` | \`https://aegishider-platform.audijuju1.workers.dev\` |
+| \`product\` | \`aegishider\` |
+| \`enforcement\` | \`enforce\` |
+| \`trial-days\` | \`7\` |
+| \`lease-refresh-minutes\` | \`60\` |
+| \`heartbeat-minutes\` | \`3\` |
+| \`request-timeout-seconds\` | \`15\` |
+| \`telemetry.enabled\` | \`true\` |
+| \`telemetry.max-buffer\` | \`500\` |
+| \`telemetry.batch-max\` | \`50\` |
+| \`telemetry.flush-seconds\` | \`60\` |
+`.trim(),
+  },
+  {
+    slug: "release-verification",
+    title: "Release Verification และ SHA-256",
+    summary: "ตรวจไฟล์ jar, checksum, ลายเซ็น lease และกุญแจ public ก่อนติดตั้ง",
+    category: "ความปลอดภัย",
+    updated: "2026-11-23",
+    markdown: `
+# Release Verification และ SHA-256
+
+## Registry
+
+- รีลีส \`rel_ag_405\` (4.0.5) เป็นรุ่นที่เผยแพร่ มี 6 บิลด์ตาม Compatibility Matrix
+- ไฟล์ checksum อยู่ที่ \`/downloads/Aegishider-4.0.5-SHA256SUMS\` และใน repo ที่ \`docs/releases/\`
+- ลิงก์ดาวน์โหลดจริงจะแสดงหลังอัปโหลด jar แต่ละไฟล์ใน \`/admin/releases\` — ถ้าไม่มีลิงก์ แปลว่ายังไม่ได้อัปโหลด ไม่ใช่ไฟล์หาย
+- 3.2.0/3.6.x ถูกทำเครื่องหมาย \`deprecated\` และไม่ให้ดาวน์โหลด
+
+## SHA-256 ของ 4.0.5
+
+| ไฟล์ | SHA-256 |
+|---|---|
+| \`Aegishider-4.0.5-mc1.21.1.jar\` | \`ccd36e20a9e5867b15ace144a88c81669a04c11fe0bf1c36f0559dc34dcdbe41\` |
+| \`Aegishider-4.0.5-mc1.21.4.jar\` | \`256393a7c147525c9bff65bfff12a6c2e8f84fbf30dcdf42c31f3336f338129f\` |
+| \`Aegishider-4.0.5-mc1.21.5.jar\` | \`be2bdcca5f0720038c13f5d480105efc70753a207b8a88cace7c481441aa81f3\` |
+| \`Aegishider-4.0.5-mc1.21.11.jar\` | \`156363cf7e8881ab8d4a6fbeeef24d13e16c7ad5d5f6cf6777191f715a4e44b6\` |
+| \`Aegishider-4.0.5-mc26.1.jar\` | \`06bfcbda4edc924c063dafde2f21dcd43d1016c3b34f8d6b936795db1a3a7b2e\` |
+| \`Aegishider-4.0.5-mc26.3.jar\` | \`a8cd06ba585d972eab2163aa2c5286199b4f2fd0c83fa0aefd097d29b3183ece\` |
+
+## ตรวจบนเซิร์ฟเวอร์
+
+~~~bash
+# Linux/macOS
+sha256sum -c Aegishider-4.0.5-SHA256SUMS
+~~~
+
+~~~powershell
+# Windows PowerShell
+Get-FileHash .\Aegishider-4.0.5-mc1.21.5.jar -Algorithm SHA256
+~~~
+
+เทียบผลกับตารางหรือไฟล์ sums ก่อนวางใน \`plugins/\` — checksum ยืนยันว่าไฟล์ไม่เสีย/ไม่ถูกแก้ระหว่างทาง แต่ไม่ได้ยืนยันว่าไฟล์มาจากเรา ถ้าได้ไฟล์จากช่องทางอื่นให้เทียบกับตารางนี้หรือหน้า release โดยตรง
+
+## Pin jar ในตัวปลั๊กอิน
+
+ตั้ง \`platform.yml → integrity.jar-sha256\` เป็น hash ของไฟล์ที่ติดตั้ง แล้วรัน \`/aegishider license verify\`; ถ้าไฟล์ถูกแก้ ปลั๊กอินจะรายงาน \`integrity.mismatch\` ผ่าน telemetry และสถานะ license
+
+## ลายเซ็น lease
+
+- \`GET /api/v1/license/keys\` คืน \`key_id\` และ public key (SPKI base64) ที่ใช้ตรวจ lease
+- Production key id: \`prod-1\`; rotation เก็บ key เก่าเป็น \`deprecated\` จน lease หมดอายุ
+- Plugin ตรวจ Ed25519 signature จาก payload bytes โดยตรง — ไม่เชื่อ JSON ที่ serialize ใหม่
+
+## สิ่งที่ checksum ไม่ได้ยืนยัน
+
+- ความปลอดภัยของ runtime หรือ JVM ที่ถูกแก้
+- ว่าเซิร์ฟเวอร์ปลายทางเป็นของเจ้าของจริง (ตรวจจาก HTTPS + key pin + lease)
+- ว่า plugin อื่นในเซิร์ฟเวอร์ไม่รั่วข้อมูล
+`.trim(),
+  },
+  {
+    slug: "test-evidence",
+    title: "ผลทดสอบและหลักฐาน",
+    summary: "ทดสอบอะไรไปแล้ว เมื่อไหร่ และอะไรที่ยังไม่ได้ทดสอบ",
+    category: "ความน่าเชื่อถือ",
+    updated: "2026-11-23",
+    markdown: `
+# ผลทดสอบและหลักฐาน
+
+ตัวเลขด้านล่างแยก "รันจริงใน workspace นี้" ออกจาก "ผลที่บันทึกไว้ก่อนหน้า" อย่างชัดเจน
+
+## Platform suite — รันจริง 2026-11-23
+
+| รายการ | ผล |
+|---|---|
+| คำสั่ง | \`vitest run\` (workerd) |
+| ไฟล์ | 7 |
+| เทสต์ | **46 ผ่าน / 46** |
+| ครอบคลุม | สมัคร→ไลเซนส์ฟรี, activation pairing, lease signature/replay, heartbeat, recovery codes/TOTP, redirect หลังสมัคร, rate limit ปิด TOTP |
+
+## Plugin suite — ผลบันทึกล่าสุด
+
+| รายการ | ผล |
+|---|---|
+| จำนวน \`@Test\` | 153 |
+| รันบน Windows | 152 ผ่าน, 1 POSIX-only ถูก skip |
+| รันบน Linux/WSL | 153 ผ่าน |
+| คำสั่ง | \`mvn -o test\` ใน \`aegishider-integrated\` |
+
+> workspace นี้ไม่มี JDK 21/25 และ Maven จึง **ไม่ได้รันซ้ำ** ในรอบนี้ ตัวเลขนี้คือผลที่บันทึกไว้ใน \`platform/STATUS.md\` และ CI matrix
+
+## Packet benchmark — ผลบันทึก
+
+ตาราง A–H บนหน้าผลิตภัณฑ์ (หลักฐาน) ทดสอบกับไคลเอนต์จำลองบน Paper 1.21.11 + 1.21.4, PacketEvents 2.14.0, ไฟล์ที่ obfuscate แล้ว:
+
+- A–F: leak/hide ของไอเท็ม, หีบ, block entity, cache replay (Bobby/DH)
+- G: Y-shield จากพื้นผิว 213/213 chunks ถูกมาสก์
+- H: บล็อกฐานใต้ดิน 0 hidden states / 0 hidden BEs
+
+## Outage scenarios
+
+| สถานการณ์ | พฤติกรรมที่ออกแบบ | หลักฐาน |
+|---|---|---|
+| Cloudflare/Platform ล่ม | ใช้ lease ที่เซ็นแล้วต่อจนหมดอายุ + offline grace 72 ชม. (สูงสุด 168) | \`LeaseVerifier\`/\`LeaseState\` + unit tests |
+| lease หมดอายุและต่อไม่ได้ | protection gate ปิด (enforcement) — เซิร์ฟเวอร์ไม่ป้องกันจนกว่าจะต่อ lease ได้ | \`PlatformService\` |
+| PacketEvents หาย/ไม่ติดตั้ง | block layer INACTIVE, item/entity ยังทำงานผ่าน Paper API | \`/aegishider status\`, config comments |
+| คิว telemetry ล้น | buffer 500, batch 50, flush 60 วินาที; ปิด telemetry ได้โดยไม่กระทบการป้องกัน | \`platform.yml\` |
+
+ยังไม่ได้จำลอง Cloudflare outage จริงหรือถอด PacketEvents ออกจากเซิร์ฟเวอร์ Production ในรอบนี้ — เป็นพฤติกรรมที่ยืนยันจากโค้ด/เทสต์ระดับหน่วย ไม่ใช่ live failover test
+
+## ยังไม่ได้ทดสอบ
+
+- Load test จำนวน installation พร้อมกันและ D1 write limits
+- DDoS/rate-limit ระดับ edge
+- ไคลเอนต์ cheat จริงนอกเหนือ scenario A–H
+- Folia, proxy, Bedrock
+- การกู้บัญชีผ่าน operator CLI บน Production (ทดสอบแล้วบน local + disposable production row เมื่อ 2026-11-23)
+`.trim(),
+  },
+  {
+    slug: "recovery-2fa",
+    title: "Recovery Codes และ 2FA",
+    summary: "กู้บัญชีโดยไม่มีอีเมล และเปิด/ปิด TOTP อย่างปลอดภัย",
+    category: "ความปลอดภัย",
+    updated: "2026-11-23",
+    markdown: `
+# Recovery Codes และ 2FA
+
+แพลตฟอร์มนี้ **ไม่ส่งอีเมล** ทั้งการยืนยันบัญชี การรีเซ็ตรหัสผ่าน และการแจ้งเตือน — ใช้รหัสกู้คืนและ operator CLI แทน
+
+## Recovery codes
+
+- ออกให้ 10 ชุดตอนสมัคร/เมื่อกดสร้างใหม่ แต่ละชุดรูปแบบ \`XXXX-XXXX-XXXX\` (12 ตัวอักษร)
+- เก็บเฉพาะ HMAC-SHA256 ไม่เก็บ plaintext; ใช้ได้ครั้งเดียว
+- แสดงที่ \`/app/security\` จนกว่าจะกด **บันทึกครบแล้ว / ซ่อนรหัส** หรือครบ 15 นาที
+- ถ้า refresh หน้า ระบบยังแสดงชุดเดิมในช่วง 15 นาทีนั้น (GET ไม่กินรหัส)
+- เก็บไว้ใน password manager หรือกระดาษที่ปลอดภัย — ไม่มีทางดูย้อนหลัง
+
+## ใช้รหัสกู้คืน
+
+1. ไปที่ \`/auth/recover\`
+2. กรอกรหัส 1 ชุด + รหัสผ่านใหม่
+3. ระบบใช้รหัสนั้นทิ้ง, revoke ทุก session, ล้าง TOTP และออกชุดใหม่ให้ 10 ชุด
+4. เข้าสู่ระบบด้วยรหัสผ่านใหม่
+
+## TOTP 2FA
+
+- เป็นทางเลือก ไม่บังคับ: เปิดที่ \`/app/security\` → สแกน \`otpauth://\` ด้วยแอป authenticator
+- Login ต้องกรอกรหัส 6 หลัก; ระบบเก็บ counter ที่รับแล้วเพื่อกัน replay
+- ปิด 2FA ต้องใส่รหัสผ่าน และถูกจำกัด 5 ครั้ง/15 นาทีต่อ user+IP
+- ถ้าทำมือถือหายและยังมี recovery code ให้ใช้รหัสกู้คืน (จะล้าง TOTP ให้)
+
+## ถ้าไม่มีทั้งรหัสผ่านและ recovery code
+
+ติดต่อ operator ของระบบ พร้อมยืนยันตัวตนตามช่องทางที่ตกลง จากนั้น operator รัน:
+
+~~~bash
+node scripts/reset-password.mjs you@example.com --remote
+~~~
+
+สคริปต์จะออกรหัสชั่วคราว แสดงครั้งเดียว, revoke ทุก session และล้าง TOTP ผู้ใช้ควรเปลี่ยนรหัสที่ \`/app/account\` ทันที
+
+## สิ่งที่ห้ามทำ
+
+- ห้ามส่งรหัสกู้คืนหรือรหัสผ่านผ่านแชท/ตั๋ว
+- ห้ามใช้ recovery code ซ้ำ (ระบบปฏิเสธ)
+- ห้ามปิด TOTP จาก session ที่สงสัยว่าถูกขโมยโดยไม่เปลี่ยนรหัสผ่าน
 `.trim(),
   },
 ];

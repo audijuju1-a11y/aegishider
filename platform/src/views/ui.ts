@@ -161,6 +161,9 @@ function footerMarkup(_lang: Lang): SafeHtml {
           <a href="/docs">เอกสาร</a>
           <a href="/docs/api">API</a>
           <a href="/docs/licensing">ไลเซนส์</a>
+          <a href="/docs/compatibility">ความเข้ากันได้</a>
+          <a href="/docs/release-verification">ตรวจสอบรีลีส</a>
+          <a href="/docs/test-evidence">ผลทดสอบ</a>
           <a href="/docs/security">ความปลอดภัย</a>
           <a href="/status">สถานะระบบ</a>
         </div>
