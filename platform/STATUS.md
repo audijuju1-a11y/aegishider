@@ -29,6 +29,7 @@ Updated: 2026-11-23
 | Email + password auth | Implemented | PBKDF2-SHA256 (Cloudflare cap: 100,000 iterations), 10-char policy, per-IP/email limits, session cookie; OTP disabled, no email provider |
 | Account recovery without email | Implemented | 10 one-time HMAC-hashed recovery codes shown until acknowledged, `/auth/recover` consumes a code and revokes sessions, operator `scripts/reset-password.mjs` fallback |
 | Optional TOTP 2FA | Implemented | `/app/security` enrolment with `otpauth://` URI; login verifies a 6-digit code and stores the accepted counter to reject replay; disable requires the password |
+| Operator CLIs on production D1 | Verified 2026-11-23 | Disposable account: `bootstrap-admin.mjs --remote` promoted it to super_admin, `reset-password.mjs --remote` wrote a PBKDF2 hash and cleared TOTP, then the row was deleted (`leftover = 0`) |
 | Public developer page | Implemented | `/developers` with endpoint table, signing canonical string/headers, rate limits and examples; linked in nav/footer |
 | Architecture roadmap A-01…A-15 | Closed or explicitly deferred | Status + decisions in `docs/13-architecture-roadmap.md`; CI ratchet `scripts/check-architecture.mjs`; signing-key rotation CLI `scripts/rotate-signing-key.mjs`; history rewrite deliberately not executed |
 | Production sign-up / sign-in | Verified | browser E2E: register → `/app` with a free licence; logout → password login → `/app` |
@@ -37,7 +38,7 @@ Updated: 2026-11-23
 | Java test suite | 153 tests (152 executed on Windows; 1 POSIX-only test skipped) | Windows `mvn -o test`; WSL Arch Linux JDK 21 `mvn -o test`; 153 `@Test` methods in the suite, 0 failures |
 | Three-gap packet benchmark | Verified | A–F PASS on Paper 1.21.4; baseline jar leaks all three gaps (`docs/09-three-gap-benchmark.md` in the plugin repo) |
 | Local dev | Working | `wrangler dev`; pages, auth, admin and API exercised |
-| Production deployment | Live | https://aegishider-platform.audijuju1.workers.dev — canonical host; home/product 200, password auth, `/admin` 200 for a super_admin session; Cloudflare Access optional. This round's changes are **not deployed** |
+| Production deployment | Live (branded alias) | https://aegishider-platform.audijuju1.workers.dev redirects to the `basehider-platform` worker, which holds the production secrets; home/product 200, password auth, `/admin` 200 for a super_admin session. Migration `0011` was applied to production D1 on 2026-11-23. This round's Worker code is **not deployed**: deploying the app under the new name returned 503 (worker had no secrets) and was rolled back to the alias |
 | Production plugin download | Verified for 3.6.1 (historical) | `/release/rel_bh_361/download` returned the uploaded jar; 4.0.5 artifacts are listed in `docs/releases/Aegishider-4.0.5-SHA256SUMS` and upload from `/admin/releases` |
 | Production registration | Verified | disposable installation registered (16-char code, server_name stored), then removed |
 | Email provider | Disabled | `EMAIL_PROVIDER=none`, `RESEND_API_KEY` deleted; password-only auth needs no email delivery |
@@ -49,9 +50,13 @@ Updated: 2026-11-23
   alone (plus optional TOTP). Existing passwordless/unverified placeholder accounts are completed by their
   first password registration. Lost credentials are recovered with one-time codes or an operator reset —
   never email.
-- **Browser-verified locally, not in production**: recovery-code display/ack, TOTP enrolment/login and
-  `/developers` were exercised against a local Worker on local D1. The new migration was also applied to an
-  in-memory SQLite copy and local D1, but **not** to production D1; nothing from this round is deployed.
+- **Browser-verified locally, deployment blocked**: recovery-code display/ack, TOTP enrolment/login and
+  `/developers` were exercised against a local Worker on local D1. Migration `0011` **was** applied to
+  production D1 on 2026-11-23, but the Worker code from this round is not live. The canonical
+  `aegishider-platform` name is a branded alias to the `basehider-platform` worker that holds the
+  production secrets; deploying the app under the new name produced 503 (missing pepper) and the alias
+  was rolled back. Moving the app to the new name needs a planned secret cutover; never rotate
+  `LICENSE_KEY_PEPPER` casually because existing licence hashes depend on it.
 - **Password hashing limit**: Cloudflare Workers rejects PBKDF2 above 100,000 iterations, so the hash uses the
   platform maximum rather than OWASP's higher recommendation. Rate limits and password policy compensate.
 - **Admin login**: `/admin` uses the email+password session and a staff role. Cloudflare Access is an optional
