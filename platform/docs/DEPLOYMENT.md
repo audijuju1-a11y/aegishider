@@ -1,6 +1,24 @@
 # Deployment
 
-Canonical production host: **https://aegishider-platform.audijuju1.workers.dev** (Worker name `aegishider-platform`). The D1/KV/R2/Queue resource names keep their `bhcp-*` prefixes to avoid a data migration.
+Canonical production host: **https://aegishider-platform.audijuju1.workers.dev**. The D1/KV/R2/Queue resource names keep their `bhcp-*` prefixes to avoid a data migration.
+
+### Two-worker topology
+
+The application and all secrets live on the Worker **`basehider-platform`**. The canonical name
+**`aegishider-platform`** is a thin proxy (`platform/alias/`) that forwards requests through a
+service binding. It deliberately has **no cron triggers and no queue bindings**.
+
+Do **not** deploy the full application config to `aegishider-platform`: that worker has no secrets,
+so every page returns 503, and it would replace the proxy. Deploy both Workers after an app change:
+
+~~~bash
+cd platform
+npx wrangler deploy --name basehider-platform
+npx wrangler deploy -c alias/wrangler.jsonc
+~~~
+
+The plugin sets `api-base-url` to the canonical host and uses `HttpClient.Redirect.NEVER`, so the proxy
+must return real responses (200/4xx JSON) for activation, lease and heartbeat — never a 302.
 
 ## Prerequisites
 

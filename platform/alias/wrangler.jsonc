@@ -1,0 +1,19 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "aegishider-platform",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-01",
+  "observability": {
+    "enabled": true
+  },
+  // Explicit empty schedule: clears the crons a failed full-app deploy left behind.
+  "triggers": {
+    "crons": []
+  },
+  "services": [
+    {
+      "binding": "APP",
+      "service": "basehider-platform"
+    }
+  ]
+}

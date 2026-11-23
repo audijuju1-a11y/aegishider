@@ -38,7 +38,7 @@ Updated: 2026-11-23
 | Java test suite | 153 tests (152 executed on Windows; 1 POSIX-only test skipped) | Windows `mvn -o test`; WSL Arch Linux JDK 21 `mvn -o test`; 153 `@Test` methods in the suite, 0 failures |
 | Three-gap packet benchmark | Verified | A–F PASS on Paper 1.21.4; baseline jar leaks all three gaps (`docs/09-three-gap-benchmark.md` in the plugin repo) |
 | Local dev | Working | `wrangler dev`; pages, auth, admin and API exercised |
-| Production deployment | Live (branded alias) | https://aegishider-platform.audijuju1.workers.dev redirects to the `basehider-platform` worker, which holds the production secrets; home/product 200, password auth, `/admin` 200 for a super_admin session. Migration `0011` was applied to production D1 on 2026-11-23. This round's Worker code is **not deployed**: deploying the app under the new name returned 503 (worker had no secrets) and was rolled back to the alias |
+| Production deployment | Live (canonical proxy) | https://aegishider-platform.audijuju1.workers.dev forwards through a service binding to `basehider-platform`, which holds the production secrets. `/`, `/developers`, `/auth/recover` and `/api/v1/health` return 200; `/app/security` redirects relatively to login; plugin endpoints return JSON 400/401 with no redirect. Migration `0011` applied 2026-11-23 and the current app version is deployed on `basehider-platform` |
 | Production plugin download | Verified for 3.6.1 (historical) | `/release/rel_bh_361/download` returned the uploaded jar; 4.0.5 artifacts are listed in `docs/releases/Aegishider-4.0.5-SHA256SUMS` and upload from `/admin/releases` |
 | Production registration | Verified | disposable installation registered (16-char code, server_name stored), then removed |
 | Email provider | Disabled | `EMAIL_PROVIDER=none`, `RESEND_API_KEY` deleted; password-only auth needs no email delivery |
@@ -50,12 +50,9 @@ Updated: 2026-11-23
   alone (plus optional TOTP). Existing passwordless/unverified placeholder accounts are completed by their
   first password registration. Lost credentials are recovered with one-time codes or an operator reset —
   never email.
-- **Browser-verified locally, deployment blocked**: recovery-code display/ack, TOTP enrolment/login and
-  `/developers` were exercised against a local Worker on local D1. Migration `0011` **was** applied to
-  production D1 on 2026-11-23, but the Worker code from this round is not live. The canonical
-  `aegishider-platform` name is a branded alias to the `basehider-platform` worker that holds the
-  production secrets; deploying the app under the new name produced 503 (missing pepper) and the alias
-  was rolled back. Moving the app to the new name needs a planned secret cutover; never rotate
+- **Canonical host topology**: the app and its secrets live on `basehider-platform`; `aegishider-platform`
+  forwards with a service binding and has no cron or queue triggers. Deploying the full app config under
+  `aegishider-platform` returned 503 (no secrets) and must not be repeated. Never rotate
   `LICENSE_KEY_PEPPER` casually because existing licence hashes depend on it.
 - **Password hashing limit**: Cloudflare Workers rejects PBKDF2 above 100,000 iterations, so the hash uses the
   platform maximum rather than OWASP's higher recommendation. Rate limits and password policy compensate.

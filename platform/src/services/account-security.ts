@@ -28,14 +28,12 @@ export interface TotpState {
 export async function listSecurityEventsForUser(
   env: Env,
   userId: string,
-  limit = 50,
 ): Promise<SecurityEventRow[]> {
   return all<SecurityEventRow>(
     env.DB,
     `SELECT id, event_type, severity, details, created_at, ip_hash FROM security_events
-      WHERE user_id = ? ORDER BY created_at DESC LIMIT ?`,
+      WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
     userId,
-    limit,
   );
 }
 

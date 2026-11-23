@@ -276,9 +276,10 @@ production ยังต้องรันด้วยมือครั้งแ
 ## การตัดสินใจที่ล็อกไว้ (2026-11-23)
 
 - **Canonical host vs Worker ที่ถือ secrets**: `aegishider-platform` เป็นชื่อที่ผู้ใช้เห็นและเป็น
-  `APP_URL`; Worker ที่ถือ secrets คือ `basehider-platform` และ `aegishider-platform` ทำ alias ไปยังตัวหลัก.
-  การย้ายแอปไป Worker ชื่อใหม่ต้องตั้ง secrets ใหม่ ซึ่งจะทำให้ licence hash/lease เดิมใช้ไม่ได้ถ้า
-  pepper ไม่ตรง — จึงไม่ rotate production โดยพลการ; ถ้าจะย้ายจริงต้องเตรียม secret และ cutover แยก.
+  `APP_URL`; Worker ที่ถือ secrets คือ `basehider-platform` และ `aegishider-platform` เป็น proxy ผ่าน
+  service binding (ไม่ redirect) พร้อม cron/queue ว่าง. Plugin ใช้ `HttpClient.Redirect.NEVER` จึงต้องได้
+  200/4xx JSON จาก canonical โดยตรง. การย้ายแอปไป Worker ชื่อใหม่ต้องตั้ง secrets ใหม่ ซึ่งจะทำให้
+  licence hash เดิมใช้ไม่ได้ถ้า pepper ไม่ตรง — จึงไม่ rotate production โดยพลการ.
 - **Single-org**: หนึ่งบัญชีหนึ่ง org ที่ใช้งาน; schema ยังรองรับหลาย org เพื่ออนาคต.
 - **ไม่มีอีเมล**: ไม่มี provider/OTP/magic link; recovery codes + operator CLI + TOTP เท่านั้น.
 - **A-05 เป็น incremental**: ห้าม big-bang; ratchet ใน CI ล็อก baseline และลดได้อย่างเดียว.
