@@ -94,6 +94,16 @@ jobs:
           node-version: "22"
       - run: node scripts/check-version-consistency.mjs
 
+  architecture:
+    name: Architecture ratchet (A-05)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/check-architecture.mjs
+
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest

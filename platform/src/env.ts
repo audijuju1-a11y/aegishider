@@ -31,7 +31,8 @@ export interface Env {
   EMAIL_PROVIDER?: string;
   MAIL_FROM?: string;
   SUPPORT_EMAIL?: string;
-  ADMIN_EMAILS?: string;
+  /** Development-only bootstrap allowlist; ignored in production (see DEV_BOOTSTRAP). */
+  DEV_ADMIN_EMAILS?: string;
 
   PAYMENT_WEBHOOK_SECRET?: string;
   PAYMENT_PROVIDER?: string;

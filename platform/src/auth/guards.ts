@@ -144,8 +144,8 @@ export function requireOrgWrite(user: SessionUser, orgId: string): void {
 }
 
 /** Admin emails allowed to bootstrap the console in development. */
-export function devAdminEmails(env: { ADMIN_EMAILS?: string }): string[] {
-  return (env.ADMIN_EMAILS ?? "")
+export function devAdminEmails(env: { DEV_ADMIN_EMAILS?: string }): string[] {
+  return (env.DEV_ADMIN_EMAILS ?? "")
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);

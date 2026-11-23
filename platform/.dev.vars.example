@@ -31,7 +31,7 @@ SUPPORT_EMAIL=support@example.com
 # Development-only admin bootstrap allowlist (ignored in production).
 # /auth/dev-admin stays disabled unless BOTH of these are set; the token must be sent
 # as ?token=... or the x-dev-admin-token header (16+ characters).
-ADMIN_EMAILS=you@example.com
+DEV_ADMIN_EMAILS=you@example.com
 DEV_BOOTSTRAP=1
 DEV_ADMIN_TOKEN=local-dev-admin-token-change-me
 

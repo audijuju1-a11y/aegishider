@@ -1,13 +1,16 @@
-# Aegishider 4.0.4
+# Aegishider 4.0.5
 
 Server-side **anti-ESP / anti-base-ESP / anti-storage-ESP** for **Paper 1.21.1 – 26.3**
 (Java 21; Paper 26.x runs on Java 25). Protected data is removed from outgoing packets
 before a client can receive it, and item/entity visibility uses Paper's native per-player
 visibility API.
 
-Security model: **fail-closed for the packet/visibility path**. Errors, unknown worlds,
-stale state, timeouts, missing PacketEvents and queue pressure keep protected data hidden.
-The licence is a separate product gate (see below).
+Security model: **fail-closed on every path the plugin controls**. Errors, unknown worlds,
+stale state, timeouts and queue pressure keep protected data hidden. The packet layer needs
+PacketEvents 2.14.0+: without it the plugin still loads, but the packet path is reported
+**INACTIVE** in `/aegishider status` and the plugin does not claim fail-closed for hides that
+only the packet layer can perform — install PacketEvents and restart to activate it. The
+licence is a separate product gate (see below).
 
 ---
 
@@ -16,13 +19,13 @@ The licence is a separate product gate (see below).
 The shipped `platform.yml` uses `enforcement: enforce`. The plugin loads and exposes its
 commands, but **protection stays disabled until this server is activated on the platform**:
 
-1. Put the matching `Aegishider-4.0.4-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
+1. Put the matching `Aegishider-4.0.5-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
 2. Start the server. Protection is intentionally inactive.
 3. Run `/aegishider license link`; the server registers an Ed25519 installation identity
    and prints a 16-character activation code plus the portal URL.
 4. Sign in (free account) at the **Aegishider Control Platform** — website alias
    `https://aegishider-platform.audijuju1.workers.dev` (the API base is
-   `https://basehider-platform.audijuju1.workers.dev`) — open **การเปิดใช้งาน** and enter the code.
+   `https://aegishider-platform.audijuju1.workers.dev`) — open **การเปิดใช้งาน** and enter the code.
 5. Run `/aegishider license refresh`, then `/aegishider status`; `protection` must be `ACTIVE`.
 
 The platform is free. Leases are Ed25519-signed, refresh in the background and use a 72-hour
@@ -53,7 +56,22 @@ without it the plugin still protects entities/items but block protection is repo
 `hidden-blocks` list (pistons, bookshelf, workstations, anvils, cauldrons, redstone),
 set `y-shield.enabled: true` with `real-chunk-radius: 0`, and add
 `item-protection.mob-melee-visible-distance: 1.0`. Alternatively, back up your config
-and delete it once to let 4.0.4 write the new secure defaults.
+and delete it once to let 4.0.5 write the new secure defaults.
+
+## 4.0.5 performance hardening
+
+- **Bounded entity work.** Periodic safety sweeps are queued and processed at most
+  32 entities per tick instead of hiding a whole chunk synchronously. Position polls are
+  capped at 256/tick, evaluations at 256/tick, and the time budget is checked every four
+  evaluations instead of every 16-32.
+- **Bounded block work.** Reveal checks are capped at 128/tick (24 during the join ramp),
+  the candidate rebuild checks the tick budget per chunk, and out-of-range re-hides check
+  the budget every 16 markers.
+- **Bounded packet maintenance.** The packet-detected block bridge drains at most 512
+  positions per tick, pending entity registrations 64, dropped-chunk resends 32, and
+  Y-shield chunk refreshes 4 per tick.
+- The visibility policy and fail-closed behaviour are unchanged. Work is deferred, never
+  skipped in the unsafe direction; a deferred item/block stays hidden.
 
 ## 4.0.4 base-block and Y-shield changes
 
@@ -249,13 +267,13 @@ pipeline additionally needs its venv and an Ed25519 release key outside the repo
 
 ```bash
 cd aegishider-integrated
-mvn -B test                                  # 152 tests
+mvn -B test                                  # 153 tests
 mvn -B -Pmc1211 -Dmaven.test.skip=true package
 
 # local hardened build: all six profiles + string encryption + ProGuard + SHA256SUMS
 JAVA21_HOME=... JAVA25_HOME=... MVN=... PROGUARD_JAR=... ASM_JAR=... \
   STRINGCRYPT_CLASSES=... bash ../scripts/harden-local.sh
-# artifacts: dist/obf/Aegishider-4.0.4-*.jar + dist/obf/SHA256SUMS
+# artifacts: dist/obf/Aegishider-4.0.5-*.jar + dist/obf/SHA256SUMS
 # or run the whole matrix + string encryption + ProGuard + manifests:
 cd ..
 SENTINEL_PY=/d/sentinel-shield/.venv/Scripts/python.exe bash scripts/release.sh
@@ -267,7 +285,7 @@ obfuscated; signed manifest sidecars only when using the Sentinel pipeline) and
 
 ## Verification snapshot
 
-- 152 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
+- 153 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
 - A–F packet harness PASS on Paper 1.21.4 (plain and ProGuard-obfuscated jar); the same
   harness detects A/C/D/E/F leaks in the legacy BaseHider 3.0.0 baseline.
 - 4.0.4 live verification: Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with

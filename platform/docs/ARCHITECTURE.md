@@ -51,7 +51,7 @@
 - Account recovery without email: ten one-time codes per account (HMAC-SHA256, 60 bits, single-use). `/auth/recover` consumes a code, resets the password, revokes all sessions and clears TOTP; a fresh set is issued. Operators can run `scripts/reset-password.mjs` when the user lost both password and codes.
 - Optional TOTP second factor: 160-bit secret, 30-second step, ±1 step, `totp_last_counter` prevents replay. Disabling requires the current password and is rate-limited. No transactional email, magic link or OTP delivery is configured.
 - Staff in production: Cloudflare Access JWT (RS256) verified against the team JWKS, issuer and audience; the verified email must map to an existing user with a staff role. There is no admin signup route.
-- Development: /auth/dev-admin promotes the first ADMIN_EMAILS address and creates a session. The route is hard-disabled when ENVIRONMENT=production.
+- Development: /auth/dev-admin promotes the first DEV_ADMIN_EMAILS address and creates a session. The route is hard-disabled when ENVIRONMENT=production; production admins come from `users.role` (see the bootstrap CLI).
 - RBAC: a static permission matrix in src/auth/guards.ts. Permissions are checked on every admin route, not only in the UI. settings.write is reserved for admin/super_admin.
 - Tenant isolation: every customer query scopes by org_id IN (SELECT org_id FROM organization_members WHERE user_id = ?). Foreign detail pages return 404 to reduce enumeration. Callers resolve the organisation with `primaryMembership(user)` rather than indexing `memberships[0]`.
 

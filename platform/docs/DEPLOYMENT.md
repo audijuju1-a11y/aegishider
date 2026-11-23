@@ -32,7 +32,7 @@ Non-secret vars in wrangler.jsonc:
 - TURNSTILE_SITE_KEY, ACCESS_TEAM_DOMAIN, ACCESS_AUD
 - EMAIL_PROVIDER=none (no transactional email; SUPPORT_EMAIL is a display address only)
 - AUTH_OTP_ENABLED=false and EMAIL_PROVIDER=none (legacy OTP vars are inert; no email is sent)
-- ADMIN_EMAILS may be left empty in production (Access is the admin path)
+- DEV_ADMIN_EMAILS is development-only and may be left empty in production; production admins are granted through `users.role` (`scripts/bootstrap-admin.mjs`) and Cloudflare Access is optional
 - OBSERVABILITY_WEBHOOK_URL (optional; empty = Workers Logs only)
 
 Secrets:
@@ -192,9 +192,29 @@ Set the custom domain in the Worker settings. Then smoke test:
 
 - Workers: deploy the previous version from the Cloudflare dashboard or re-deploy the previous git commit.
 - D1: migrations are additive. Restore from a pre-deploy export if a migration is destructive (none are, currently).
-- Secrets: rotated keys keep old public keys in signing_keys as retired until leases expire.
+- Secrets: rotated keys keep old public keys in signing_keys as `deprecated` until leases expire.
 
-## 10. CI outline
+## 10. Rotating the licence signing key (A-14)
+
+Signing keys are rotated from an operator machine, never from the admin UI: the private key
+must not be rendered into a browser session or stored in D1.
+
+~~~bash
+node scripts/rotate-signing-key.mjs --key-id ag-2026-11 --out signing-key.txt
+npx wrangler secret put LICENSE_SIGNING_KEY < signing-key.txt
+npx wrangler secret put LICENSE_PUBLIC_KEY      # paste the printed SPKI base64
+npx wrangler secret put LICENSE_SIGNING_KEY_ID  # ag-2026-11
+rm signing-key.txt
+npx wrangler deploy
+~~~
+
+The script inserts the public key as `active` and demotes the previous active key to
+`deprecated`; deprecated keys still verify leases that were already issued. Mark a key
+`retired` only after `LEASE_TTL_HOURS` has passed. Installations pick up the new key with
+their next lease fetch, so no re-pairing is required. Use `--dry-run` to print only the
+public key without touching D1.
+
+## 11. CI outline
 
 ~~~text
 pnpm install --frozen-lockfile

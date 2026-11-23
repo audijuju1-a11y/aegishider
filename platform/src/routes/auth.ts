@@ -359,7 +359,7 @@ authRoutes.post("/logout", async (c) => {
 });
 
 /**
- * Development-only bootstrap: signs in the first ADMIN_EMAILS address and grants
+ * Development-only bootstrap: signs in the first DEV_ADMIN_EMAILS address and grants
  * super_admin. Disabled entirely in production (404).
  */
 authRoutes.get("/dev-admin", async (c) => {
@@ -386,16 +386,16 @@ authRoutes.get("/dev-admin", async (c) => {
       noIndex: true,
     });
   }
-  const email = (c.env.ADMIN_EMAILS ?? "")
+  const email = (c.env.DEV_ADMIN_EMAILS ?? "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)[0];
   if (!email) {
     return publicPage(c, {
-      title: "ยังไม่ได้ตั้งค่า ADMIN_EMAILS",
+      title: "ยังไม่ได้ตั้งค่า DEV_ADMIN_EMAILS",
       body: authMessagePage({
         title: "ยังไม่ได้ตั้งค่าผู้ดูแล",
-        message: "เพิ่ม ADMIN_EMAILS ใน .dev.vars แล้วรีสตาร์ท dev server",
+        message: "เพิ่ม DEV_ADMIN_EMAILS ใน .dev.vars แล้วรีสตาร์ท dev server",
         ctaHref: "/",
         ctaLabel: "กลับหน้าแรก",
       }),

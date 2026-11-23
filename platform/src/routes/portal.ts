@@ -39,7 +39,13 @@ import {
   listTicketsForUser,
 } from "../services/support";
 import { listProducts } from "../services/catalog";
-import { all, first } from "../lib/db";
+import {
+  disableTotpForUser,
+  enableTotpForUser,
+  listSecurityEventsForUser,
+  sessionBelongsToUser,
+  totpStateForUser,
+} from "../services/account-security";
 import { clientIp, formValue, hashIp, readForm } from "../lib/http";
 import { now } from "../lib/time";
 import { recordSecurityEvent } from "../services/audit";
@@ -382,25 +388,9 @@ portalRoutes.get("/security", async (c) => {
   const user = requireUser(c);
   const [sessions, events, remaining, totpRow] = await Promise.all([
     listSessions(c.env, user.id),
-    all<{
-      id: string;
-      event_type: string;
-      severity: string;
-      details: string;
-      created_at: number;
-      ip_hash: string | null;
-    }>(
-      c.env.DB,
-      `SELECT id, event_type, severity, details, created_at, ip_hash FROM security_events
-        WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
-      user.id,
-    ),
+    listSecurityEventsForUser(c.env, user.id),
     recoveryCodeCount(c.env, user.id),
-    first<{ totp_secret: string | null; totp_enabled_at: number | null }>(
-      c.env.DB,
-      `SELECT totp_secret, totp_enabled_at FROM users WHERE id = ?`,
-      user.id,
-    ),
+    totpStateForUser(c.env, user.id),
   ]);
 
   // Codes stay readable for the short KV window so a refresh does not lose them; they
@@ -489,9 +479,7 @@ portalRoutes.post("/security/totp/enable", async (c) => {
   if (!secret) return failRedirect(c, "/app/security", badRequest("เริ่มตั้งค่า 2FA ใหม่"));
   const result = await verifyTotp(secret, formValue(values, "code", 10));
   if (!result.ok) return failRedirect(c, "/app/security", badRequest("รหัส 2FA ไม่ถูกต้อง"));
-  await c.env.DB.prepare(
-    `UPDATE users SET totp_secret = ?, totp_enabled_at = ?, totp_last_counter = ?, updated_at = ? WHERE id = ?`,
-  ).bind(secret, now(), result.counter, now(), user.id).run();
+  await enableTotpForUser(c.env, user.id, secret, result.counter);
   await c.env.CACHE.delete(`totp-pending:${user.id}`);
   await recordSecurityEvent(c.env, {
     eventType: "auth.totp_enabled",
@@ -511,9 +499,7 @@ portalRoutes.post("/security/totp/disable", async (c) => {
   if (!stored || !(await verifyPassword(password, stored))) {
     return failRedirect(c, "/app/security", badRequest("รหัสผ่านไม่ถูกต้อง"));
   }
-  await c.env.DB.prepare(
-    `UPDATE users SET totp_secret = NULL, totp_enabled_at = NULL, totp_last_counter = NULL, updated_at = ? WHERE id = ?`,
-  ).bind(now(), user.id).run();
+  await disableTotpForUser(c.env, user.id);
   await recordSecurityEvent(c.env, {
     eventType: "auth.totp_disabled",
     severity: "warning",
@@ -526,13 +512,9 @@ portalRoutes.post("/security/revoke-session", async (c) => {
   const user = requireUser(c);
   const values = await readForm(c);
   const sessionId = formValue(values, "session_id", 80);
-  const owned = await first<{ id: string }>(
-    c.env.DB,
-    `SELECT id FROM sessions WHERE id = ? AND user_id = ?`,
-    sessionId,
-    user.id,
-  );
-  if (!owned) throw forbidden("ไม่พบเซสชันนี้ในบัญชีของคุณ");
+  if (!(await sessionBelongsToUser(c.env, sessionId, user.id))) {
+    throw forbidden("ไม่พบเซสชันนี้ในบัญชีของคุณ");
+  }
   await revokeSession(c.env, sessionId);
   return c.redirect("/app/security?ok=revoked", 303);
 });

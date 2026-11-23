@@ -2,7 +2,7 @@
 
 เอกสารนี้แปลงผลตรวจใน [`12-security-audit-2026-11.md`](12-security-audit-2026-11.md) หัวข้อ 7
 เป็นลำดับงานที่ลงมือได้จริง พร้อมเกณฑ์ยอมรับ (acceptance) และคำสั่งตรวจสอบ
-ทุกงานอ้างสถานะโค้ด ณ 2026-11-19 (หลังปิด B/H/M ครบ)
+ทุกงานอ้างสถานะโค้ด ณ 2026-11-19 (หลังปิด B/H/M ครบ) และอัปเดตสถานะล่าสุด 2026-11-23
 
 ## หลักการจัดลำดับ
 
@@ -23,17 +23,26 @@
 > A-11 มีสองส่วน: **ลบออกจาก index** (ปลอดภัย ทำได้ทันที) และ **ล้างประวัติ git** (ต้องขออนุมัติ +
 > ประสานทุกคนที่ clone เพราะต้อง force-push) — แผนนี้แยกสองส่วนชัดเจน
 
-## สถานะล่าสุด (2026-11-19)
+## สถานะล่าสุด (อัปเดต 2026-11-23)
 
 | รายการ | สถานะ |
 |---|---|
 | A-11 ลบ build output ออกจาก index | **เสร็จ** — `git rm --cached` `bench/`, `.tools/`, `dist/`, `aegishider-integrated/target/`, `site/.qa/` (≈2.2k ไฟล์) + `.gitignore` ฝั่ง root |
-| A-11 ล้างประวัติ git | **รออนุมัติ** — ต้อง force-push และให้ทุกคน clone ใหม่ |
-| A-10 CI | **เสร็จ** — เพิ่ม `wrangler deploy --dry-run`, job `site` (`site/scripts/check-site.mjs`), job `secrets` (`scripts/scan-secrets.mjs`) |
+| A-11 ล้างประวัติ git | **ไม่ทำ (ตัดสินแล้ว 2026-11-23)** — index สะอาดแล้ว; การเขียนประวัติใหม่ต้อง force-push และให้ทุก clone ใหม่ จึงต้องอนุมัติและประสานแยก ไม่ทำในรอบนี้ |
+| A-10 CI | **เสร็จ** — เพิ่ม `wrangler deploy --dry-run`, job `site` (`site/scripts/check-site.mjs`), job `secrets` (`scripts/scan-secrets.mjs`), job `versions` และ job `architecture` (`scripts/check-architecture.mjs`) |
 | A-15 dead code | **เสร็จ** — ลบ 11 ฟังก์ชันที่ไม่มีผู้เรียก (`readJson`, `safeNextPath`, `pageCount`, `escapeLike`, `noStore`, `publicKeyDocument`, `requireInstallation`, `countInstallationEvents`, `listContactMessages`, `ticketMessagesMeta`, `getRecentSecurityEvents`) |
 | A-06 DLQ consumer | **เสร็จ** — consumer ที่สอง `bhcp-telemetry-dlq` เขียนลงตาราง `telemetry_dlq` (migration 0007) + ack, การ์ดเปิด/ปิดใน `/admin/security` (สิทธิ์ใหม่ `security.write`), retention ของแถวที่ resolved |
 | A-09 observability | **เสร็จ** — sink HTTP (`OBSERVABILITY_WEBHOOK_URL`/`_TOKEN`) รับ warn/error log และ alert transition; cron ทุก 5 นาทีประเมิน `http.5xx_rate` (>1%, ≥20 คำขอ) และ `queue.dlq_depth` (>0) เก็บใน `metric_counters`/`alert_state`/`alert_events` แสดงบน /admin, /admin/security และ /status |
-| A-01 เอกสารสองชุด | ยังไม่ทำ (อยู่นอกรอบ Wave 1 ตามที่ขอ) |
+| A-01 เอกสารสองชุด | **เสร็จ 2026-11-23** — `platform/docs/` เป็นแหล่งความจริง, `docs/README.md` เป็น archive index พร้อมตาราง "อ่านอะไรที่ไหน" และชี้แหล่งเวอร์ชันจริง; CI ตรวจ version consistency |
+| A-02 admin bootstrap | **เสร็จ** — `scripts/bootstrap-admin.mjs` (CLI, idempotent, ไม่สร้างบัญชีเอง) + คู่มือใน DEPLOYMENT |
+| A-03 multi-org | **เสร็จ (ตัดสิน: single-org)** — `primaryMembership()` เป็นจุดเดียว; schema ยังรองรับหลาย org เพื่ออนาคต |
+| A-04 commerce schema | **เสร็จ (ตัดสิน)** — ตาราง legacy เก็บไว้ ไม่มี payment path; `price_cents`/`product_plans` เป็น display metadata ที่ admin แก้ได้แต่ห้าม charge (DATABASE.md) |
+| A-05 monolith | **เริ่มแล้ว (incremental)** — ย้าย SQL ของ `/app/security` ไป `services/account-security.ts`; `scripts/check-architecture.mjs` ล็อก baseline ใน CI (portal 0, admin 15, auth 8, api 1, marketing 1) รอบถัดไป: auth → admin |
+| A-07 fail-closed | **เสร็จ (docs + runtime)** — README ระบุชัดว่าไม่มี PacketEvents = packet layer INACTIVE และไม่ claim fail-closed; `/aegishider status` รายงาน gateway/block/item state อยู่แล้ว |
+| A-08 WorldKeys | **เสร็จ** — ไม่ throw ใน hot path; คืน `UNKNOWN` + log ครั้งเดียว; `WorldKeysTest` จำลองเพดาน |
+| A-12 auth/recovery | **เสร็จ** — recovery codes 10 ชุด + TOTP + operator reset; ไม่มีอีเมลทั้งระบบ |
+| A-13 ADMIN_EMAILS | **เสร็จ 2026-11-23** — เปลี่ยนเป็น `DEV_ADMIN_EMAILS` ทั้ง `env.ts`, route, `.dev.vars.example` และเอกสาร; production admin มาจาก `users.role` |
+| A-14 key rotation | **เสร็จ (CLI-first)** — `scripts/rotate-signing-key.mjs` + runbook ใน DEPLOYMENT; ตั้งใจไม่ทำใน admin UI เพราะ private key ต้องไม่เข้า browser |
 
 ---
 
@@ -257,8 +266,21 @@ production ยังต้องรันด้วยมือครั้งแ
 
 | เรื่อง | ต้องตัดสิน |
 |---|---|
-| A-11 history rewrite | อนุญาต force-push และแจ้งผู้ร่วมงาน clone ใหม่หรือไม่ |
-| A-02 | เลือก CLI bootstrap (A) แล้ว — ไม่ต้องอนุมัติเพิ่ม |
-| A-12 | เลือกไม่ใช้ Resend/อีเมลแล้ว — recovery codes + TOTP + operator CLI |
-| A-05 | ระดับการแยกชั้นที่ต้องการ (repository only vs full domain layer) |
-| A-09 | sink ที่เลือก (Logpush/Sentry/OTel) และงบประมาณ |
+| A-11 history rewrite | **ตัดสินแล้ว: ไม่ทำ** — ต้อง force-push และให้ทุก clone ใหม่; ทำแยกเมื่อเจ้าของประสานทีม |
+| A-02 | **ตัดสินแล้ว: CLI bootstrap** (ไม่สร้างบัญชีเอง) |
+| A-12 | **ตัดสินแล้ว: ไม่มีอีเมล** — recovery codes + TOTP + operator reset |
+| A-05 | **ตัดสินแล้ว: incremental repository/service extraction + CI ratchet** ไม่ big-bang |
+| A-09 | **ตัดสินแล้ว: HTTP webhook sink** (ไม่ผูก vendor) + console fallback |
+| A-14 | **ตัดสินแล้ว: CLI rotation** — private key ไม่อยู่ใน admin UI |
+
+## การตัดสินใจที่ล็อกไว้ (2026-11-23)
+
+- **Canonical host vs Worker ที่ถือ secrets**: `aegishider-platform` เป็นชื่อที่ผู้ใช้เห็นและเป็น
+  `APP_URL`; Worker ที่ถือ secrets คือ `basehider-platform` และ `aegishider-platform` ทำ alias ไปยังตัวหลัก.
+  การย้ายแอปไป Worker ชื่อใหม่ต้องตั้ง secrets ใหม่ ซึ่งจะทำให้ licence hash/lease เดิมใช้ไม่ได้ถ้า
+  pepper ไม่ตรง — จึงไม่ rotate production โดยพลการ; ถ้าจะย้ายจริงต้องเตรียม secret และ cutover แยก.
+- **Single-org**: หนึ่งบัญชีหนึ่ง org ที่ใช้งาน; schema ยังรองรับหลาย org เพื่ออนาคต.
+- **ไม่มีอีเมล**: ไม่มี provider/OTP/magic link; recovery codes + operator CLI + TOTP เท่านั้น.
+- **A-05 เป็น incremental**: ห้าม big-bang; ratchet ใน CI ล็อก baseline และลดได้อย่างเดียว.
+- **A-11 history rewrite**: ไม่ทำ force-push ในรอบนี้; index สะอาดแล้ว.
+- **A-14 CLI-first**: private key ไม่เข้า browser/admin; หมุนด้วยสคริปต์ + `wrangler secret put` + runbook.

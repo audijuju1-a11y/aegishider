@@ -30,6 +30,7 @@ Updated: 2026-11-23
 | Account recovery without email | Implemented | 10 one-time HMAC-hashed recovery codes shown until acknowledged, `/auth/recover` consumes a code and revokes sessions, operator `scripts/reset-password.mjs` fallback |
 | Optional TOTP 2FA | Implemented | `/app/security` enrolment with `otpauth://` URI; login verifies a 6-digit code and stores the accepted counter to reject replay; disable requires the password |
 | Public developer page | Implemented | `/developers` with endpoint table, signing canonical string/headers, rate limits and examples; linked in nav/footer |
+| Architecture roadmap A-01…A-15 | Closed or explicitly deferred | Status + decisions in `docs/13-architecture-roadmap.md`; CI ratchet `scripts/check-architecture.mjs`; signing-key rotation CLI `scripts/rotate-signing-key.mjs`; history rewrite deliberately not executed |
 | Production sign-up / sign-in | Verified | browser E2E: register → `/app` with a free licence; logout → password login → `/app` |
 | Platform test suite | 45 tests passing (7 files) | crypto + platform + free licensing + reset/re-activation + guard ladder + password-only auth + session admin + admin hierarchy/key visibility + content-type guards + recovery codes/TOTP replay + registration recovery redirect + TOTP-disable limit |
 | Java plugin client (4.0.5) | Hardened | HTTPS-only (localhost exempt), redirects disabled, response size/depth limits, 16-char codes, server-name registration, integrity pin, POSIX 0600/0700 key files |

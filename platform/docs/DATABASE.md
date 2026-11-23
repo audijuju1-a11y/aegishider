@@ -89,11 +89,17 @@ Migrations are additive and versioned by filename. Never edit an applied product
 
 ## Legacy commerce tables (deprecated 2026-11-19)
 
-`wallets`, `wallet_transactions`, `topup_orders`, `payment_events`, `payment_orders`,
-`payment_webhook_events`, `payment_slips`, `products.price_cents` and `product_plans` are unused:
-the platform is free and no route or service reads or writes them. They are kept for now because
-dropping tables destroys production rows; remove them in one explicit migration after a verified
-D1 export. Do not build new features on these tables.
+`wallets`, `wallet_transactions`, `topup_orders`, `payment_events`, `payment_orders` and
+`payment_webhook_events` are unused: the platform is free and no route or service reads or
+writes them. They are kept for now because dropping tables destroys production rows; remove
+them in one explicit migration after a verified D1 export. Do not build new features on these
+tables.
+
+`products.price_cents`, `products.purchase_url` and `product_plans` are display metadata only.
+The admin product form still edits them (and `product_plans` is listed, never charged), so the
+rules are: never charge or invoice from these columns, never add a payment/webhook path that
+writes them, and treat them as read-only from customer routes. A later migration can drop the
+plan tables once the admin form stops offering them.
 
 ## Retention added 2026-11-19
 
