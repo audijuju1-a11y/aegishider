@@ -3,7 +3,7 @@ import { all, first, run } from "../lib/db";
 import { newId } from "../lib/core";
 import { now } from "../lib/time";
 import { badRequest, forbidden, notFound } from "../lib/errors";
-import type { SessionUser } from "../auth/session";
+import { primaryMembership, type SessionUser } from "../auth/session";
 import { notifyUser, recordSecurityEvent } from "./audit";
 
 export interface TicketRow {
@@ -50,7 +50,7 @@ export async function createTicket(
   user: SessionUser,
   input: { subject: string; message: string; productId?: string | null; priority?: string },
 ): Promise<string> {
-  const membership = user.memberships[0];
+  const membership = primaryMembership(user);
   if (!membership) throw forbidden("บัญชีของคุณยังไม่มีองค์กร");
   if (membership.role === "read_only") throw forbidden("บัญชีของคุณเป็นแบบอ่านอย่างเดียว");
   const subject = input.subject.trim().slice(0, 200);

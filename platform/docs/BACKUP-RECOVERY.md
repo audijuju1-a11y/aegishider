@@ -8,7 +8,7 @@
 | Raw telemetry archives | R2 | bucket replication or lifecycle export | provider-managed |
 | Signing keys | Worker secret + password manager | manual escrow | on creation/rotation |
 | HMAC pepper | Worker secret + escrow | manual escrow | on rotation |
-| Provider keys (Resend, payment) | provider dashboards | provider recovery | on creation |
+| Worker secrets (LICENSE_KEY_PEPPER, signing keys, Turnstile) | password manager | Cloudflare secret rotation | on rotation |
 | Source and migrations | Git repository | push + tags | every change |
 
 KV holds only ephemeral data (CSRF, dev email outbox, new-key handoff) and does not require backup.
@@ -16,14 +16,14 @@ KV holds only ephemeral data (CSRF, dev email outbox, new-key handoff) and does 
 ## D1 export and restore
 
 ~~~bash
-npx wrangler d1 export agcp-db --remote --output backups/agcp-$(date +%F).sql
+npx wrangler d1 export bhcp-db --remote --output backups/bhcp-$(date +%F).sql
 ~~~
 
 Restore into a new database:
 
 ~~~bash
-npx wrangler d1 create agcp-db-restore
-npx wrangler d1 execute agcp-db-restore --remote --file=backups/agcp-YYYY-MM-DD.sql
+npx wrangler d1 create bhcp-db-restore
+npx wrangler d1 execute bhcp-db-restore --remote --file=backups/bhcp-YYYY-MM-DD.sql
 ~~~
 
 Then update wrangler.jsonc to the restored database id and deploy. Validate:

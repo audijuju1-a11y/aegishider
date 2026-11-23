@@ -1,7 +1,11 @@
 # ADR 0007: Manual payments with a provider-agnostic webhook adapter
 
 ## Status
-Accepted.
+
+**Superseded (November 2026).** The platform is free; wallet, PromptPay, Stripe and payment webhooks were
+removed. This ADR is kept as a historical decision record.
+
+Accepted originally.
 
 ## Context
 No payment provider credentials are available, and faking a gateway would violate the project rules. The platform

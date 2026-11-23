@@ -9,7 +9,7 @@
 | Telemetry backlog | /admin/telemetry, telemetry_events.processed_at IS NULL | 0 or draining |
 | Last telemetry processing | /admin/telemetry | within a few minutes when servers are online |
 | Stale installations | installations.status = stale | expected only for offline servers |
-| Failed logins | /admin/security | no sustained spikes |
+| Failed logins / TOTP failures | /admin/security | no sustained spikes |
 | Invalid signatures | security_events event_type = request.invalid_signature | investigate immediately |
 | Queue DLQ | /admin/security (telemetry_dlq) and Cloudflare dashboard | 0 open |
 | 5xx ratio | /admin dashboard card, alert_state key http.5xx_rate | under 1% over 5 minutes |
@@ -37,7 +37,7 @@ request; check `observability.sink_rejected` for a receiver that answers non-2xx
 ## Runbooks
 
 ### Telemetry backlog growing / not draining
-1. Check the consumer is attached: npx wrangler queues consumer list agcp-telemetry.
+1. Check the consumer is attached: npx wrangler queues consumer list bhcp-telemetry.
 2. Check Workers logs for queue.processing_failed and R2 errors.
 3. Inspect the DLQ at /admin/security (table `telemetry_dlq`). If messages are poisoned, fix the cause,
    replay the payload from the Cloudflare dashboard, then mark the row resolved.
@@ -47,11 +47,25 @@ request; check `observability.sink_rejected` for a receiver that answers non-2xx
 ### Email is disabled by design
 1. `EMAIL_PROVIDER=none` is intentional; password-only auth needs no email delivery.
 2. `sendEmail` logs and returns a suppressed result so support/ticket actions do not fail.
-3. Password reset without email is an admin action (set a new password for the account).
+3. Account recovery uses one-time codes (`/auth/recover`), not email. If a user lost both password and codes,
+   run `node scripts/reset-password.mjs <email>`; it prints a temporary password once, revokes every session
+   and clears TOTP.
+4. First admin on a new environment: `node scripts/bootstrap-admin.mjs <email>` (idempotent, refuses unknown
+   emails). Run it after the account signs up once.
+5. Never ask a user to send a recovery code or password. Codes are visible only to the signed-in account and
+   disappear when acknowledged or after 15 minutes.
+
+### User lost their TOTP device
+1. Ask them to sign in with a recovery code at `/auth/recover`; success clears TOTP and issues fresh codes.
+2. If they have no codes, use `scripts/reset-password.mjs` (also clears TOTP and revokes sessions).
+3. To disable 2FA voluntarily, `/app/security` requires the current password; five wrong attempts per
+   15 minutes are allowed per user/IP before a 429 with `Retry-After`.
+4. Never disable TOTP by editing D1 unless the CLI is unavailable; record the reason for the manual change.
 
 ### Admin console returns 403 or redirects to login
 1. A redirect to `/auth/login?next=/admin` means the session is missing or expired; sign in with email+password.
-2. 403 means the account is signed in but does not have a staff role; promote it in D1 (`users.role`) or via an existing super_admin.
+2. 403 means the account is signed in but does not have a staff role; run `scripts/bootstrap-admin.mjs <email>`
+   or promote it via an existing super_admin.
 3. Cloudflare Access is optional. If enabled, a bad assertion fails closed; remove the assertion or fix the Access app.
 4. The production owner account is promoted to `super_admin`; use `/app/account` to change its password.
 

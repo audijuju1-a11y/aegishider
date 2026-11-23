@@ -13,14 +13,14 @@ export interface SiteContent {
 }
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
-  announcement: "อัปเดต 4.0.4 — Y-shield ปิดห้องใต้ดิน, บล็อกฐานครบชุด และตรวจกำแพงมอน/สัตว์",
+  announcement: "อัปเดต 4.0.5 — ปรับ tick ให้มีขอบเขต, Y-shield และชุดบล็อกฐานครบชุด",
   heroEyebrow: "AEGISHIDER CONTROL PLATFORM",
-  heroTitle: "ปลั๊กอิน Minecraft",
-  heroTitleAccent: "ฟรี พร้อมไลเซนส์จริง",
+  heroTitle: "ป้องกันฐาน Minecraft",
+  heroTitleAccent: "ในระดับแพ็กเก็ต",
   heroLead:
-    "Aegishider Control Platform รวมหน้าร้าน พอร์ทัลเจ้าของเซิร์ฟเวอร์ และคอนโซลผู้ดูแลไว้ในระบบเดียว — ฟรี 100% ไม่มีกระเป๋าเงินหรือการชำระเงิน ใบอนุญาตลงลายเซ็น Ed25519 ตรวจสอบได้ทุกใบ",
+    "Aegishider ซ่อนหีบ บล็อกฐาน และห้องใต้ดินก่อนข้อมูลจะถูกส่งถึงไคลเอนต์ พร้อมไลเซนส์ Ed25519 และระบบปฏิบัติการที่ตรวจสอบได้ — ฟรีสำหรับทุกเซิร์ฟเวอร์ Paper",
   primaryCta: "ดูผลิตภัณฑ์",
-  secondaryCta: "เริ่มต้นใช้งาน",
+  secondaryCta: "อ่านเอกสาร",
   pricingNote: "ทุกฟีเจอร์ฟรี · ไม่มีระบบชำระเงิน · ไลเซนส์ไม่มีวันหมดอายุ",
 };
 

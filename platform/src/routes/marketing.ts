@@ -31,7 +31,7 @@ import { enforceRateLimit } from "../lib/rate-limit";
 import { verifyTurnstile } from "../auth/turnstile";
 import { getSiteContent } from "../lib/site-content";
 import { logError } from "../lib/logger";
-import { aboutPage } from "../views/marketing";
+import { aboutPage, developersPage } from "../views/marketing";
 
 export const marketingRoutes = new Hono<AppEnv>();
 
@@ -220,7 +220,7 @@ marketingRoutes.post("/contact", async (c) => {
   const ip = clientIp(c);
   const ipHash = await hashIp(c.env, ip);
   await enforceRateLimit(c.env, `contact:${ipHash}`, 5, 3600);
-  await verifyTurnstile(c.env, values["cf-turnstile-response"], ip);
+  await verifyTurnstile(c.env, values["cf-turnstile-response"], ip, "contact");
   try {
     await createContactMessage(c.env, { name, email, topic, message, ipHash });
   } catch (error) {
@@ -235,6 +235,14 @@ marketingRoutes.get("/about", (c) => {
     title: "เกี่ยวกับเรา",
     description: "เกี่ยวกับ Aegishider Control Platform",
     body: aboutPage(langOf(c)),
+  });
+});
+
+marketingRoutes.get("/developers", (c) => {
+  return publicPage(c, {
+    title: "นักพัฒนา",
+    description: "Aegishider Developer API — Ed25519 signed requests, licence leases, heartbeat and telemetry",
+    body: developersPage(c.env.APP_URL),
   });
 });
 

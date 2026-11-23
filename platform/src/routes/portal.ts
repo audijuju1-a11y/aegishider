@@ -40,10 +40,15 @@ import {
 } from "../services/support";
 import { listProducts } from "../services/catalog";
 import { all, first } from "../lib/db";
-import { clientIp, formValue, readForm } from "../lib/http";
+import { clientIp, formValue, hashIp, readForm } from "../lib/http";
+import { now } from "../lib/time";
+import { recordSecurityEvent } from "../services/audit";
+import { issueRecoveryCodes, recoveryCodeCount } from "../auth/recovery";
+import { generateTotpSecret, otpauthUri, verifyTotp } from "../auth/totp";
 import { AppError, badRequest, forbidden } from "../lib/errors";
 import { verifyTurnstile } from "../auth/turnstile";
-import { revokeOtherSessions, revokeSession, listSessions } from "../auth/session";
+import { enforceRateLimit } from "../lib/rate-limit";
+import { primaryMembership, revokeOtherSessions, revokeSession, listSessions } from "../auth/session";
 import { errorPage } from "../views/marketing";
 import { ensureFreeLicenseForUser } from "../services/licensing";
 import {
@@ -78,7 +83,7 @@ portalRoutes.get("/", async (c) => {
   const overview = await getPortalOverview(c.env, user);
   return appPage(c, {
     title: "ภาพรวม",
-    subtitle: user.memberships[0]?.orgName ?? "องค์กรของฉัน",
+    subtitle: primaryMembership(user)?.orgName ?? "องค์กรของฉัน",
     active: "/app",
     body: overviewPage(overview),
   });
@@ -234,7 +239,7 @@ portalRoutes.post("/activations", async (c) => {
   const values = await readForm(c);
   const code = formValue(values, "code", 32);
   const licenseId = formValue(values, "license_id", 80);
-  await verifyTurnstile(c.env, values["cf-turnstile-response"], clientIp(c));
+  await verifyTurnstile(c.env, values["cf-turnstile-response"], clientIp(c), "activate");
   try {
     await claimActivation(c.env, user, code, licenseId || undefined, c.get("ipHash") ?? null);
   } catch (error) {
@@ -362,31 +367,159 @@ portalRoutes.post("/account/password", async (c) => {
   if (problem) return failRedirect(c, "/app/account", badRequest(problem));
   if (next !== confirm) return failRedirect(c, "/app/account", badRequest("รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน"));
   await setUserPassword(c.env, user.id, next);
+  // A password change invalidates every other session; this tab stays signed in.
+  await revokeOtherSessions(c.env, user.id, c.get("sessionId") ?? "");
+  await recordSecurityEvent(c.env, {
+    eventType: "auth.password_changed",
+    severity: "info",
+    userId: user.id,
+    ipHash: await hashIp(c.env, clientIp(c)),
+  });
   return c.redirect("/app/account?ok=password-updated", 303);
 });
 
 portalRoutes.get("/security", async (c) => {
   const user = requireUser(c);
-  const sessions = await listSessions(c.env, user.id);
-  const events = await all<{
-    id: string;
-    event_type: string;
-    severity: string;
-    details: string;
-    created_at: number;
-    ip_hash: string | null;
-  }>(
-    c.env.DB,
-    `SELECT id, event_type, severity, details, created_at, ip_hash FROM security_events
-      WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
-    user.id,
-  );
+  const [sessions, events, remaining, totpRow] = await Promise.all([
+    listSessions(c.env, user.id),
+    all<{
+      id: string;
+      event_type: string;
+      severity: string;
+      details: string;
+      created_at: number;
+      ip_hash: string | null;
+    }>(
+      c.env.DB,
+      `SELECT id, event_type, severity, details, created_at, ip_hash FROM security_events
+        WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      user.id,
+    ),
+    recoveryCodeCount(c.env, user.id),
+    first<{ totp_secret: string | null; totp_enabled_at: number | null }>(
+      c.env.DB,
+      `SELECT totp_secret, totp_enabled_at FROM users WHERE id = ?`,
+      user.id,
+    ),
+  ]);
+
+  // Codes stay readable for the short KV window so a refresh does not lose them; they
+  // disappear only when the user acknowledges them or the 15-minute TTL expires.
+  let codes: string[] | null = null;
+  const rawCodes = await c.env.CACHE.get(`recovery-new:${user.id}`);
+  if (rawCodes) {
+    try {
+      const parsed = JSON.parse(rawCodes) as unknown;
+      if (Array.isArray(parsed)) codes = parsed.filter((item): item is string => typeof item === "string");
+    } catch {
+      codes = null;
+    }
+  }
+
+  let totpPending: { secret: string; uri: string } | null = null;
+  const rawPending = await c.env.CACHE.get(`totp-pending:${user.id}`);
+  if (rawPending) {
+    try {
+      const parsed = JSON.parse(rawPending) as { secret?: string; createdAt?: number };
+      if (parsed.secret && now() - (parsed.createdAt ?? 0) < 10 * 60 * 1000) {
+        totpPending = { secret: parsed.secret, uri: otpauthUri(parsed.secret, user.email) };
+      }
+    } catch {
+      totpPending = null;
+    }
+  }
+
   return appPage(c, {
     title: "ความปลอดภัย",
-    subtitle: "เซสชันและประวัติการเข้าสู่ระบบ",
+    subtitle: "รหัสกู้คืน 2FA เซสชัน และประวัติการเข้าสู่ระบบ",
     active: "/app/security",
-    body: securityPage(sessions, c.get("sessionId") ?? "", events, c.get("csrfToken") ?? ""),
+    body: securityPage(sessions, c.get("sessionId") ?? "", events, c.get("csrfToken") ?? "", {
+      codes,
+      remaining,
+      totpEnabled: Boolean(totpRow?.totp_enabled_at),
+      totpPending,
+    }),
   });
+});
+
+portalRoutes.post("/security/recovery-codes", async (c) => {
+  const user = requireUser(c);
+  await readForm(c);
+  const codes = await issueRecoveryCodes(c.env, user.id);
+  await c.env.CACHE.put(`recovery-new:${user.id}`, JSON.stringify(codes), { expirationTtl: 900 });
+  await recordSecurityEvent(c.env, {
+    eventType: "auth.recovery_codes_issued",
+    severity: "info",
+    userId: user.id,
+    details: { count: codes.length },
+  });
+  return c.redirect("/app/security?ok=recovery-codes", 303);
+});
+
+portalRoutes.post("/security/recovery-codes/ack", async (c) => {
+  const user = requireUser(c);
+  await readForm(c);
+  await c.env.CACHE.delete(`recovery-new:${user.id}`);
+  return c.redirect("/app/security?ok=recovery-saved", 303);
+});
+
+portalRoutes.post("/security/totp/start", async (c) => {
+  const user = requireUser(c);
+  await readForm(c);
+  const secret = generateTotpSecret();
+  await c.env.CACHE.put(
+    `totp-pending:${user.id}`,
+    JSON.stringify({ secret, createdAt: now() }),
+    { expirationTtl: 600 },
+  );
+  return c.redirect("/app/security?ok=totp-started", 303);
+});
+
+portalRoutes.post("/security/totp/enable", async (c) => {
+  const user = requireUser(c);
+  const values = await readForm(c);
+  const raw = await c.env.CACHE.get(`totp-pending:${user.id}`);
+  if (!raw) return failRedirect(c, "/app/security", badRequest("เริ่มตั้งค่า 2FA ใหม่"));
+  let secret = "";
+  try {
+    secret = (JSON.parse(raw) as { secret?: string }).secret ?? "";
+  } catch {
+    secret = "";
+  }
+  if (!secret) return failRedirect(c, "/app/security", badRequest("เริ่มตั้งค่า 2FA ใหม่"));
+  const result = await verifyTotp(secret, formValue(values, "code", 10));
+  if (!result.ok) return failRedirect(c, "/app/security", badRequest("รหัส 2FA ไม่ถูกต้อง"));
+  await c.env.DB.prepare(
+    `UPDATE users SET totp_secret = ?, totp_enabled_at = ?, totp_last_counter = ?, updated_at = ? WHERE id = ?`,
+  ).bind(secret, now(), result.counter, now(), user.id).run();
+  await c.env.CACHE.delete(`totp-pending:${user.id}`);
+  await recordSecurityEvent(c.env, {
+    eventType: "auth.totp_enabled",
+    severity: "info",
+    userId: user.id,
+  });
+  return c.redirect("/app/security?ok=totp-enabled", 303);
+});
+
+portalRoutes.post("/security/totp/disable", async (c) => {
+  const user = requireUser(c);
+  const values = await readForm(c);
+  const password = formValue(values, "password", 200);
+  // A stolen session must not be able to brute-force the password that protects 2FA.
+  await enforceRateLimit(c.env, `totp-disable:${user.id}:${await hashIp(c.env, clientIp(c))}`, 5, 900);
+  const stored = await passwordHashForUser(c.env, user.id);
+  if (!stored || !(await verifyPassword(password, stored))) {
+    return failRedirect(c, "/app/security", badRequest("รหัสผ่านไม่ถูกต้อง"));
+  }
+  await c.env.DB.prepare(
+    `UPDATE users SET totp_secret = NULL, totp_enabled_at = NULL, totp_last_counter = NULL, updated_at = ? WHERE id = ?`,
+  ).bind(now(), user.id).run();
+  await recordSecurityEvent(c.env, {
+    eventType: "auth.totp_disabled",
+    severity: "warning",
+    userId: user.id,
+  });
+  return c.redirect("/app/security?ok=totp-disabled", 303);
 });
 
 portalRoutes.post("/security/revoke-session", async (c) => {

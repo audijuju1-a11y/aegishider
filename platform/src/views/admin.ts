@@ -521,6 +521,10 @@ export function adminReleasesPage(
   csrf: string,
 ): SafeHtml {
   return html`
+    <p class="muted" style="font-size:.78rem;line-height:1.7;margin-bottom:.8rem">
+      รีลีสเก่าต้องเป็นสถานะ <code>deprecated</code> และไม่มีไฟล์ดาวน์โหลด —
+      ระบบให้บริการเฉพาะรีลีสที่ <code>published</code> เท่านั้น
+    </p>
     <div class="grid-2" style="align-items:start">
       <div>
         <h3 style="font-size:1rem;margin-bottom:.6rem">รีลีสทั้งหมด</h3>

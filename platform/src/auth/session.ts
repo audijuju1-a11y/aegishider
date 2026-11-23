@@ -19,6 +19,15 @@ export interface SessionUser {
   memberships: OrgMembership[];
 }
 
+/**
+ * Product decision (Wave 3): one organisation per account. The schema still supports
+ * memberships so a future multi-org UI does not need a migration, but every caller reads
+ * the same primary organisation through this helper instead of `memberships[0]` ad hoc.
+ */
+export function primaryMembership(user: SessionUser): OrgMembership | null {
+  return user.memberships[0] ?? null;
+}
+
 export interface LoadedSession {
   user: SessionUser;
   sessionId: string;

@@ -20,6 +20,7 @@ export async function verifyTurnstile(
   env: Env,
   token: string | undefined,
   remoteIp: string | null,
+  expectedAction?: string,
 ): Promise<void> {
   if (!env.TURNSTILE_SECRET) {
     if (isProduction(env)) throw configError("ระบบยังไม่ได้ตั้งค่า Turnstile สำหรับโปรดักชัน");
@@ -57,5 +58,9 @@ export async function verifyTurnstile(
     if (!Number.isFinite(solvedAt) || Date.now() - solvedAt > MAX_CHALLENGE_AGE_MS) {
       throw badRequest("การยืนยันตัวตนหมดอายุ กรุณาลองใหม่");
     }
+  }
+  // A token solved on a different form (same sitekey) must not be replayed on this one.
+  if (expectedAction && result.action !== expectedAction) {
+    throw badRequest("การยืนยันตัวตนไม่ผ่าน กรุณาลองใหม่");
   }
 }

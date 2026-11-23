@@ -4,7 +4,7 @@
 
 ~~~bash
 pnpm typecheck        # strict TypeScript
-pnpm test             # 15 tests: crypto, auth/OTP, licensing, tenancy, admin, telemetry, free licence, lockout ladder, dashboard
+pnpm test             # 45 tests in 7 files: crypto, platform, auth, recovery/TOTP, licensing, tenancy, admin, telemetry, free licence, lockout ladder, dashboard
 node scripts/e2e-license.mjs
 ~~~
 
@@ -20,23 +20,32 @@ real rows (a licence, installation, heartbeat and event) and should be used only
 ### Platform (tests/platform.test.ts)
 - Marketing pages, product detail, docs, 404.
 - Public API product catalogue and signing keys.
-- Login: CSRF rejection, email link creation, single-use verification, session issuance, replay rejection.
+- Login: CSRF rejection, password registration/sign-in, session issuance, legacy-account password setup, lockout ladder.
 - Licensing: signed lease signature verification with the published SPKI key, claim values, heartbeat ingest,
   rollup creation, R2 archive existence, tampered signature rejection, revoked-licence denial.
 - Tenant isolation: user B cannot read user A licence or server; customer cannot access /admin.
-- Admin: product creation through the HTML form with CSRF, public visibility, audit row; manual order paid issues
-  a licence.
-- Webhook: valid HMAC marks the order paid, replay is idempotent, invalid HMAC is rejected.
+- Admin: product creation through the HTML form with CSRF, public visibility, audit row; role hierarchy,
+  read-only key visibility and licence issuance.
 - Telemetry events: signed ingest, duplicate event id is counted and not re-enqueued, error event creates a
   security event with a deterministic id.
-- PromptPay: phone normalisation, EMVCo payload fields, CRC-16 validation, QR SVG generation.
-- Wallet: top-up credit exactly once, auto top-up creation, conditional debit, order payment from wallet,
-  refund path.
-- Bank webhook: valid HMAC credits, replay is idempotent, invalid HMAC is rejected, amount mismatch is rejected.
-- Stripe provider: PaymentIntent form/idempotency, Stripe-Signature verification with timestamp tolerance,
-  signed webhook credit, replay duplicate, invalid signature rejected.
-- OTP: 6-digit code from the dev outbox, single-use verification, session issuance, replay rejection, email
-  verification timestamp.
+- Dead letter queue: a poison message is persisted, acked and resolved by an admin.
+- Alerts: the 5xx and DLQ rules fire, resolve and render on `/admin`.
+
+### Account recovery and TOTP (tests/recovery.test.ts)
+- 10 recovery codes are issued, one is consumed, and replaying it fails.
+- Rotating the set invalidates every unused code from the previous set and rejects another user's code.
+- TOTP accepts the current code, rejects replay once `totp_last_counter` advanced, and rejects wrong/empty codes.
+- End-to-end: `/auth/recover` accepts a saved code, resets the password, and the new password signs in.
+- GET `/app/security` keeps codes across reloads; only the acknowledgement action clears the KV slot.
+
+### Operator scripts and public pages (tests/password-script.test.ts, tests/pages.test.ts)
+- The reset script's PBKDF2 output parses into the Worker format and verifies with `verifyPassword`.
+- Generated temporary passwords satisfy the login policy.
+- `/developers` renders the endpoint table and signed-request headers without a session.
+
+### Registration and 2FA policy (tests/auth-security.test.ts)
+- Registration always redirects to `/app/security?ok=recovery-codes`, even when `next` points elsewhere.
+- TOTP disable allows five wrong-password attempts and the sixth returns 429 with `Retry-After`.
 
 All tests run inside workerd with real D1/KV/R2/Queue bindings and apply migrations in tests/setup.ts.
 Each test resets mutable tables so tests are order-independent.
@@ -44,14 +53,16 @@ Each test resets mutable tables so tests are order-independent.
 ## Manual verification checklist
 
 1. pnpm dev; open / and /plugins; verify product page, docs and status.
-2. /auth/login with a test email; open the console link; verify /app.
+2. /auth/register with a test email+password; verify the redirect to /app/security and the recovery codes.
 3. /auth/dev-admin; verify dashboard graphs, customers, licence issue, product create, telemetry.
 4. Register a test installation via scripts/e2e-license.mjs; verify portal server and admin telemetry.
 5. Open /app; verify a free licence is provisioned and its long key is visible for 7 days.
 6. Claim a plugin activation code at /app/activations; verify the installation becomes active.
 7. Send five wrong activation codes from one IP; verify /admin/security shows the 5-minute lock.
-8. Test the OTP login: request a code, read it from the console/dev outbox, verify and replay (must fail).
-9. Change theme and language cookie; verify rendering and check the console for CSP violations.
+8. Reload /app/security: codes must remain; press “บันทึกครบแล้ว / ซ่อนรหัส” and verify they disappear.
+9. Enrol TOTP with a generated code, log out, then verify login without the code fails and with it succeeds.
+10. Open /developers without a session; verify the endpoint table, signing headers and docs links.
+11. Change theme and language cookie; verify rendering and check the console for CSP violations.
 
 ## Security test matrix
 
@@ -64,13 +75,12 @@ Each test resets mutable tables so tests are order-independent.
 | Signed request tampering | automated |
 | Signed request replay | e2e script and manual |
 | Revoked licence lease | automated |
-| Webhook signature forgery | automated |
-| Webhook replay | automated |
-| PromptPay payload/CRC | automated |
-| Wallet double-credit / refund | automated |
-| Stripe signature/webhook | automated (mocked API) |
-| OTP replay | automated |
-| Rate limiting | implemented; not asserted end-to-end |
+| Recovery-code replay | automated |
+| Recovery codes consumed before acknowledgement | automated (must remain until ack) |
+| TOTP replay / wrong code | automated |
+| TOTP-disable password brute force | automated (5 attempts, then 429) |
+| Registration recovery-code redirect | automated |
+| Rate limiting | implemented; login/registration/TOTP-disable asserted |
 | Turnstile rejection | requires live secret; not automated |
 | Access JWT verification | requires live Access; not automated |
 | SQL injection / XSS payloads | schemas and escaping; no dedicated fuzz suite |

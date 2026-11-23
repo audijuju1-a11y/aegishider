@@ -27,7 +27,7 @@ import {
   recordActivationFailure,
   resetActivationGuard,
 } from "./activation-guard";
-import type { SessionUser } from "../auth/session";
+import { primaryMembership, type SessionUser } from "../auth/session";
 
 /* -------------------------------------------------------------------------- */
 /* Signing keys                                                               */
@@ -590,7 +590,7 @@ async function createFreeLicense(
   productId: string,
   productSlug: string,
 ): Promise<LicenseRow | null> {
-  const orgId = user.memberships[0]?.orgId;
+  const orgId = primaryMembership(user)?.orgId;
   if (!orgId) throw badRequest("บัญชีนี้ยังไม่มีองค์กรสำหรับออกไลเซนส์");
   const issued = await issueLicense(env, {
     productId,

@@ -556,7 +556,11 @@ password + email link + OTP (ปิด) โดย recovery พึ่งอีเ
 
 ### ยังเปิดอยู่โดยเจตนา
 
-- A-01 … A-15 ยังไม่แตะในรอบนี้ — แปลงเป็นแผนงาน 4 รอบพร้อมเกณฑ์ยอมรับแล้วที่
-  [`docs/13-architecture-roadmap.md`](13-architecture-roadmap.md) (ต้องตัดสินใจเชิงผลิตภัณฑ์/ปฏิบัติการ เช่น
-  bootstrap admin, history rewrite, observability sink, ระดับการแยกชั้นโค้ด)
+- **อัปเดต พ.ย. 2026 (Wave 1–3):** A-02 ปิดแล้วด้วย CLI bootstrap, A-03 ปิดด้วย `primaryMembership()` +
+decision single-org, A-12 ปิดด้วย recovery codes/TOTP แทนอีเมล (ไม่ใช้ Resend), M-04 ปิดด้วยการตรวจ
+Turnstile `action` ทุกฟอร์ม, P1-5 ปิดด้วย `LICENSE` — ดูสถานะล่าสุดใน
+  [`docs/13-architecture-roadmap.md`](13-architecture-roadmap.md)
+- A-01 แก้บางส่วนแล้ว (index/แหล่งความจริงที่ `platform/docs/README.md`; ยังเหลือ dedupe เนื้อหา)
+- A-04…A-11 และ A-13…A-15 ยังเปิดอยู่ — แปลงเป็นแผนงานพร้อมเกณฑ์ยอมรับใน roadmap เดียวกัน
+  (history rewrite, observability sink, ระดับการแยกชั้นโค้ด ฯลฯ)
 - ปลั๊กอินยังไม่ตรวจ signature ของ artifact ก่อนรันครั้งแรก (มี sha256 pin + download limit แทน)

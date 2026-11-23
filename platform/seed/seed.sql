@@ -61,10 +61,21 @@ INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
   supported_platforms, artifact_url, artifact_sha256, released_at, created_at
 ) VALUES (
-  'rel_bh_361', 'prod_aegishider', '3.6.1', 'stable', 'published',
+  'rel_ag_405', 'prod_aegishider', '4.0.5', 'stable', 'published',
+  'Aegishider 4.0.5 — tick-safety release: bounded entity sweeps, batched block re-hides and capped packet-maintenance queues, on top of the full base-block set, room-volume Y-shield and the mob wall check. Six Paper builds (1.21.1–26.3). Upload each jar from /admin/releases; every build checksum is in docs/releases/Aegishider-4.0.5-SHA256SUMS.',
+  '["1.21.1","1.21.4","1.21.5","1.21.11","26.1.2","26.3"]', '["21","25"]', '["Paper"]',
+  NULL, NULL,
+  (strftime('%s','now') * 1000), (strftime('%s','now') * 1000)
+);
+
+INSERT OR IGNORE INTO product_releases (
+  id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
+  supported_platforms, artifact_url, artifact_sha256, released_at, created_at
+) VALUES (
+  'rel_bh_361', 'prod_aegishider', '3.6.1', 'stable', 'deprecated',
   'Aegishider 3.6.1 — three-gap benchmark release: block-entity leak, pie-ray registry and Bobby/Distant Horizons cache replay all covered, plus a free licence platform with 16-character activation codes, 240-bit licence keys, escalating brute-force lockouts, HTTPS-only platform calls and Linux POSIX key permissions. 120 unit tests pass on Windows and Linux; Paper 1.21.4 A-F harness verified.',
   '["1.21.4"]', '["21"]', '["Paper"]',
-  '/release/rel_bh_361/download',
+  NULL,
   'e8f8594cf9a42ca1787ff1d858cd602c9343556bc0c1a1c8f0a0eb0f7f96b7e4',
   (strftime('%s','now') * 1000), (strftime('%s','now') * 1000)
 );
@@ -73,7 +84,7 @@ INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
   supported_platforms, artifact_url, artifact_sha256, released_at, created_at
 ) VALUES (
-  'rel_bh_360', 'prod_aegishider', '3.6.0', 'stable', 'published',
+  'rel_bh_360', 'prod_aegishider', '3.6.0', 'stable', 'deprecated',
   'Aegishider 3.6.0 — Tunnel/Dug-hole Shield (hide player-dug tunnels beyond 28 blocks, re-mask on leave), Y-Shield, contextual filler and player ESP shield. 85 unit tests; verified running on a live Paper 1.21.4 server at TPS 20.0.',
   '["1.21.4"]', '["21"]', '["Paper"]',
   NULL,
@@ -85,7 +96,7 @@ INSERT OR IGNORE INTO product_releases (
   id, product_id, version, channel, status, notes, supported_minecraft, supported_java,
   supported_platforms, artifact_url, artifact_sha256, released_at, created_at
 ) VALUES (
-  'rel_bh_320', 'prod_aegishider', '3.2.0', 'stable', 'published',
+  'rel_bh_320', 'prod_aegishider', '3.2.0', 'stable', 'deprecated',
   'Aegishider 3.2.0 — startup warm-up, item spawn-storm priority lane, gateway watchdog, detected-position overflow alarm and async diagnostics snapshots. 75 unit tests, packet-level integration harness PASS on Paper 1.21.4.',
   '["1.21.4"]', '["21"]', '["Paper"]',
   NULL,
@@ -99,9 +110,9 @@ INSERT OR IGNORE INTO system_settings (key, value, updated_at) VALUES
 -- 4.0.4 public catalogue copy (also available as seed/refresh_aegishider_404.sql).
 UPDATE products
 SET tagline = 'ซ่อนหีบ บล็อกฐาน และห้องใต้ดินจาก ESP/X-ray โดยไม่รบกวนผู้เล่นจริง',
-    description = 'Aegishider 4.0.4 คือปลั๊กอิน Paper 1.21.1–26.3 (6 ไบล์แยกตามรุ่น; Java 21/25) ที่ซ่อนหีบ บล็อกฐาน และห้องใต้ดินจาก ESP/X-ray ก่อนข้อมูลจะถูกส่งถึงไคลเอนต์ โดยผู้เล่นที่อยู่ใกล้และมองเห็นจริงยังเห็นของตามปกติ
+    description = 'Aegishider 4.0.5 คือปลั๊กอิน Paper 1.21.1–26.3 (6 ไบล์แยกตามรุ่น; Java 21/25) ที่ซ่อนหีบ บล็อกฐาน และห้องใต้ดินจาก ESP/X-ray ก่อนข้อมูลจะถูกส่งถึงไคลเอนต์ โดยผู้เล่นที่อยู่ใกล้และมองเห็นจริงยังเห็นของตามปกติ
 
-จุดเด่น 4.0.4: ชุดบล็อกฐานครบ (piston/sticky piston, bookshelf, workstations, anvils, cauldrons, observer/target/composter, beacon), Y-shield ที่ปิดห้องใต้ดินทั้งห้องด้วยหินเมื่อมองจากพื้นผิว และตรวจกำแพงมอน/สัตว์แบบเบา–กลาง
+จุดเด่น 4.0.5: งานต่อ tick ถูกจำกัด (bounded sweeps, batched re-hides) โดยพฤติกรรม fail-closed ไม่เปลี่ยน; ชุดบล็อกฐานครบ (piston/sticky piston, bookshelf, workstations, anvils, cauldrons, observer/target/composter, beacon), Y-shield ที่ปิดห้องใต้ดินทั้งห้องด้วยหินเมื่อมองจากพื้นผิว และตรวจกำแพงมอน/สัตว์แบบเบา–กลาง
 
 ไบล์ผ่าน ProGuard + string encryption; แพลตฟอร์มตรวจ SHA-256 ของไบล์ที่เผยแพร่ทุกครั้ง ไม่มีข้อมูลผู้เล่น/IP/พิกัดถูกส่งจากปลั๊กอิน; ไลเซนส์ Ed25519 พร้อม offline grace 72 ชม.',
     seo_description = 'ปลั๊กอิน Paper 1.21.1–26.3 ซ่อนหีบ บล็อกฐาน และห้องใต้ดินจาก ESP/X-ray พร้อม Y-shield และการตรวจกำแพงมอน/สัตว์ โดยไม่กระทบผู้เล่นจริง',
@@ -109,3 +120,9 @@ SET tagline = 'ซ่อนหีบ บล็อกฐาน และห้อ
     compatibility = '{"minecraft":["1.21.1","1.21.4","1.21.5","1.21.11","26.1","26.3"],"servers":["Paper"],"java":["21","25"],"requires":["PacketEvents 2.14.0+"]}',
     updated_at = (CAST(strftime('%s','now') AS INTEGER) * 1000)
 WHERE id = 'prod_basehider' OR slug = 'aegishider';
+
+-- Superseded releases are history only: `/release/:id/download` serves published records only.
+UPDATE product_releases
+   SET status = 'deprecated', artifact_url = NULL
+ WHERE version IN ('3.2.0', '3.6.0', '3.6.1')
+   AND status <> 'deprecated';

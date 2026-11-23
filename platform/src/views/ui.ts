@@ -1,6 +1,6 @@
 import { SafeHtml, html, raw, join, escapeHtml } from "../lib/html";
 import { t, statusLabel, type Lang } from "../lib/i18n";
-import type { SessionUser } from "../auth/session";
+import { primaryMembership, type SessionUser } from "../auth/session";
 import { formatDateTime, timeAgo } from "../lib/time";
 import type { ProductView } from "../services/catalog";
 import { formatPrice } from "../services/catalog";
@@ -78,6 +78,7 @@ export function iconSprite(): SafeHtml {
 const PUBLIC_NAV: Array<{ href: string; label: string }> = [
   { href: "/", label: "หน้าแรก" },
   { href: "/plugins", label: "ผลิตภัณฑ์" },
+  { href: "/developers", label: "นักพัฒนา" },
   { href: "/docs", label: "เอกสาร" },
   { href: "/changelog", label: "อัปเดต" },
   { href: "/status", label: "สถานะ" },
@@ -129,7 +130,8 @@ function headerMarkup(opts: LayoutOptions): SafeHtml {
                 <input type="hidden" name="_csrf" value="${opts.csrf}">
                 <button class="btn btn-ghost btn-sm" type="submit">${icon("logout")}<span class="sr-only">${t(opts.lang, "nav.logout")}</span></button>
               </form>`
-          : html`<a class="btn btn-primary btn-sm" href="/auth/login">${t(opts.lang, "nav.login")}</a>`}
+          : html`<a class="btn btn-ghost btn-sm" href="/auth/login">${t(opts.lang, "nav.login")}</a>
+              <a class="btn btn-primary btn-sm header-cta" href="/auth/register">เริ่มต้นฟรี</a>`}
         <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="${t(opts.lang, "nav.openMenu")}">
           ${icon("menu")}
         </button>
@@ -155,6 +157,7 @@ function footerMarkup(_lang: Lang): SafeHtml {
         </div>
         <div class="footer-col">
           <h3>นักพัฒนา</h3>
+          <a href="/developers">Developer API</a>
           <a href="/docs">เอกสาร</a>
           <a href="/docs/api">API</a>
           <a href="/docs/licensing">ไลเซนส์</a>
@@ -244,6 +247,12 @@ const NOTICES: Record<string, { kind: "success" | "error" | "info"; text: string
   sent: { kind: "success", text: "ส่งข้อมูลเรียบร้อยแล้ว" },
   "logged-out": { kind: "info", text: "ออกจากระบบแล้ว" },
   "check-email": { kind: "success", text: "หากอีเมลนี้มีในระบบ เราได้ส่งลิงก์เข้าใช้งานไปแล้ว" },
+  "password-reset": { kind: "success", text: "ตั้งรหัสผ่านใหม่เรียบร้อย กรุณาเข้าสู่ระบบ" },
+  "recovery-codes": { kind: "success", text: "รหัสกู้คืนพร้อมใช้งานแล้ว — บันทึกก่อนออกจากหน้า" },
+  "recovery-saved": { kind: "info", text: "ซ่อนรหัสกู้คืนแล้ว — สร้างชุดใหม่ได้ทุกเมื่อ" },
+  "totp-enabled": { kind: "success", text: "เปิดใช้งาน 2FA เรียบร้อยแล้ว" },
+  "totp-disabled": { kind: "info", text: "ปิด 2FA แล้ว" },
+  "totp-started": { kind: "info", text: "สแกนคีย์แล้วกรอกรหัสเพื่อยืนยัน" },
   invalid: { kind: "error", text: "ข้อมูลไม่ถูกต้องหรือหมดอายุแล้ว" },
   forbidden: { kind: "error", text: "คุณไม่มีสิทธิ์ทำรายการนี้" },
   "not-found": { kind: "error", text: "ไม่พบข้อมูลที่ต้องการ" },
@@ -391,7 +400,7 @@ export function appShell(opts: {
     <aside class="app-side">
       <div class="who">
         <b>${opts.user.displayName ?? opts.user.email}</b>
-        <span>${opts.admin ? "ผู้ดูแลระบบ" : (opts.user.memberships[0]?.orgName ?? "องค์กรของฉัน")}</span>
+        <span>${opts.admin ? "ผู้ดูแลระบบ" : (primaryMembership(opts.user)?.orgName ?? "องค์กรของฉัน")}</span>
       </div>
       <nav class="app-nav" aria-label="${opts.admin ? "เมนูผู้ดูแล" : "เมนูพอร์ทัล"}">
         ${nav.map((item) => {

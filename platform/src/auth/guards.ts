@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import type { AppEnv } from "../env";
 import { forbidden, unauthorized } from "../lib/errors";
-import type { SessionUser } from "./session";
+import { primaryMembership, type SessionUser } from "./session";
 
 export type Permission =
   | "customers.read"
@@ -121,7 +121,7 @@ export function requireStaff(c: Ctx): SessionUser {
 }
 
 export function primaryOrg(user: SessionUser) {
-  return user.memberships[0] ?? null;
+  return primaryMembership(user);
 }
 
 export function orgMembership(user: SessionUser, orgId: string) {

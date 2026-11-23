@@ -61,20 +61,27 @@ CSP (self plus Turnstile), X-Content-Type-Options: nosniff, X-Frame-Options: DEN
   Cloudflare Workers accepts), constant-time comparison. Passwords require at least 10 characters with
   letters and numbers.
 - Login is rate-limited per source IP and per email hash. Errors are generic to avoid account enumeration.
+- Changing a password revokes every other session and records `auth.password_changed`; recovery and operator
+  resets revoke all sessions.
 - OTP, email-link login and email delivery are retired. Password registration/login and session-based
   admin are the supported flows; password changes happen at `/app/account`.
+- Account recovery uses one-time codes, not email: 10 codes per account (12 chars × 5 bits = 60 bits,
+  unambiguous 32-symbol alphabet),
+  stored only as HMAC-SHA256 with `LICENSE_KEY_PEPPER` and marked used on redemption. Raw codes live only in
+  the KV slot (15-minute TTL, deleted on explicit acknowledgement or expiry). `/auth/recover` is rate-limited per IP and
+  email, requires the Turnstile `recover` action, revokes every session and clears TOTP on success.
+- Optional TOTP: 160-bit secret, 30-second step, ±1 step tolerance, HMAC-SHA256. The accepted counter is
+  stored in `totp_last_counter` so a code cannot be replayed; disabling 2FA requires the current password and
+  is limited to five attempts per 15 minutes per user/IP (429 with `Retry-After`).
+  An operator reset (`scripts/reset-password.mjs`) revokes sessions and clears TOTP as well.
 
-## Activation and OTP
+## Activation and licence keys
 
-- Login links are confirmed through a CSRF-protected POST and rate-limited per hashed IP (30 per 15 minutes).
 - Raw licence keys are shown once (KV slot with a 10-minute TTL, deleted on first display) and are never returned to read-only organisation members.
 - Activation claims are limited to 8-32 input characters, matched against HMAC hashes, single-use and expire
   in 24 hours. Wrong claims are counted per hashed IP; 5 failures lock 5 minutes, 10 lock 10 minutes, then
   20/40/80 minutes. The guard records plugin slugs, installation IDs and server names for admin review.
 - Licence keys are 240-bit random values; D1 stores only HMAC-SHA256(pepper, key).
-- OTP codes are 6 digits, hashed with HMAC-SHA256 and a pepper, single-use, 10-minute TTL, max 5 attempts,
-  and rate-limited per IP/email. Successful OTP/magic-link login marks `email_verified_at`.
-- Gmail delivery uses an OAuth refresh token; the platform never accepts or stores a Gmail account password.
 
 ## Auditing
 

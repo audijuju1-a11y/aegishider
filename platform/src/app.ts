@@ -52,6 +52,10 @@ app.onError((error, c) => {
         error.headers,
       );
     }
+    // Preserve protocol headers such as Retry-After on HTML errors too.
+    if (error.headers) {
+      for (const [name, value] of Object.entries(error.headers)) c.header(name, value);
+    }
     if (error.status === 401) {
       const next = encodeURIComponent(c.req.path + (new URL(c.req.url).search || ""));
       return c.redirect(`/auth/login?next=${next}`, 303);

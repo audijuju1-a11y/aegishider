@@ -30,6 +30,7 @@ export async function resetDatabase(): Promise<void> {
     "product_releases", "product_plans", "products", "email_tokens", "email_log",
     "sessions", "organization_members", "organizations", "users", "contact_messages",
     "job_runs", "rate_limits", "metric_counters", "alert_state", "alert_events",
+    "recovery_codes",
   ];
   await env.DB.batch(tables.map((table) => env.DB.prepare(`DELETE FROM ${table}`)));
   await env.DB.batch([

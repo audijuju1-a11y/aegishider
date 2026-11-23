@@ -1,6 +1,6 @@
 # Aegishider Control Platform — status
 
-Updated: 2026-11-19
+Updated: 2026-11-23
 
 > Honest verification status. The platform is now **free**: wallet, orders, Stripe, PromptPay,
 > slips and top-ups were removed. It is deployed to production (Worker `3579adc4`, D1 migration 0005,
@@ -26,15 +26,18 @@ Updated: 2026-11-19
 | Telemetry queue consumer, idempotency, 5-minute rollups, R2 archive | Implemented | Consumer processed a real heartbeat; archive object listed |
 | Security headers, CSP, rate limits, audit trail, structured logs | Implemented | Middleware + tests/manual |
 | TypeScript strict typecheck | Passing | `pnpm typecheck` (no errors) |
-| Email + password auth | Implemented | PBKDF2-SHA256 (Cloudflare cap: 100,000 iterations), 10-char policy, per-IP/email limits, session cookie; OTP disabled by `AUTH_OTP_ENABLED=false` |
+| Email + password auth | Implemented | PBKDF2-SHA256 (Cloudflare cap: 100,000 iterations), 10-char policy, per-IP/email limits, session cookie; OTP disabled, no email provider |
+| Account recovery without email | Implemented | 10 one-time HMAC-hashed recovery codes shown until acknowledged, `/auth/recover` consumes a code and revokes sessions, operator `scripts/reset-password.mjs` fallback |
+| Optional TOTP 2FA | Implemented | `/app/security` enrolment with `otpauth://` URI; login verifies a 6-digit code and stores the accepted counter to reject replay; disable requires the password |
+| Public developer page | Implemented | `/developers` with endpoint table, signing canonical string/headers, rate limits and examples; linked in nav/footer |
 | Production sign-up / sign-in | Verified | browser E2E: register → `/app` with a free licence; logout → password login → `/app` |
-| Platform test suite | 32 tests passing | crypto + platform + free licensing + reset/re-activation + guard ladder + password-only auth + session admin + admin hierarchy/key visibility + content-type guards |
-| Java plugin client (3.6.1) | Hardened | HTTPS-only (localhost exempt), redirects disabled, response size/depth limits, 16-char codes, server-name registration, integrity pin, POSIX 0600/0700 key files |
-| Java test suite | 123 tests passing on Windows and Linux | Windows `mvn -o test`; WSL Arch Linux JDK 21 `mvn -o test`; re-run on Linux with Temurin 21.0.13 + Maven 3.9.9 after the 2026-11-19 fixes (123/123, 0 failures) |
+| Platform test suite | 45 tests passing (7 files) | crypto + platform + free licensing + reset/re-activation + guard ladder + password-only auth + session admin + admin hierarchy/key visibility + content-type guards + recovery codes/TOTP replay + registration recovery redirect + TOTP-disable limit |
+| Java plugin client (4.0.5) | Hardened | HTTPS-only (localhost exempt), redirects disabled, response size/depth limits, 16-char codes, server-name registration, integrity pin, POSIX 0600/0700 key files |
+| Java test suite | 153 tests (152 executed on Windows; 1 POSIX-only test skipped) | Windows `mvn -o test`; WSL Arch Linux JDK 21 `mvn -o test`; 153 `@Test` methods in the suite, 0 failures |
 | Three-gap packet benchmark | Verified | A–F PASS on Paper 1.21.4; baseline jar leaks all three gaps (`docs/09-three-gap-benchmark.md` in the plugin repo) |
 | Local dev | Working | `wrangler dev`; pages, auth, admin and API exercised |
-| Production deployment | Live | https://basehider-platform.audijuju1.workers.dev — home/product 200, email+password auth, `/admin` 200 for a super_admin session; Cloudflare Access optional |
-| Production plugin download | Verified | `/release/rel_bh_361/download` returns the uploaded jar; SHA-256 matches `e8f8594c…` |
+| Production deployment | Live | https://aegishider-platform.audijuju1.workers.dev — canonical host; home/product 200, password auth, `/admin` 200 for a super_admin session; Cloudflare Access optional. This round's changes are **not deployed** |
+| Production plugin download | Verified for 3.6.1 (historical) | `/release/rel_bh_361/download` returned the uploaded jar; 4.0.5 artifacts are listed in `docs/releases/Aegishider-4.0.5-SHA256SUMS` and upload from `/admin/releases` |
 | Production registration | Verified | disposable installation registered (16-char code, server_name stored), then removed |
 | Email provider | Disabled | `EMAIL_PROVIDER=none`, `RESEND_API_KEY` deleted; password-only auth needs no email delivery |
 | Documentation set | Complete | `docs/` incl. 8 ADRs |
@@ -42,8 +45,12 @@ Updated: 2026-11-19
 ## Not done / not verified
 
 - **Password-only trade-off**: removing email verification means account ownership is proven by the password
-  alone. Existing passwordless/unverified placeholder accounts are completed by their first password
-  registration; a password cannot be reset without an admin action because no email provider is configured.
+  alone (plus optional TOTP). Existing passwordless/unverified placeholder accounts are completed by their
+  first password registration. Lost credentials are recovered with one-time codes or an operator reset —
+  never email.
+- **Browser-verified locally, not in production**: recovery-code display/ack, TOTP enrolment/login and
+  `/developers` were exercised against a local Worker on local D1. The new migration was also applied to an
+  in-memory SQLite copy and local D1, but **not** to production D1; nothing from this round is deployed.
 - **Password hashing limit**: Cloudflare Workers rejects PBKDF2 above 100,000 iterations, so the hash uses the
   platform maximum rather than OWASP's higher recommendation. Rate limits and password policy compensate.
 - **Admin login**: `/admin` uses the email+password session and a staff role. Cloudflare Access is an optional
@@ -63,11 +70,11 @@ Updated: 2026-11-19
 ~~~bash
 pnpm install
 pnpm typecheck
-pnpm test                 # 24 platform tests passing
+pnpm test                 # 45 platform tests passing
 node scripts/e2e-license.mjs   # requires pnpm dev on :8787
-cd ../aegishider-integrated && mvn test   # 123 plugin tests (Windows and Linux/WSL)
-npx wrangler d1 migrations apply agcp-db --local
-npx wrangler d1 execute agcp-db --local --file=./seed/seed.sql
+cd ../aegishider-integrated && mvn test   # 153 plugin tests (Windows and Linux/WSL)
+npx wrangler d1 migrations apply bhcp-db --local
+npx wrangler d1 execute bhcp-db --local --file=./seed/seed.sql
 ~~~
 
 ## Open defects

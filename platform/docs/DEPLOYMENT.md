@@ -1,5 +1,7 @@
 # Deployment
 
+Canonical production host: **https://aegishider-platform.audijuju1.workers.dev** (Worker name `aegishider-platform`). The D1/KV/R2/Queue resource names keep their `bhcp-*` prefixes to avoid a data migration.
+
 ## Prerequisites
 
 - Cloudflare account with Workers, D1, KV, R2 and Queues enabled.
@@ -11,11 +13,11 @@
 ## 1. Create resources
 
 ~~~bash
-npx wrangler d1 create agcp-db
+npx wrangler d1 create bhcp-db
 npx wrangler kv namespace create CACHE
-npx wrangler r2 bucket create agcp-archive
-npx wrangler queues create agcp-telemetry
-npx wrangler queues create agcp-telemetry-dlq
+npx wrangler r2 bucket create bhcp-archive
+npx wrangler queues create bhcp-telemetry
+npx wrangler queues create bhcp-telemetry-dlq
 ~~~
 
 Copy the D1 database_id and KV namespace id into wrangler.jsonc, replacing the placeholder zeros.
@@ -28,8 +30,8 @@ Non-secret vars in wrangler.jsonc:
 - APP_URL=https://your-domain.example
 - SESSION_TTL_DAYS=14, LEASE_TTL_HOURS=24, OFFLINE_GRACE_HOURS=72
 - TURNSTILE_SITE_KEY, ACCESS_TEAM_DOMAIN, ACCESS_AUD
-- EMAIL_PROVIDER=resend or gmail, MAIL_FROM, SUPPORT_EMAIL
-- PROMPTPAY_PHONE=0925789459, PROMPTPAY_NAME=Aegishider, EMAIL_OTP_TTL_MINUTES=10
+- EMAIL_PROVIDER=none (no transactional email; SUPPORT_EMAIL is a display address only)
+- AUTH_OTP_ENABLED=false and EMAIL_PROVIDER=none (legacy OTP vars are inert; no email is sent)
 - ADMIN_EMAILS may be left empty in production (Access is the admin path)
 - OBSERVABILITY_WEBHOOK_URL (optional; empty = Workers Logs only)
 
@@ -54,21 +56,26 @@ as well as the Worker secret. Never commit .dev.vars.
 ## 3. Database
 
 ~~~bash
-npx wrangler d1 migrations apply agcp-db --remote
-npx wrangler d1 execute agcp-db --remote --file=./seed/seed.sql
+npx wrangler d1 migrations apply bhcp-db --remote
+npx wrangler d1 execute bhcp-db --remote --file=./seed/seed.sql
 ~~~
 
-Seeding is idempotent for the Aegishider row. The seed publishes the 3.6.1 release with its SHA-256 and the
-3.2.0 history; the jar is served from `/download/Aegishider-3.6.1.jar`. Set the real price and plans in the admin
-console after the first login. If you do not want to seed the Aegishider product, skip the seed and create products
-in the admin UI.
+Seeding is idempotent for the Aegishider row. It creates the current **4.0.5** release record (no artifact until each
+jar is uploaded from `/admin/releases`) and keeps 3.2.0/3.6.x as `deprecated` history with no download URL: the
+`/release/:id/download` route serves `published` records only. Every build checksum is in
+`docs/releases/Aegishider-4.0.5-SHA256SUMS`. The platform is free, so no price or plans need setting.
+If you do not want to seed the Aegishider product, skip the seed and create products in the admin UI.
 
 ## 4. Admin access
 
 1. Sign up (or sign in) with the staff email+password at `/auth/login`.
-2. Promote the account to a staff role:
-   npx wrangler d1 execute agcp-db --remote --command "UPDATE users SET role='super_admin' WHERE email='you@example.com'"
+2. Promote the account to a staff role (the only bootstrap step; the account must already exist):
+   node scripts/bootstrap-admin.mjs you@example.com
+   The script is idempotent, refuses unknown emails, and prints the resulting role. The equivalent manual SQL is
+   npx wrangler d1 execute bhcp-db --remote --command "UPDATE users SET role='super_admin' WHERE email='you@example.com'"
 3. Open `/admin` with that session. Anonymous requests redirect to `/auth/login?next=/admin`; non-staff sessions get 403.
+   Verify the role with:
+   npx wrangler d1 execute bhcp-db --remote --command "SELECT email, role FROM users WHERE role IN ('admin','super_admin')"
 4. Cloudflare Access is optional. If configured, an Access assertion is verified when present, then the session
    staff role is checked; missing Access env vars no longer cause a 503.
 
@@ -80,20 +87,27 @@ in the admin UI.
 Create a Turnstile widget for the domain, set TURNSTILE_SITE_KEY and TURNSTILE_SECRET. In production a missing
 secret blocks login and contact submissions with a clear configuration message.
 
-## 6. Transactional email and OTP
+## 6. Account recovery and 2FA (no email)
 
 Email is disabled (`EMAIL_PROVIDER=none`). There is no OTP, magic link, password-reset email or support
-notification email; password-only auth is the supported flow. `sendEmail` logs a suppressed result so
-support/ticket actions never fail because of the missing provider.
+notification email; `sendEmail` logs a suppressed result so support/ticket actions never fail.
 
-Gmail API (OAuth refresh token, not an account password):
-1. Google Cloud console: enable Gmail API and create an OAuth client.
-2. Authorize scope https://www.googleapis.com/auth/gmail.send for the sender account.
-3. Exchange the authorization code once and store the refresh token as GMAIL_REFRESH_TOKEN.
-4. Set EMAIL_PROVIDER=gmail, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_SENDER.
-5. Rotate the refresh token when the account changes. A raw Gmail password/SMTP is intentionally not accepted.
+Account recovery uses **one-time recovery codes** instead of email:
 
-Console mode is for development only; production refuses to send with EMAIL_PROVIDER=console.
+- Registration issues 10 codes (12 characters from a 32-symbol alphabet = 60 bits, format
+  `XXXX-XXXX-XXXX`, stored only as HMAC-SHA256 with `LICENSE_KEY_PEPPER`).
+  They are displayed on `/app/security` until the user presses “บันทึกครบแล้ว / ซ่อนรหัส” or the
+  15-minute KV TTL expires; refreshes do not consume them.
+- `/auth/recover` accepts email + code + new password, consumes the code, revokes every session and clears
+  TOTP (the owner lost their second factor). A fresh set of codes is issued and stays visible
+  until acknowledged or the 15-minute TTL expires.
+- If a user lost both password and codes, an operator runs:
+  `node scripts/reset-password.mjs you@example.com` (prints a temporary password once, revokes sessions).
+- **TOTP 2FA** is optional per account: `/app/security` → start, scan the secret/`otpauth://` URI in any
+  authenticator app, confirm a 6-digit code. Login then requires `totp`; accepted counters are stored so a
+  code cannot be replayed. Disabling requires the current password.
+
+Apply migration `0011_account_recovery.sql` with the other migrations before deploying this code.
 
 ## 6b. Free platform
 
@@ -107,20 +121,20 @@ the hourly cleanup (17 * * * *) and the five-minute alert tick (*/5 * * * *). Af
 consumers are connected:
 
 ~~~bash
-npx wrangler queues consumer list agcp-telemetry
-npx wrangler queues consumer list agcp-telemetry-dlq
+npx wrangler queues consumer list bhcp-telemetry
+npx wrangler queues consumer list bhcp-telemetry-dlq
 ~~~
 
 ### Messages in the DLQ
 
-The `agcp-telemetry-dlq` consumer writes every poison message to `telemetry_dlq` and acks it,
+The `bhcp-telemetry-dlq` consumer writes every poison message to `telemetry_dlq` and acks it,
 so a message is never silently dropped. Open `/admin/security` to see open rows with their event
 id, installation, attempt count and raw payload (requires `security.write` to mark one handled).
 
 1. Search Workers logs for `queue.processing_failed` with the same event id to see the cause
    (usually a missing R2 binding, a schema violation or an exhausted database).
 2. Fix and deploy the cause.
-3. Replay the message from the Cloudflare dashboard (Queues → `agcp-telemetry` → Send message)
+3. Replay the message from the Cloudflare dashboard (Queues → `bhcp-telemetry` → Send message)
    using the payload shown in the DLQ card, or re-run the original event from the server.
    Nothing replays automatically; the admin action only records that an operator handled it.
 4. Mark the row resolved on `/admin/security` and confirm the open count is zero.
@@ -164,13 +178,15 @@ npx wrangler deploy
 
 Set the custom domain in the Worker settings. Then smoke test:
 
-1. GET / and /plugins return 200.
+1. GET /, /plugins and /developers return 200.
 2. GET /api/v1/health returns { data: { status: "ok" } }.
-3. GET /auth/login renders and sends a real email.
-4. /admin is protected by Access and renders the dashboard.
+3. GET /auth/login and /auth/recover render; a password login reaches /app.
+4. /admin returns 200 for a super_admin session and 403 for a customer.
 5. GET /api/v1/license/keys returns the production key id and SPKI.
 6. Registration + activation + lease + heartbeat from a test installation (scripts/e2e-license.mjs can be
    adapted to the production URL, but creates test data).
+7. `/app/security` shows recovery codes after registration until “บันทึกครบแล้ว / ซ่อนรหัส” (or 15 minutes)
+   and can enrol TOTP; the next login asks for the 6-digit code.
 
 ## 9. Rollback
 

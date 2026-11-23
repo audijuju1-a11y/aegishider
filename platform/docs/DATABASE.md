@@ -1,10 +1,13 @@
 # Database (D1 / SQLite)
 
-Schema: migrations/0001_init.sql. Tables are STRICT; timestamps are integer epoch milliseconds; IDs are application-generated text (prefix + sortable time + random).
+Schema: migrations/0001_init.sql plus additive migrations through 0011_account_recovery.sql. Tables are STRICT; timestamps are integer epoch milliseconds; IDs are application-generated text (prefix + sortable time + random).
 
 ## Identity
 
-- users: email (unique, lowercase), role, status, locale, verified/login timestamps.
+- users: email (unique, lowercase), role, status, locale, verified/login timestamps; password_hash and
+  password_updated_at (0006); totp_secret, totp_enabled_at and totp_last_counter (0011).
+- recovery_codes: user_id, HMAC-SHA256 code hash, created_at, used_at; up to ten active codes per user,
+  single-use, cascade-deleted with the user (0011).
 - organizations: owner, slug, status.
 - organization_members: composite primary key (org, user), role owner/member/read_only.
 - sessions: SHA-256 token hash, expiry, revocation, hashed IP, user agent.
@@ -45,7 +48,7 @@ Schema: migrations/0001_init.sql. Tables are STRICT; timestamps are integer epoc
 
 - activation_guard: per-IP-hash failure count, lock level, lock expiry, plugin slugs, server names and
   installation IDs (migration 0005).
-- email_otp: hashed 6-digit login codes, attempts, expiry, single-use.
+- email_otp: legacy hashed login codes; no current auth flow writes or reads this table.
 - Legacy commerce tables (payment_orders, wallets, wallet_transactions, topup_orders, payment_events,
   payment_webhook_events, payment_slips) remain for historical rows only; the application no longer
   reads or writes them.
@@ -54,6 +57,8 @@ Schema: migrations/0001_init.sql. Tables are STRICT; timestamps are integer epoc
 
 - Tenant ownership flows through org_id; every customer query joins organization_members.
 - Unique: licenses.key_hash, installations.fingerprint_sha256, installations.installation_uuid, activations(license_id, installation_id), payment_webhook_events(provider, provider_event_id).
+- recovery_codes has no plaintext column; lookups use the user-scoped HMAC hash plus `used_at IS NULL`, and
+  `totp_last_counter` is the only replay state for 2FA.
 - Hot indexes cover licence status/org, installations org/status/heartbeat, telemetry installation/time and pending processing, audit time/target, security time/type.
 - Foreign keys: RESTRICT for products/users, CASCADE for owned child rows, SET NULL for optional links.
 
@@ -61,7 +66,7 @@ Schema: migrations/0001_init.sql. Tables are STRICT; timestamps are integer epoc
 
 ~~~bash
 pnpm db:migrate:local
-npx wrangler d1 migrations apply agcp-db --remote
+npx wrangler d1 migrations apply bhcp-db --remote
 ~~~
 
 Migrations are additive and versioned by filename. Never edit an applied production migration; add a new one. Back up first (see BACKUP-RECOVERY.md).
@@ -73,6 +78,7 @@ Migrations are additive and versioned by filename. Never edit an applied product
 - Processed telemetry events are deleted after telemetry.retention_days (default 90). Raw archives in R2 follow the bucket lifecycle policy.
 - Audit events are retained indefinitely by default (no deletion API).
 - Contact messages and support tickets are retained until an operator closes or removes them.
+- Recovery codes live until used, rotated or account deletion; TOTP state until disabled or deletion.
 
 ## Tenant-scoping checklist for new queries
 

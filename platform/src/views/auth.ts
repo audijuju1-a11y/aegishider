@@ -25,11 +25,18 @@ export function loginPage(options: {
           <label for="password">รหัสผ่าน</label>
           <input class="input" id="password" name="password" type="password" required minlength="10" maxlength="200" autocomplete="current-password" placeholder="อย่างน้อย 10 ตัวอักษร">
         </div>
-        ${turnstileWidget(options.siteKey)}
+        <div class="field">
+          <label for="totp">รหัส 2FA (ถ้าเปิดใช้)</label>
+          <input class="input" id="totp" name="totp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456">
+        </div>
+        ${turnstileWidget(options.siteKey, "login")}
         <button class="btn btn-primary btn-block" type="submit">${icon("lock")} เข้าสู่ระบบ</button>
       </form>
       <div class="auth-footer">
         ยังไม่มีบัญชี? <a href="/auth/register?next=${encodeURIComponent(options.next)}">สมัครฟรี</a>
+      </div>
+      <div class="auth-footer" style="margin-top:.6rem">
+        ลืมรหัสผ่าน? <a href="/auth/recover">ใช้รหัสกู้คืนบัญชี</a>
       </div>
       <div class="auth-footer" style="margin-top:.6rem">
         การเข้าใช้งานถือว่าคุณยอมรับ <a href="/legal/terms">ข้อกำหนดการใช้งาน</a> และ <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a>
@@ -65,11 +72,56 @@ export function registerPage(options: {
           <label for="password_confirm">ยืนยันรหัสผ่าน</label>
           <input class="input" id="password_confirm" name="password_confirm" type="password" required minlength="10" maxlength="200" autocomplete="new-password" placeholder="กรอกรหัสผ่านอีกครั้ง">
         </div>
-        ${turnstileWidget(options.siteKey)}
+        ${turnstileWidget(options.siteKey, "register")}
         <button class="btn btn-primary btn-block" type="submit">${icon("lock")} สมัครบัญชี</button>
       </form>
+      <p class="muted" style="font-size:.68rem;margin-top:.8rem;line-height:1.7">
+        หลังสมัคร ระบบจะแสดงรหัสกู้คืนบัญชี 10 ชุดในหน้าความปลอดภัย จนกว่าคุณจะกดซ่อน (ไม่เกิน 15 นาที) — เก็บไว้ใช้เมื่อลืมรหัสผ่าน เพราะแพลตฟอร์มไม่ส่งอีเมล
+      </p>
       <div class="auth-footer">
         มีบัญชีแล้ว? <a href="/auth/login?next=${encodeURIComponent(options.next)}">เข้าสู่ระบบ</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+export function recoverPage(options: {
+  csrf: string;
+  siteKey: string;
+  error?: string | null;
+}): SafeHtml {
+  return html`<div class="auth-wrap">
+    <div class="auth-card">
+      <p class="eyebrow" style="margin-bottom:.6rem">ACCOUNT RECOVERY</p>
+      <h1>กู้คืนบัญชี</h1>
+      <p class="lead">ใช้รหัสกู้คืนบัญชีที่บันทึกไว้ตอนสมัครหรือตั้งรหัสผ่าน — ระบบไม่ส่งลิงก์ทางอีเมล</p>
+      ${options.error ? html`<div class="alert alert--error" style="margin-top:1rem">${icon("warning")}<div>${options.error}</div></div>` : raw("")}
+      <form class="form" method="post" action="/auth/recover" data-lock>
+        ${csrfInput(options.csrf)}
+        <div class="field">
+          <label for="email">อีเมล</label>
+          <input class="input" id="email" name="email" type="email" required maxlength="200" autocomplete="email" autofocus placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="code">รหัสกู้คืน (รูปแบบ XXXX-XXXX-XXXX)</label>
+          <input class="input" id="code" name="code" type="text" required maxlength="20" autocomplete="off" placeholder="ABCD-EFGH-JKLM" style="font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase">
+        </div>
+        <div class="field">
+          <label for="password">รหัสผ่านใหม่</label>
+          <input class="input" id="password" name="password" type="password" required minlength="10" maxlength="200" autocomplete="new-password" placeholder="อย่างน้อย 10 ตัวอักษร มีตัวอักษรและตัวเลข">
+        </div>
+        <div class="field">
+          <label for="password_confirm">ยืนยันรหัสผ่านใหม่</label>
+          <input class="input" id="password_confirm" name="password_confirm" type="password" required minlength="10" maxlength="200" autocomplete="new-password">
+        </div>
+        ${turnstileWidget(options.siteKey, "recover")}
+        <button class="btn btn-primary btn-block" type="submit">${icon("key")} ตั้งรหัสผ่านใหม่</button>
+      </form>
+      <p class="muted" style="font-size:.68rem;margin-top:.8rem;line-height:1.7">
+        การใช้รหัสกู้คืนจะออกจากระบบทุกเซสชันและปิด 2FA ของบัญชี จากนั้นระบบจะออกรหัสกู้คืนชุดใหม่ให้หลังเข้าสู่ระบบ
+      </p>
+      <div class="auth-footer">
+        กลับไป <a href="/auth/login">เข้าสู่ระบบ</a>
       </div>
     </div>
   </div>`;

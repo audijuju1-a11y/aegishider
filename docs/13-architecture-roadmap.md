@@ -31,7 +31,7 @@
 | A-11 ล้างประวัติ git | **รออนุมัติ** — ต้อง force-push และให้ทุกคน clone ใหม่ |
 | A-10 CI | **เสร็จ** — เพิ่ม `wrangler deploy --dry-run`, job `site` (`site/scripts/check-site.mjs`), job `secrets` (`scripts/scan-secrets.mjs`) |
 | A-15 dead code | **เสร็จ** — ลบ 11 ฟังก์ชันที่ไม่มีผู้เรียก (`readJson`, `safeNextPath`, `pageCount`, `escapeLike`, `noStore`, `publicKeyDocument`, `requireInstallation`, `countInstallationEvents`, `listContactMessages`, `ticketMessagesMeta`, `getRecentSecurityEvents`) |
-| A-06 DLQ consumer | **เสร็จ** — consumer ที่สอง `agcp-telemetry-dlq` เขียนลงตาราง `telemetry_dlq` (migration 0007) + ack, การ์ดเปิด/ปิดใน `/admin/security` (สิทธิ์ใหม่ `security.write`), retention ของแถวที่ resolved |
+| A-06 DLQ consumer | **เสร็จ** — consumer ที่สอง `bhcp-telemetry-dlq` เขียนลงตาราง `telemetry_dlq` (migration 0007) + ack, การ์ดเปิด/ปิดใน `/admin/security` (สิทธิ์ใหม่ `security.write`), retention ของแถวที่ resolved |
 | A-09 observability | **เสร็จ** — sink HTTP (`OBSERVABILITY_WEBHOOK_URL`/`_TOKEN`) รับ warn/error log และ alert transition; cron ทุก 5 นาทีประเมิน `http.5xx_rate` (>1%, ≥20 คำขอ) และ `queue.dlq_depth` (>0) เก็บใน `metric_counters`/`alert_state`/`alert_events` แสดงบน /admin, /admin/security และ /status |
 | A-01 เอกสารสองชุด | ยังไม่ทำ (อยู่นอกรอบ Wave 1 ตามที่ขอ) |
 
@@ -83,7 +83,9 @@
 
 ### A-01 เอกสารสองชุด (Medium)
 
-สถานะ: `docs/01-11` (plugin) กับ `platform/docs/*` บรรยายระบบเดียวกันแต่เวอร์ชันไม่ตรง
+สถานะ: **แก้แล้วบางส่วน (Wave 3)** — `platform/docs/README.md` เป็น index + แหล่งความจริงของแพลตฟอร์ม,
+`docs/README.md` ระบุว่า `docs/01–13` เป็นประวัติ, และ CI มี version-consistency check; ยังเหลือการรวมเนื้อหา
+audit ที่ซ้ำกันระหว่างสองชุด
 
 1. ประกาศ `platform/docs/` เป็นแหล่งความจริงเดียวของแพลตฟอร์ม; `docs/01-11` เป็นประวัติ (archive)
 2. เพิ่ม `docs/README.md` ตาราง "อ่านอะไรที่ไหน" + แหล่งเวอร์ชันจริง (`plugin.yml`, `package.json`)
@@ -98,10 +100,10 @@
 
 ### A-06 DLQ ไม่มี consumer (Medium) — แนะนำทำก่อนในรอบนี้
 
-สถานะ: `wrangler.jsonc` ตั้ง `dead_letter_queue: agcp-telemetry-dlq` แต่ `src/queue.ts`
-มี handler เดียวสำหรับ `agcp-telemetry`; ข้อความที่ fail 3 ครั้งจะไปกองใน DLQ โดยไม่มีใครอ่าน
+สถานะ: `wrangler.jsonc` ตั้ง `dead_letter_queue: bhcp-telemetry-dlq` แต่ `src/queue.ts`
+มี handler เดียวสำหรับ `bhcp-telemetry`; ข้อความที่ fail 3 ครั้งจะไปกองใน DLQ โดยไม่มีใครอ่าน
 
-1. เพิ่ม consumer ที่สองใน `wrangler.jsonc` (`queue: "agcp-telemetry-dlq"`, `max_retries: 1`)
+1. เพิ่ม consumer ที่สองใน `wrangler.jsonc` (`queue: "bhcp-telemetry-dlq"`, `max_retries: 1`)
    แล้วแยก handler ตาม `batch.queue` ใน `src/queue.ts` (`handleTelemetry` / `handleDlq`)
 2. DLQ handler: บันทึก `security_events` หรือตาราง `telemetry_dlq` (id, queue, body, attempts, received_at)
    + `logError("queue.dlq", ...)`; **ack เสมอ** เพื่อไม่ให้วนซ้ำไม่จบ
@@ -112,7 +114,7 @@
 เขียน `telemetry_dlq` แล้ว ack (retry เฉพาะเมื่อเขียน D1 ไม่สำเร็จ และจำกัด 1 ครั้ง), แสดงผลใน
 `/admin/security` พร้อมปุ่ม "จัดการแล้ว", เก็บกวาดแถวที่ resolved ตาม retention
 
-เกณฑ์ยอมรับ: เทสต์ที่จำลอง `batch.queue = "agcp-telemetry-dlq"` แล้วได้แถวใน DB + ack; ไม่มี retry ไม่จำกัด
+เกณฑ์ยอมรับ: เทสต์ที่จำลอง `batch.queue = "bhcp-telemetry-dlq"` แล้วได้แถวใน DB + ack; ไม่มี retry ไม่จำกัด
 
 ### A-09 observability (Low–Medium)
 
@@ -154,12 +156,13 @@ middleware นับ `http.total`/`http.5xx` ต่อนาทีผ่าน `
 
 ### A-02 admin bootstrap (High) — ต้องตัดสินใจเชิงนโยบายก่อน
 
-สถานะ: production ต้องมี Access JWT + user role staff; ไม่มีทางสร้างคนแรกได้ → `/admin` = 503
-จนกว่าจะรัน SQL เอง
+สถานะ: **แก้แล้ว (Wave 2)** — เลือกทางเลือก A: `scripts/bootstrap-admin.mjs <email>` เป็น CLI idempotent
+(ไม่สร้างบัญชีเอง, ใช้ `RETURNING` ตรวจผล) พร้อมคู่มือใน `DEPLOYMENT.md`; ทดสอบบน local D1 แล้ว
+production ยังต้องรันด้วยมือครั้งแรกหลังสมัครบัญชี
 
 ทางเลือก (เลือกหนึ่ง):
 - **A. CLI bootstrap** (แนะนำ): `scripts/bootstrap-admin.mjs <email>` ใช้ `wrangler d1 execute`
-  สร้าง/อัปเดต user เป็น `super_admin` + audit row; รันด้วยมือครั้งเดียวต่อ environment
+  อัปเดต user ที่มีอยู่เป็น `super_admin` (ไม่สร้างบัญชีเอง); รันด้วยมือครั้งเดียวต่อ environment
 - **B. First-run page**: `/admin/setup` เปิดเฉพาะเมื่อ `COUNT(staff) = 0` และต้องมี Access JWT +
   `DEV_BOOTSTRAP`-style token; ปิดถาวรหลังมี admin คนแรก
 - **C. seed SQL**: เพิ่ม `INSERT` ใน `seed/seed.sql` (ง่ายแต่เสี่ยง commit อีเมล/role ลง repo)
@@ -167,24 +170,24 @@ middleware นับ `http.total`/`http.5xx` ต่อนาทีผ่าน `
 ขั้นตอน (ทางเลือก A): สคริปต์ + dry-run, ตรวจ idempotent, เพิ่มใน `DEPLOYMENT.md` ขั้น "หลัง deploy ครั้งแรก",
 ทดสอบบน local D1, หน้า `/admin` 503 ต้องบอกคำสั่งที่ต้องรัน
 
-เกณฑ์ยอมรับ: environment ใหม่ได้ super_admin คนแรกโดยไม่แก้ SQL มือ; การรันซ้ำไม่สร้างซ้ำ
+เกณฑ์ยอมรับ (ผ่านบน local): environment ใหม่ได้ super_admin คนแรกโดยไม่แก้ SQL มือ; รันซ้ำไม่สร้างบัญชีซ้ำ
+และบัญชีที่ไม่รู้จักถูกปฏิเสธ
 
 ### A-12 auth 3 ทาง + recovery (Medium)
 
-สถานะ: password + email link + OTP (ปิด) และ `MAIL_FROM` ยังเป็น `onboarding@resend.dev`
-ซึ่งส่งได้เฉพาะเจ้าของบัญชี → recovery อาจใช้ไม่ได้จริง
+สถานะ: **แก้แล้ว (Wave 2)** — ตัดสินใจ **ไม่ใช้ Resend/อีเมลเลย**: ใช้ email+password + recovery codes 10 ชุด
+(HMAC, single-use, แสดงจนกดซ่อนหรือ 15 นาที) + TOTP 2FA และ operator CLI `reset-password.mjs`
 
-1. ตัดสินใจ: เก็บ **email link เป็น primary** และให้ password เป็น optional (สอดคล้อง H-03)
-2. ยืนยันโดเมนผู้ส่ง (Resend domain verification) แล้วเปลี่ยน `MAIL_FROM` เป็น `no-reply@<โดเมน>`
-   + ตั้ง SPF/DKIM; เพิ่มค่าใน `DEPLOYMENT.md` และตรวจ `SUPPORT_EMAIL`
-3. ถ้าคง OTP: เปิด `AUTH_OTP_ENABLED` เฉพาะเมื่อมี `OTP_PEPPER` และผู้ส่งที่ยืนยันแล้ว
-4. เพิ่มเทสต์: recovery flow ใช้ลิงก์ใหม่ได้แม้ผู้ใช้ตั้งรหัสผ่านไว้
+1. ไม่มี email provider, OTP, magic link หรืออีเมลรีเซ็ตรหัสผ่านในโค้ดที่ใช้งาน
+2. Recovery flow: `/auth/recover` ใช้รหัสแล้ว revoke ทุก session, ล้าง TOTP และออกรหัสชุดใหม่
+3. ผู้ที่ไม่มีทั้งรหัสผ่านและรหัสกู้คืน: operator รัน `reset-password.mjs` (ทดสอบ local แล้ว)
+4. เทสต์: recovery/TOTP unit + `/auth/recover` end-to-end + GET ไม่กินรหัสก่อน ack
 
-เกณฑ์ยอมรับ: ส่งอีเมลจริงถึงผู้ใช้ที่ไม่ใช่เจ้าของบัญชี Resend; recovery ครบวงจรบน production
+เกณฑ์ยอมรับ (ผ่านบน local): recovery ครบวงจรโดยไม่ต้องส่งอีเมล; ล็อกอินด้วยรหัสชั่วคราวจาก CLI ได้จริง
 
 ### A-03 multi-org เป็นผิว (Medium)
 
-สถานะ: 6 จุดใช้ `memberships[0]` (`routes/portal.ts`, `routes/admin.ts`, `services/support.ts`)
+สถานะ: แก้แล้ว (Wave 3) — ทุกจุดเรียก `primaryMembership()` จาก `auth/session.ts`; เลือก single-org ต่อบัญชีเป็นดีไซน์ (schema ยังรองรับหลาย org เพื่ออนาคต)
 
 1. เพิ่ม helper `activeOrg(c)` ใน `auth/context.ts` (อ่าน `?org=` ถ้ามี, ตรวจ membership, fallback org แรก)
 2. แทน `memberships[0]` ทุกจุดด้วย helper + ส่ง `orgId` ลง service layer อย่างชัดเจน
@@ -255,7 +258,7 @@ middleware นับ `http.total`/`http.5xx` ต่อนาทีผ่าน `
 | เรื่อง | ต้องตัดสิน |
 |---|---|
 | A-11 history rewrite | อนุญาต force-push และแจ้งผู้ร่วมงาน clone ใหม่หรือไม่ |
-| A-02 | CLI bootstrap (A) / first-run page (B) / seed SQL (C) |
-| A-12 | เก็บ password ไว้เป็นทางเลือกหรือยกเลิก entirely; จะยืนยันโดเมนผู้ส่งเมื่อไร |
+| A-02 | เลือก CLI bootstrap (A) แล้ว — ไม่ต้องอนุมัติเพิ่ม |
+| A-12 | เลือกไม่ใช้ Resend/อีเมลแล้ว — recovery codes + TOTP + operator CLI |
 | A-05 | ระดับการแยกชั้นที่ต้องการ (repository only vs full domain layer) |
 | A-09 | sink ที่เลือก (Logpush/Sentry/OTel) และงบประมาณ |

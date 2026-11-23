@@ -6,7 +6,8 @@ Last updated: November 2026
 
 - Account: email address, display name, locale, role, organisation membership.
 - Authentication: session metadata, hashed IP, user agent, single-use token records, login events.
-- Authentication OTP: hashed 6-digit codes, expiry, attempts (no plaintext code stored).
+- Authentication security: password hash, recovery-code HMAC hashes and used timestamps, optional TOTP
+  secret/enrolment timestamp and replay counter (no plaintext recovery codes are stored).
 - Licensing: licence prefix (not full key), activations, installation UUID, public key, fingerprint, plugin and
   server versions, heartbeat timestamps, and HMAC-hashed client IPs used for rate limits and clone detection
   (no raw IP).
@@ -20,7 +21,7 @@ Last updated: November 2026
 
 - Provide accounts, licences and activations.
 - Verify licence leases and prevent abuse or licence sharing.
-- Operate the customer portal, support and billing.
+- Operate the customer portal and support.
 - Detect and respond to security incidents.
 - Improve reliability using aggregate performance data.
 
@@ -35,8 +36,9 @@ consent where required (for example optional marketing email, which is not imple
 - Server-health rollups (aggregate TPS/players/heap/CPU/entities/chunks/worlds): retained with telemetry rollups.
 - Heartbeat hashed-IP history used for clone detection: 7 days.
 - Sessions: 14 days or until revoked; expired sessions cleaned hourly.
-- Login/email tokens and OTP records: 15 minutes to 1 day, then cleaned.
-- Wallet/top-up and payment-event records: retained for accounting reconciliation and fraud/security review.
+- Recovery codes: active codes until used, rotated or the account is closed; used-code metadata is retained
+  for security review. TOTP secrets are kept until 2FA is disabled or the account is closed.
+- Legacy email token/OTP rows and legacy commerce records are read-only; current flows do not write them.
 - Orders, licences, audit: retained for the life of the account and as required for accounting and security.
 - Support tickets: retained until closed and removed by an operator.
 - Contact messages: retained until handled.
@@ -44,9 +46,8 @@ consent where required (for example optional marketing email, which is not imple
 ## Sharing
 
 - Cloudflare (hosting, database, storage, queues, Access) as infrastructure processor.
-- Email provider (Resend, MailChannels or Gmail API) for transactional email and OTP delivery.
-- Payment provider only when a real provider is integrated; the default PromptPay QR is generated locally and
-  the customer's bank app handles the transfer. Bank/provider webhook payloads are stored for reconciliation.
+- No transactional email provider and no payment provider are configured. Account recovery uses one-time
+  codes, TOTP and an operator CLI rather than email; the platform is free.
 - We do not sell personal data.
 
 ## Cookies

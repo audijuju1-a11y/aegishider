@@ -360,7 +360,7 @@ export function activationsPage(
                 ${licenses.filter((license) => license.status === "active").map((license) => html`<option value="${license.id}">${license.product_name} · ${license.key_prefix}… (${license.active_activations}/${license.activation_limit})</option>`)}
               </select>
             </div>
-            ${turnstileSiteKey ? turnstileWidget(turnstileSiteKey) : ""}
+            ${turnstileSiteKey ? turnstileWidget(turnstileSiteKey, "activate") : ""}
             <button class="btn btn-primary" type="submit">${icon("spark")} เปิดใช้งาน</button>
           </form>
         </div>
@@ -502,9 +502,60 @@ export function securityPage(
   currentSessionId: string,
   securityEvents: Array<{ id: string; event_type: string; severity: string; details: string; created_at: number; ip_hash: string | null }>,
   csrf: string,
+  recovery: {
+    codes: string[] | null;
+    remaining: number;
+    totpEnabled: boolean;
+    totpPending: { secret: string; uri: string } | null;
+  },
 ): SafeHtml {
   return html`
     <div class="card">
+      <div class="card-head"><div><h3>รหัสกู้คืนบัญชี</h3><p class="muted" style="font-size:.72rem;margin-top:.2rem">แพลตฟอร์มไม่ส่งอีเมล — รหัสนี้ใช้ตั้งรหัสผ่านใหม่เมื่อลืมรหัสผ่าน</p></div>
+        <form method="post" action="/app/security/recovery-codes" data-confirm="สร้างรหัสชุดใหม่? รหัสเดิมที่ยังไม่ใช้จะถูกยกเลิก">
+          ${csrfInput(csrf)}<button class="btn btn-soft btn-sm" type="submit">${icon("key")} สร้างชุดใหม่</button>
+        </form>
+      </div>
+      <div class="card-body">
+        ${recovery.codes && recovery.codes.length > 0
+          ? html`<div class="alert alert--success" role="status">${icon("check")}<div>บันทึกรหัสก่อนออกจากหน้านี้ — ระบบจะแสดงรหัสจนกว่าคุณจะกดซ่อน หรือครบ 15 นาที</div></div>
+              <pre class="mono" style="font-size:.85rem;line-height:1.9;letter-spacing:.08em;white-space:pre-wrap">${recovery.codes.join("\n")}</pre>
+              <form method="post" action="/app/security/recovery-codes/ack" style="margin-top:.8rem">
+                ${csrfInput(csrf)}<button class="btn btn-soft btn-sm" type="submit">${icon("check")} บันทึกครบแล้ว / ซ่อนรหัส</button>
+              </form>`
+          : html`<p class="muted" style="font-size:.82rem;line-height:1.7">เหลือรหัสที่ใช้ได้ <b>${recovery.remaining}</b> ชุด · ใช้ได้ครั้งละหนึ่งรหัส · รหัสจะแสดงอีกครั้งเฉพาะเมื่อสร้างชุดใหม่</p>`}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <div class="card-head"><div><h3>การยืนยันตัวตนสองขั้น (TOTP)</h3><p class="muted" style="font-size:.72rem;margin-top:.2rem">ใช้แอป Authenticator — ซอฟต์แวร์โอเพนซอร์ส ไม่ผูกกับอีเมล</p></div>
+        ${recovery.totpEnabled
+          ? html`<span class="badge badge--active">เปิดใช้งาน</span>`
+          : html`<span class="badge">ปิด</span>`}
+      </div>
+      <div class="card-body">
+        ${recovery.totpPending
+          ? html`<p style="font-size:.82rem">เพิ่มบัญชีในแอป Authenticator ด้วยคีย์นี้ (หรือ URI ด้านล่าง) แล้วกรอกรหัส 6 หลักเพื่อยืนยัน</p>
+              <pre class="mono" style="font-size:.85rem;white-space:pre-wrap">${recovery.totpPending.secret}</pre>
+              <pre class="mono" style="font-size:.65rem;white-space:pre-wrap;word-break:break-all;text-transform:none">${recovery.totpPending.uri}</pre>
+              <form method="post" action="/app/security/totp/enable" class="form" style="max-width:320px">
+                ${csrfInput(csrf)}
+                <div class="field"><label for="totp-enable">รหัส 6 หลัก</label><input class="input" id="totp-enable" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></div>
+                <button class="btn btn-primary" type="submit">${icon("shield")} เปิดใช้งาน 2FA</button>
+              </form>`
+          : recovery.totpEnabled
+            ? html`<form method="post" action="/app/security/totp/disable" class="form" style="max-width:320px" data-confirm="ปิด 2FA?">
+                ${csrfInput(csrf)}
+                <div class="field"><label for="totp-disable">ยืนยันด้วยรหัสผ่าน</label><input class="input" id="totp-disable" name="password" type="password" required maxlength="200" autocomplete="current-password"></div>
+                <button class="btn btn-danger" type="submit">ปิด 2FA</button>
+              </form>`
+            : html`<form method="post" action="/app/security/totp/start">
+                ${csrfInput(csrf)}<button class="btn btn-soft" type="submit">${icon("shield")} ตั้งค่า 2FA</button>
+              </form>`}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
       <div class="card-head"><div><h3>เซสชันที่ใช้งานอยู่</h3><p class="muted" style="font-size:.72rem;margin-top:.2rem">หากเห็นเซสชันที่ไม่รู้จัก ให้ออกจากระบบและเปลี่ยนวิธีเข้าถึงอีเมล</p></div>
         <form method="post" action="/app/security/revoke-others" data-confirm="ออกจากทุกเซสชันอื่น?">
           ${csrfInput(csrf)}<button class="btn btn-danger btn-sm" type="submit">ออกจากเซสชันอื่น</button>

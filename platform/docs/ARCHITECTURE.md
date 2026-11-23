@@ -5,6 +5,9 @@
 - Sell multiple Minecraft plugins from one catalogue without duplicating licence, auth or admin code.
 - Verify every licence cryptographically at the customer server, including while the platform is offline.
 - Keep customer data isolated per organisation; never trust tenant identifiers from the browser.
+- **Single organisation per account is a product decision** (Wave 3): routes and services read the primary
+  membership through `primaryMembership(user)`. The schema keeps memberships so multi-org can be enabled
+  later without a data migration.
 - Run entirely on Cloudflare: no VPS, no external database, no third-party customer identity provider.
 - Fail closed: when a security decision cannot be made, deny rather than allow.
 
@@ -15,7 +18,7 @@
  Browser ---------->| Cloudflare Worker (Hono)                    |
                     |  middleware: request-id, CSP, session, CSRF |
                     |  - marketing SSR (public pages, docs)       |
-                    |  - /auth (email+password, email link, verify) |
+                    |  - /auth (password, recovery, 2FA)          |
                     |  - /app  (customer portal, session)         |
                     |  - /admin (Access JWT / staff role)         |
                     |  - /api/v1 (public + plugin + webhooks)     |
@@ -27,11 +30,11 @@
                         D1 (SQL)         KV           R2 (gzip JSON
                         users,          sessions,     telemetry
                         products,       CSRF, dev     archives)
-                        licences,       email outbox,
+                        licences,       recovery/TOTP,
                         installs,       new-key handoff
                         events, audit
                            |
-                       Queues (agcp-telemetry) --> consumer --> rollups + R2
+                       Queues (bhcp-telemetry) --> consumer --> rollups + R2
                                               +--> DLQ after retries
 ~~~
 
@@ -44,11 +47,13 @@
 
 ## 4. Authentication and authorisation
 
-- Customers: email a single-use 32-byte token (SHA-256 hash stored, 15 minute TTL); consuming it creates an opaque session token (hash in D1, HttpOnly cookie). CSRF uses a double-submit cookie plus an Origin/Referer check.
+- Customers: email + password (PBKDF2-SHA256, 100,000 iterations, 16-byte salt). A successful login creates an opaque session token (SHA-256 hash in D1, HttpOnly cookie). CSRF uses a double-submit cookie plus an Origin/Referer check.
+- Account recovery without email: ten one-time codes per account (HMAC-SHA256, 60 bits, single-use). `/auth/recover` consumes a code, resets the password, revokes all sessions and clears TOTP; a fresh set is issued. Operators can run `scripts/reset-password.mjs` when the user lost both password and codes.
+- Optional TOTP second factor: 160-bit secret, 30-second step, ±1 step, `totp_last_counter` prevents replay. Disabling requires the current password and is rate-limited. No transactional email, magic link or OTP delivery is configured.
 - Staff in production: Cloudflare Access JWT (RS256) verified against the team JWKS, issuer and audience; the verified email must map to an existing user with a staff role. There is no admin signup route.
 - Development: /auth/dev-admin promotes the first ADMIN_EMAILS address and creates a session. The route is hard-disabled when ENVIRONMENT=production.
 - RBAC: a static permission matrix in src/auth/guards.ts. Permissions are checked on every admin route, not only in the UI. settings.write is reserved for admin/super_admin.
-- Tenant isolation: every customer query scopes by org_id IN (SELECT org_id FROM organization_members WHERE user_id = ?). Foreign detail pages return 404 to reduce enumeration.
+- Tenant isolation: every customer query scopes by org_id IN (SELECT org_id FROM organization_members WHERE user_id = ?). Foreign detail pages return 404 to reduce enumeration. Callers resolve the organisation with `primaryMembership(user)` rather than indexing `memberships[0]`.
 
 ## 5. Licensing
 
@@ -61,7 +66,7 @@
 - Key rotation uses signing_keys.key_id; plugins fetch the key set from /api/v1/license/keys.
 - Full contract: docs/LICENSE-PROTOCOL.md.
 
-## 5b. Free platform and OTP
+## 5b. Free platform and account security
 
 - The live schema keeps legacy commerce tables for historical rows, but no route, service or UI reads or
   writes them. Orders, wallet, PromptPay, Stripe, slips and top-ups are removed.
@@ -69,8 +74,9 @@
   once through KV for 7 days.
 - Claiming an activation code with no licence provisions one free of charge before creating the activation.
 - Wrong codes are guarded per hashed IP with an escalating lock (5/10/20/40/80 failures -> 5/10/20/40/80 minutes).
-- Login supports a 6-digit OTP in addition to the magic link. Codes are HMAC-hashed, single-use, attempt-limited
-  and rate-limited. Gmail is an OAuth API adapter, not SMTP password auth.
+- Authentication is email+password. Recovery uses one-time codes shown at `/app/security` until acknowledged
+  (or 15 minutes), and TOTP is optional per account. There is no transactional email provider, so no OTP,
+  magic link or email-based reset exists.
 
 ## 6. Telemetry
 
@@ -95,7 +101,7 @@
 | R2 unavailable | consumer retries; event stays pending; DLQ after max retries |
 | Platform offline | plugin keeps a valid signed lease until expiry plus configured offline grace |
 | Revoked while offline | revocation applies on next successful lease renewal (documented) |
-| Email provider down | login reports a generic failure; no session issued |
+| User loses password and recovery codes | operator runs `scripts/reset-password.mjs`; sessions revoked, TOTP cleared |
 | Access misconfigured | production admin returns 503 (fail closed), never falls back to passwords |
 | Turnstile secret missing in production | login and contact fail closed |
 

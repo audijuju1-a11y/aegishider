@@ -22,7 +22,7 @@ Every account receives a free licence with a 240-bit random key; the platform st
 | Database | Cloudflare D1 (SQLite), migrations in `migrations/` |
 | Sessions / cache | Cloudflare KV (`CACHE`) plus D1-backed sessions |
 | Archives | Cloudflare R2 (`ARCHIVE`) for raw telemetry JSON |
-| Async | Cloudflare Queues (`agcp-telemetry` + DLQ) |
+| Async | Cloudflare Queues (`bhcp-telemetry` + DLQ) |
 | Crypto | WebCrypto Ed25519 (SPKI/PKCS#8), HMAC-SHA256, SHA-256 |
 | Admin auth | Email+password session with a staff role; optional Cloudflare Access JWT (RS256) when configured |
 | Customer auth | Email+password only (PBKDF2-SHA256); opaque HttpOnly session cookie, CSRF double-submit |
@@ -98,22 +98,34 @@ Copy `.dev.vars.example` → `.dev.vars` and fill the values. Secrets required f
 
 Non-secret vars: `APP_URL`, `ENVIRONMENT`, session/lease TTLs, `EMAIL_OTP_TTL_MINUTES`, `ADMIN_EMAILS` (development only).
 
-## Email
+## Email and account security
 
 Transactional email is disabled (`EMAIL_PROVIDER=none`); there is no Resend, OTP or email-link path.
 `sendEmail` becomes a logged no-op so support/ticket actions still work. Authentication is
 email+password and admin access uses the same session with a staff role.
 
+Because no email can be sent, recovery is self-service with **one-time recovery codes** (10 per account,
+HMAC-hashed, displayed at `/app/security` until the user acknowledges them or 15 minutes pass) plus an
+optional **TOTP second factor** for login. Operators
+can bootstrap the first admin with `node scripts/bootstrap-admin.mjs <email>` and reset a lost account
+with `node scripts/reset-password.mjs <email>`; both print what they changed once and never store a
+plaintext password.
+
+## Developer page
+
+`/developers` is a public, server-rendered guide for API consumers: base URL, endpoint table, rate limits,
+the Ed25519 canonical string and headers, and short `curl` examples, linked from the public nav and footer.
+
 ## Verification (run locally)
 
 ```bash
 pnpm typecheck          # strict TypeScript, no errors
-pnpm test               # 34 tests: crypto, auth, licensing, tenancy, admin, telemetry, free licence issuance
+pnpm test               # 45 tests: crypto, platform, auth, recovery/TOTP, auth redirect/limits, script hash, developer page, licensing, tenancy, admin, telemetry
 node scripts/e2e-license.mjs
 
 # plugin client (Java 21 / Maven)
 cd ../aegishider-integrated
-mvn test                # 147 tests
+mvn test                # 153 tests
 ```
 
 The e2e script exercises the real HTTP surface: dev admin login → issue licence → plugin registration →
@@ -144,28 +156,32 @@ Cloudflare account required. Create D1/KV/R2/Queues, replace the placeholder IDs
 set secrets, apply migrations remotely, seed the catalogue once, then deploy:
 
 ```bash
-npx wrangler d1 create agcp-db
+npx wrangler d1 create bhcp-db
 npx wrangler kv namespace create CACHE
-npx wrangler r2 bucket create agcp-archive
-npx wrangler queues create agcp-telemetry
-npx wrangler queues create agcp-telemetry-dlq
+npx wrangler r2 bucket create bhcp-archive
+npx wrangler queues create bhcp-telemetry
+npx wrangler queues create bhcp-telemetry-dlq
 
-npx wrangler d1 migrations apply agcp-db --remote
-npx wrangler d1 execute agcp-db --remote --file=./seed/seed.sql
+npx wrangler d1 migrations apply bhcp-db --remote
+npx wrangler d1 execute bhcp-db --remote --file=./seed/seed.sql
 npx wrangler secret put LICENSE_SIGNING_KEY
 # ... other secrets
 npx wrangler deploy
 ```
 
-Deployment is live. Turnstile is configured; Cloudflare Access is optional and email is disabled. See
-`docs/DEPLOYMENT.md` for the full checklist and rollback steps.
+Deployment is live at **https://aegishider-platform.audijuju1.workers.dev**. Turnstile is configured;
+Cloudflare Access is optional and email is disabled. See `docs/DEPLOYMENT.md` for the full checklist,
+recovery/TOTP setup and rollback steps.
 
 ## Known gaps
 
 - Turnstile is enabled in production; automated end-to-end login needs a real browser challenge.
-- No transactional email provider is used. Generic support notifications stay in the portal.
+- No transactional email provider is used. Generic support notifications stay in the portal; account recovery
+  relies on one-time codes (or an operator reset), not email.
 - Cloudflare Access and Resend/Gmail code paths were removed or disabled; licensing itself is fully free.
-- Multi-user organisations, file attachments and invoice PDFs are not implemented (invoices are no longer relevant: the platform has no payments).
+- **Single organisation per account is a product decision**, not a missing feature: `primaryMembership()` is the
+  one accessor, the schema keeps memberships so multi-org can be added later without a data migration.
+  File attachments and invoice PDFs are not implemented (the platform has no payments).
 - Light theme exists; marketing copy is Thai-first with English UI strings partially available.
 
 ## Local free-licence test

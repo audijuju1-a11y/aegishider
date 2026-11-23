@@ -1,7 +1,11 @@
 # ADR 0004: Passwordless email authentication for customers
 
 ## Status
-Accepted.
+
+**Superseded (November 2026).** The platform now uses email+password, one-time recovery codes and optional
+TOTP; no transactional email provider is configured. This ADR is kept as a historical decision record.
+
+Accepted originally.
 
 ## Context
 Password storage and reset flows add attack surface and support burden. The platform needs verified email addresses

@@ -1,7 +1,7 @@
 # Aegishider — Cloudflare Pages homepage
 
 `site/` คือ static mirror ของหน้าแรก **Aegishider Control Platform** (Worker:
-`https://basehider-platform.audijuju1.workers.dev`) เพื่อให้ `https://aegishider.pages.dev`
+`https://aegishider-platform.audijuju1.workers.dev`) เพื่อให้ `https://aegishider.pages.dev`
 แสดงดีไซน์เดียวกับแพลตฟอร์ม โดยไม่ต้องดูแลหน้าเว็บอีกชุดหนึ่ง
 
 ```

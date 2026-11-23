@@ -3,7 +3,7 @@ import type { AppEnv } from "../env";
 import { isProduction } from "../env";
 import { appPage } from "./helpers";
 import { can, isStaff, requirePermission, requireUser } from "../auth/guards";
-import { findUserByEmail } from "../auth/session";
+import { findUserByEmail, primaryMembership } from "../auth/session";
 import { verifyAccessJwt } from "../auth/access";
 import { forbidden, badRequest } from "../lib/errors";
 import { formValue, readForm, readMultipart } from "../lib/http";
@@ -310,7 +310,7 @@ adminRoutes.post("/licenses", async (c) => {
 
   const customer = await findUserByEmail(c.env, email);
   if (!customer) return c.redirect("/admin/licenses/new?err=invalid", 303);
-  const org = customer.memberships[0];
+  const org = primaryMembership(customer);
   if (!org) return c.redirect("/admin/licenses/new?err=invalid", 303);
   const product = await getProductById(c.env, productId);
   if (!product) return c.redirect("/admin/licenses/new?err=invalid", 303);

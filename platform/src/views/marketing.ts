@@ -22,30 +22,31 @@ import {
 /* Shared pieces                                                              */
 /* -------------------------------------------------------------------------- */
 
-export function turnstileWidget(siteKey: string): SafeHtml {
+export function turnstileWidget(siteKey: string, action?: string): SafeHtml {
   if (!siteKey) return raw("");
-  return html`<div class="cf-turnstile" data-sitekey="${siteKey}" data-theme="dark"></div>
+  return html`<div class="cf-turnstile" data-sitekey="${siteKey}" data-theme="dark" ${action ? html`data-action="${action}"` : raw("")}></div>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>`;
 }
 
-function movement(): SafeHtml {
-  return html`<div class="hero-stage" aria-hidden="true">
-    <div class="stage-glow"></div>
-    <div class="stage-orbit stage-orbit--1"></div>
-    <div class="stage-orbit stage-orbit--2"></div>
-    <div class="stage-orbit stage-orbit--3"></div>
-    <div class="stage-core">
-      <div class="stage-core__ring"></div>
-      <div class="stage-core__inner">
-        <span class="mono">LICENSE ENGINE</span>
-        <b>ED25519</b>
-        <small>FAIL-CLOSED · V1</small>
-      </div>
+function protectionConsole(version: string): SafeHtml {
+  return html`<div class="console-panel" aria-label="Aegishider protection overview">
+    <div class="console-bar">
+      <span class="console-brand"><span class="console-dot"></span>Aegishider / Protection</span>
+      <span class="console-chip">FAIL-CLOSED</span>
     </div>
-    <div class="stage-card stage-card--1"><span class="mono">PRICING</span><b>ฟรี 100%</b><small>ไม่มีระบบชำระเงิน</small></div>
-    <div class="stage-card stage-card--2"><span class="mono">TELEMETRY</span><b>Live</b><small>heartbeat 3 นาที</small></div>
-    <div class="stage-card stage-card--3"><span class="mono">LICENSE</span><b>Active</b><small>offline grace 72 ชม.</small></div>
-    <div class="stage-grid"></div>
+    <div class="console-body">
+      <p class="console-kicker">SERVER-SIDE VISIBILITY</p>
+      <div class="console-title">Packet protection <span>DEFAULT ON</span></div>
+      <div class="console-grid">
+        <div><span>Base blocks</span><b>Hidden</b><small>containers, pistons, workstations</small></div>
+        <div><span>Y-shield</span><b>Below line</b><small>rooms covered from above</small></div>
+        <div><span>Mob wall check</span><b>Line of sight</b><small>light–medium policy</small></div>
+        <div><span>Player identifiers</span><b>Not collected</b><small>no names, IP or coordinates</small></div>
+      </div>
+      <div class="console-line"><span>Reveal policy</span><b>24 blocks + line of sight</b></div>
+      <div class="console-line"><span>Offline grace</span><b>72 hours</b></div>
+    </div>
+    <div class="console-foot"><span>Paper 1.21.1–26.3 · Java 21/25</span><span>v${version}</span></div>
   </div>`;
 }
 
@@ -71,6 +72,7 @@ export function marketingHome(
   content: SiteContent = DEFAULT_SITE_CONTENT,
 ): SafeHtml {
   const featured = products.slice(0, 3);
+  const latestVersion = featured.find((product) => product.latestRelease)?.latestRelease?.version ?? "4.0.5";
   return html`
   ${content.announcement
     ? html`<div class="announcement"><div class="shell"><span>${content.announcement}</span><a href="/changelog">ดูการอัปเดต ${icon("arrow")}</a></div></div>`
@@ -88,12 +90,12 @@ export function marketingHome(
         </div>
         <p class="hero-note">แพลตฟอร์มคลาวด์ที่ตรวจสอบได้ — ไม่มีเซิร์ฟเวอร์ให้ดูแลเอง</p>
         <div class="hero-stats">
-          <div class="hero-stat"><b>${products.length}</b><span>ผลิตภัณฑ์ที่พร้อมใช้ฟรี</span></div>
-          <div class="hero-stat"><b>Ed25519</b><span>ลายเซ็นใบอนุญาต</span></div>
-          <div class="hero-stat"><b>Fail-closed</b><span>ทุกเส้นทางที่ผิดพลาด</span></div>
+          <div class="hero-stat"><b>6</b><span>Paper builds</span></div>
+          <div class="hero-stat"><b>24</b><span>block reveal radius</span></div>
+          <div class="hero-stat"><b>0</b><span>player identifiers sent</span></div>
         </div>
       </div>
-      <div class="hero-visual">${movement()}</div>
+      <div class="hero-visual">${protectionConsole(latestVersion)}</div>
     </div>
   </section>
 
@@ -330,7 +332,7 @@ export function productDetail(
               <p class="muted" style="margin-bottom:1rem;max-width:72ch">ไคลเอนต์จำลองเชื่อมต่อเซิร์ฟเวอร์ทดสอบและถอดรหัส chunk/block entity — ตารางคือผลจริงบนไบล์ที่ obfuscate แล้ว ไม่มีข้อมูลเซิร์ฟเวอร์ลูกค้า</p>
               <div class="table-wrap">
                 <table class="evidence-table">
-                  <thead><tr><th>สถานการณ์</th><th>BaseHider 3.0.0</th><th>Aegishider 4.0.4</th></tr></thead>
+                  <thead><tr><th>สถานการณ์</th><th>BaseHider 3.0.0</th><th>Aegishider 4.0.5</th></tr></thead>
                   <tbody>
                     <tr><th>A · ไอเท็มไกลหลังกำแพง</th><td class="bad">LEAK · 1 spawn/client</td><td class="good">HIDDEN · 0 spawn</td></tr>
                     <tr><th>B · ไอเท็มใกล้ 3 บล็อก</th><td class="good">VISIBLE</td><td class="good">VISIBLE</td></tr>
@@ -343,7 +345,7 @@ export function productDetail(
                   </tbody>
                 </table>
               </div>
-              <p class="mono" style="margin-top:.8rem;font-size:.54rem;letter-spacing:.03em;color:var(--muted-2)">PAPER 1.21.11 + 1.21.4 · PACKETEVENTS 2.14.0 · 152 UNIT TESTS · LIVE BOT CHECK</p>
+              <p class="mono" style="margin-top:.8rem;font-size:.54rem;letter-spacing:.03em;color:var(--muted-2)">PAPER 1.21.11 + 1.21.4 · PACKETEVENTS 2.14.0 · 153 UNIT TESTS · LIVE BOT CHECK</p>
             </div>
           </details>
 
@@ -662,7 +664,7 @@ export function supportPage(options: { siteKey: string; csrf: string; authed: bo
               </select>
             </div>
             <div class="field"><label for="message">รายละเอียด</label><textarea class="textarea" id="message" name="message" required maxlength="5000" placeholder="อธิบายสิ่งที่เกิดขึ้น พร้อมเวอร์ชันและข้อความผิดพลาด (ไม่ต้องแนบข้อมูลส่วนตัว)"></textarea></div>
-            ${turnstileWidget(options.siteKey)}
+            ${turnstileWidget(options.siteKey, "contact")}
             <button class="btn btn-primary" type="submit">${icon("mail")} ส่งข้อความ</button>
             <p class="muted" style="font-size:.68rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
           </form>
@@ -697,7 +699,7 @@ export function contactPage(options: { siteKey: string; csrf: string; lang: Lang
               </select>
             </div>
             <div class="field"><label for="message">รายละเอียด</label><textarea class="textarea" id="message" name="message" required maxlength="5000"></textarea></div>
-            ${turnstileWidget(options.siteKey)}
+            ${turnstileWidget(options.siteKey, "contact")}
             <button class="btn btn-primary" type="submit">${icon("mail")} ส่งข้อความ</button>
             <p class="muted" style="font-size:.68rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
           </form>
@@ -816,6 +818,116 @@ export function errorPage(title: string, message: string): SafeHtml {
       <div class="row" style="justify-content:center;margin-top:1.5rem">
         <a class="btn btn-primary" href="/">กลับหน้าแรก</a>
         <a class="btn btn-ghost" href="/support">ติดต่อทีมงาน</a>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Developer portal                                                          */
+/* -------------------------------------------------------------------------- */
+
+export function developersPage(baseUrl: string): SafeHtml {
+  const origin = baseUrl.replace(/\/$/, "");
+  const endpoints: Array<[string, string, string]> = [
+    ["GET", "/api/v1/products", "รายการผลิตภัณฑ์ที่เผยแพร่ พร้อมเวอร์ชันล่าสุด"],
+    ["GET", "/api/v1/products/:slug", "รายละเอียดผลิตภัณฑ์และรีลีสทั้งหมด"],
+    ["GET", "/api/v1/license/keys", "Ed25519 public keys ที่ใช้ตรวจ lease (มี key_id)"],
+    ["POST", "/api/v1/installations/register", "ลงทะเบียนเซิร์ฟเวอร์ รับรหัสเปิดใช้งาน 16 ตัว"],
+    ["POST", "/api/v1/installations/lease", "ขอ lease ที่ลงลายเซ็น (ต้องลงนามคำขอ)"],
+    ["POST", "/api/v1/installations/heartbeat", "ส่งสุขภาพเซิร์ฟเวอร์แบบรวม (ต้องลงนาม)"],
+    ["POST", "/api/v1/installations/events", "ส่งเหตุการณ์ telemetry (ต้องลงนาม)"],
+    ["GET", "/api/v1/status", "สถานะคอมโพเนนต์สาธารณะ"],
+    ["GET", "/api/v1/health", "health check สำหรับ monitoring"],
+  ];
+  const canonicalSample = [
+    "POST",
+    "/api/v1/installations/lease",
+    "<installation_uuid>",
+    "<unix_seconds>",
+    "<random_nonce>",
+    "<sha256_hex_of_raw_body>",
+  ].join("\\n");
+  return html`<section class="section" style="padding-top:2.4rem">
+    <div class="shell">
+      <p class="eyebrow">DEVELOPER API · v1</p>
+      <h1 style="font-size:clamp(1.9rem,4vw,3rem);max-width:22ch">สร้างบน Aegishider Control Platform</h1>
+      <p class="lead" style="max-width:70ch;margin-top:.7rem">API สาธารณะสำหรับอ่านแคตตาล็อกและตรวจไลเซนส์ ฝั่งปลั๊กอินใช้ Ed25519 signature ทุกคำขอ ไม่มี API key ลับที่ต้องฝังในไคลเอนต์</p>
+      <div class="hero-actions" style="margin-top:1.2rem">
+        <a class="btn btn-primary" href="/docs/api">อ่าน API reference</a>
+        <a class="btn btn-ghost" href="/status">ดูสถานะระบบ</a>
+        <a class="btn btn-ghost" href="${origin}/api/v1/products">ลอง GET /api/v1/products</a>
+      </div>
+
+      <div class="grid-2" style="margin-top:2.2rem;align-items:start">
+        <div class="card">
+          <div class="card-head"><h3>Base URL</h3></div>
+          <div class="card-body">
+            <pre class="mono" style="white-space:pre-wrap">${origin}/api/v1</pre>
+            <p class="muted" style="font-size:.78rem;margin-top:.6rem;line-height:1.7">HTTPS เท่านั้น · response เป็น JSON รูปแบบ <code>{ data }</code> หรือ <code>{ error: { code, message } }</code></p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Rate limits</h3></div>
+          <div class="card-body">
+            <ul style="font-size:.82rem;line-height:2;padding-left:1.1rem">
+              <li>register: 20 ครั้ง/ชั่วโมง ต่อ IP hash</li>
+              <li>lease: 60 ครั้ง/นาที ต่อ installation</li>
+              <li>heartbeat / events: 120 ครั้ง/นาที ต่อ installation</li>
+              <li>เกินกำหนดตอบ <code>429</code> พร้อม retry ภายหลัง</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:2.4rem;font-size:1.4rem">Endpoints</h2>
+      <div class="table-wrap" style="margin-top:.8rem"><table class="table">
+        <thead><tr><th>Method</th><th>Path</th><th>คำอธิบาย</th></tr></thead>
+        <tbody>${endpoints.map(([method, path, description]) => html`<tr>
+          <td><code>${method}</code></td>
+          <td><code>${path}</code></td>
+          <td class="muted">${description}</td>
+        </tr>`)}</tbody>
+      </table></div>
+
+      <div class="grid-2" style="margin-top:2rem;align-items:start">
+        <div class="card">
+          <div class="card-head"><h3>Signed request</h3></div>
+          <div class="card-body">
+            <p style="font-size:.82rem;line-height:1.8">ทุกคำขอที่ผูกกับ installation ต้องลงนามด้วย Ed25519 private key ที่สร้างตอนลงทะเบียน แล้วส่ง header:</p>
+            <pre class="mono" style="white-space:pre-wrap;font-size:.72rem">X-AG-Installation: &lt;uuid&gt;
+X-AG-Timestamp: &lt;unix seconds&gt;
+X-AG-Nonce: &lt;random, ใช้ครั้งเดียว&gt;
+X-AG-Signature: &lt;base64url signature&gt;</pre>
+            <p class="muted" style="font-size:.78rem;margin-top:.6rem">ข้อความที่ลงนาม (คั่นด้วย \\n):</p>
+            <pre class="mono" style="white-space:pre-wrap;font-size:.72rem">${canonicalSample}</pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>เริ่มต้นเร็ว</h3></div>
+          <div class="card-body">
+            <pre class="mono" style="white-space:pre-wrap;font-size:.72rem">curl -s ${origin}/api/v1/products
+
+curl -s ${origin}/api/v1/license/keys
+
+# ฝั่งปลั๊กอิน: /aegishider license link
+# แล้วนำรหัส 16 ตัวไปกรอกที่ /app/activations</pre>
+            <p class="muted" style="font-size:.78rem;margin-top:.6rem;line-height:1.7">ตัวอย่าง Java/TypeScript และสัญญาแบบเต็มอยู่ใน <a href="/docs/api">API reference</a> และ <a href="/docs/licensing">LICENSE protocol</a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:2rem">
+        <div class="card-head"><h3>หลักที่ควรรู้</h3></div>
+        <div class="card-body">
+          <ul style="font-size:.84rem;line-height:2.1;padding-left:1.1rem">
+            <li><b>Lease:</b> payloadB64url.signatureB64url อายุ 24 ชม. และ offline grace 72 ชม.</li>
+            <li><b>Replay:</b> nonce ใช้ครั้งเดียว เก็บ 10 นาที; timestamp ต้องอยู่ในหน้าต่างที่กำหนด</li>
+            <li><b>Rotation:</b> ตรวจ <code>key_id</code> จาก <code>/license/keys</code> ทุกครั้ง และยอมรับ key ที่ยัง active</li>
+            <li><b>Privacy:</b> telemetry เป็นค่าสรุป ไม่มีชื่อผู้เล่น UUID IP หรือพิกัด</li>
+            <li><b>Breaking changes:</b> จะออกเป็น <code>/api/v2</code> ไม่แก้ v1 แบบทำลายสัญญา</li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>`;
