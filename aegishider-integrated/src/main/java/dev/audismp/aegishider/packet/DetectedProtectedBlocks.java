@@ -70,19 +70,43 @@ public final class DetectedProtectedBlocks {
 
     /** Main thread: removes and returns all detected positions grouped by world id. */
     public List<Map.Entry<Long, long[]>> drain() {
+        return drain(Integer.MAX_VALUE);
+    }
+
+    /**
+     * Main thread: removes at most {@code maxPositions} entries so a large stream of
+     * state-scan detections cannot monopolise one tick. Remaining entries stay in the
+     * fail-closed bridge and are picked up next tick.
+     */
+    public List<Map.Entry<Long, long[]>> drain(int maxPositions) {
+        int remaining = Math.max(1, maxPositions);
         List<Map.Entry<Long, long[]>> drained = new ArrayList<>(byWorld.size());
         for (Long worldId : new ArrayList<>(byWorld.keySet())) {
-            LongOpenHashSet set = byWorld.remove(worldId);
+            if (remaining <= 0) {
+                break;
+            }
+            LongOpenHashSet set = byWorld.get(worldId);
             if (set == null) {
                 continue;
             }
             long[] positions;
             synchronized (set) {
-                size.addAndGet(-set.size());
-                positions = set.toLongArray();
+                int take = Math.min(remaining, set.size());
+                positions = new long[take];
+                var iterator = set.iterator();
+                int index = 0;
+                while (index < take && iterator.hasNext()) {
+                    positions[index++] = iterator.nextLong();
+                    iterator.remove();
+                }
+                size.addAndGet(-take);
+                if (set.isEmpty()) {
+                    byWorld.remove(worldId, set);
+                }
             }
             if (positions.length > 0) {
                 drained.add(Map.entry(worldId, positions));
+                remaining -= positions.length;
             }
         }
         return drained;

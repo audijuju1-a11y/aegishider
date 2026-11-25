@@ -54,9 +54,11 @@ without it the plugin still protects entities/items but block protection is repo
 
 `config.yml` is never rewritten on upgrade. Add the new base blocks from the shipped
 `hidden-blocks` list (pistons, bookshelf, workstations, anvils, cauldrons, redstone),
-set `y-shield.enabled: true` with `real-chunk-radius: 0`, and add
-`item-protection.mob-melee-visible-distance: 1.0`. Alternatively, back up your config
-and delete it once to let 4.0.5 write the new secure defaults.
+set `y-shield.enabled: true` with `real-chunk-radius: 0`, and set
+`item-protection.mob-melee-visible-distance: 3.0`. If your existing config contains
+`hide-all-living-entities: false`, that explicit opt-out is kept; remove it or set it to
+`true` to hide animals and villagers like the new default. Alternatively, back up your
+config and delete it once to let 4.0.5 write the new secure defaults.
 
 ## 4.0.5 performance hardening
 
@@ -72,6 +74,22 @@ and delete it once to let 4.0.5 write the new secure defaults.
   Y-shield chunk refreshes 4 per tick.
 - The visibility policy and fail-closed behaviour are unchanged. Work is deferred, never
   skipped in the unsafe direction; a deferred item/block stays hidden.
+
+## 4.0.5 entity visibility defaults
+
+- **Monsters and animals are hidden by default.** `item-protection.hide-all-living-entities`
+  now defaults to `true`. Cows, pigs, sheep, horses, wolves, villagers, golems and allays
+  use the same distance/Y/occlusion policy as hostile mobs; a config with no `worlds`
+  section gets this automatically, and an explicit `hidden-entity-types` list does not
+  turn it off.
+- **Hard 3-block interaction floor.** A living entity within 3 blocks on the viewer's own
+  visible floor is always shown, even through a wall, so farms, pens and trading halls keep
+  working. `item-protection.mob-melee-visible-distance` (default 3.0) is an additional
+  close-range allowance up to 4 blocks; it cannot lower the built-in floor.
+- **Distance and Y still apply.** Living entities are never revealed beyond
+  `monster-max-distance` (96), below `y-shield.hide-below-y` for a masked viewer, or across
+  the `entity-height-shield` floor band. Set `hide-all-living-entities: false` to keep
+  animals and villagers visible; hostile mobs remain covered by the explicit list.
 
 ## 4.0.4 base-block and Y-shield changes
 
@@ -102,12 +120,13 @@ and delete it once to let 4.0.5 write the new secure defaults.
 - **`BEACON` and `BOOKSHELF` are back in the default hidden set.** Servers with public
   spawn landmarks can remove them from `hidden-blocks`; they remain visible within the
   normal 24-block reveal radius and with clear line of sight regardless.
-- **Living-mob wall check (light-medium).** Monsters and animals now require a real
-  line of sight everywhere except inside a 1-block touching radius
-  (`item-protection.mob-melee-visible-distance`, 0-4). A cow or zombie directly behind a
-  solid wall is hidden even at 2-4 blocks, while a fence, glass pane, bars, or a head
-  peeking over a ledge still shows it. The check samples the body centre and the head;
-  there is no extra raycast tax for far mobs beyond the existing occlusion pass.
+- **Living-mob wall check (light-medium).** Monsters, animals and villagers require a
+  real line of sight beyond the built-in 3-block interaction floor. A cow or zombie
+  directly behind a solid wall is hidden beyond 3 blocks, while a fence, glass pane, bars,
+  or a head peeking over a ledge still shows it. `item-protection.mob-melee-visible-distance`
+  (default 3.0, range 0-4) is an additional close-range allowance and cannot reduce the
+  hard floor. The check samples the body centre and the head; there is no extra raycast
+  tax for far mobs beyond the existing occlusion pass.
 
 ## 4.0.0 behaviour changes
 
@@ -152,7 +171,9 @@ and delete it once to let 4.0.5 write the new secure defaults.
 
 ## What it protects
 
-- Dropped items/entities, optionally item frames, armour stands and storage minecarts.
+- Dropped items, item frames, armour stands, storage minecarts and all living entities
+  (monsters, animals, villagers, golems...). `hide-all-living-entities` defaults to true;
+  their visibility follows distance/Y/occlusion with the hard 3-block interaction floor.
 - Configured tile-entity blocks (chests, barrels, shulkers, hoppers, furnaces, dispensers,
   spawners, trial spawners, vaults, ...) discovered from real chunk data.
 - Tunnel / dug-hole shield (defaults off): player-mined blocks beyond 28 blocks are shown
@@ -184,8 +205,10 @@ and item stacks behave like vanilla. Hidden items can still be picked up.
   storage room cannot starve a dropped item next to the player.
 - **Player shield gets 15% of the tick budget** (was 7.5%) so a 50-player sweep does not
   fall several ticks behind.
-- Monsters are occlusion-only, player distance hiding is off, and Tunnel Shield is off by
-  default. Existing world sections can override any of these per world.
+- Living mobs (monsters, animals and villagers) are occlusion-only with the hard 3-block
+  interaction floor; player distance hiding is off and Tunnel Shield is off by default.
+  Existing world sections can override any of these per world, including
+  `hide-all-living-entities: false` to keep animals/villagers visible.
 
 ## Commands / permissions
 
@@ -267,7 +290,7 @@ pipeline additionally needs its venv and an Ed25519 release key outside the repo
 
 ```bash
 cd aegishider-integrated
-mvn -B test                                  # 153 tests
+mvn -B test                                  # 179 tests
 mvn -B -Pmc1211 -Dmaven.test.skip=true package
 
 # local hardened build: all six profiles + string encryption + ProGuard + SHA256SUMS
@@ -285,7 +308,7 @@ obfuscated; signed manifest sidecars only when using the Sentinel pipeline) and
 
 ## Verification snapshot
 
-- 153 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
+- 179 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
 - A–F packet harness PASS on Paper 1.21.4 (plain and ProGuard-obfuscated jar); the same
   harness detects A/C/D/E/F leaks in the legacy BaseHider 3.0.0 baseline.
 - 4.0.4 live verification: Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with

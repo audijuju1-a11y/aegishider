@@ -48,10 +48,13 @@ import java.util.logging.Level;
 public final class ItemShield {
 
     /** Hard cap of entity/viewer policy evaluations per tick (prevents item-farm stalls). */
-    private static final int MAX_EVALUATIONS_PER_TICK = 512;
+    private static final int MAX_EVALUATIONS_PER_TICK = 256;
     private static final boolean DEBUG_ENTITIES = Boolean.getBoolean("aegishider.debug.entities");
     /** How many tracked entities are polled for movement per tick. */
-    private static final int MAX_POSITION_POLLS_PER_TICK = 1024;
+    private static final int MAX_POSITION_POLLS_PER_TICK = 64;
+    /** Safety-net sweeps are queued and registered in small slices, never in one tick. */
+    private static final int SWEEP_ENTITIES_PER_TICK = 32;
+    private static final int SWEEP_QUEUE_MAX = 4096;
     /** Entity packets may lag policy by this many ticks before being forced hidden. */
     private static final int MAX_STALE_TICKS = 12;
     /** Above this many pending dirty items a distance/owner-priority storm lane is used. */
@@ -60,6 +63,12 @@ public final class ItemShield {
     private static final double OWNER_GRACE_DISTANCE_SQ = 8.0 * 8.0;
     /** ...or for this many ticks after it spawned, whichever applies. */
     private static final int OWNER_GRACE_TICKS = 40;
+    /**
+     * Fairness floor for interaction/attack range. A villager, animal or monster this
+     * close is always shown even when a wall is between the eye and its centre box,
+     * because hiding it removes its hitbox and makes trading/melee feel broken.
+     */
+    private static final double INTERACTION_VISIBLE_DISTANCE_SQ = 3.0 * 3.0;
 
     private final AegishiderPlugin plugin;
     private final Metrics metrics;
@@ -79,9 +88,14 @@ public final class ItemShield {
     private final ArrayDeque<TrackedEntity> dirty = new ArrayDeque<>();
     private final ArrayDeque<TrackedEntity> retry = new ArrayDeque<>();
     private final IntOpenHashSet dirtyIds = new IntOpenHashSet();
+    private final ArrayDeque<Entity> sweepQueue = new ArrayDeque<>();
+    private final IntOpenHashSet sweepQueued = new IntOpenHashSet();
 
     private int pollCursor;
     private int tickCounter;
+    private long maxPollNanos;
+    private long maxSweepNanos;
+    private long maxEvalNanos;
     private long indexRevisionAtLastEval;
     private int revealedPairCount;
 
@@ -206,7 +220,12 @@ public final class ItemShield {
             return;
         }
         for (Entity entity : entities) {
-            onEntityAvailable(entity);
+            // Chunk discovery is a sweep, not a spawn: defer registration into the
+            // bounded per-tick queue instead of hiding every entity synchronously.
+            if (entity != null && !(entity instanceof Player)
+                    && settings.itemProtection().isHiddenType(entity.getType())) {
+                enqueueSweep(entity);
+            }
         }
     }
 
@@ -220,12 +239,47 @@ public final class ItemShield {
             return;
         }
         for (Entity entity : player.getWorld().getNearbyEntities(player.getLocation(), radius, radius, radius)) {
-            if (entity instanceof Player) {
+            if (entity instanceof Player || !settings.itemProtection().isHiddenType(entity.getType())) {
                 continue;
             }
-            if (settings.itemProtection().isHiddenType(entity.getType())) {
-                onEntityAvailable(entity);
+            enqueueSweep(entity);
+        }
+    }
+
+    /**
+     * Sweeps are a safety net, not the primary protection path (spawn/load events are
+     * synchronous). Queue them so a chunk with hundreds of entities cannot turn one
+     * security tick into a 200 ms hide-packet burst.
+     */
+    private void enqueueSweep(Entity entity) {
+        if (entity == null || entity instanceof Player || byId.containsKey(entity.getEntityId())) {
+            return;
+        }
+        if (sweepQueue.size() >= SWEEP_QUEUE_MAX) {
+            return;
+        }
+        int id = entity.getEntityId();
+        if (sweepQueued.add(id)) {
+            sweepQueue.addLast(entity);
+        }
+    }
+
+    private void processSweepQueue(TimeBudget budget) {
+        int processed = 0;
+        while (!sweepQueue.isEmpty() && processed < SWEEP_ENTITIES_PER_TICK) {
+            if (budget.expired()) {
+                return;
             }
+            Entity entity = sweepQueue.pollFirst();
+            if (entity == null) {
+                return;
+            }
+            sweepQueued.remove(entity.getEntityId());
+            if (!entity.isValid() || byId.containsKey(entity.getEntityId())) {
+                continue;
+            }
+            onEntityAvailable(entity);
+            processed++;
         }
     }
 
@@ -266,6 +320,8 @@ public final class ItemShield {
         dirty.clear();
         retry.clear();
         dirtyIds.clear();
+        sweepQueue.clear();
+        sweepQueued.clear();
         revealedPairCount = 0;
         metrics.setTrackedItemCount(0);
         metrics.setRevealedItemViewerPairs(0);
@@ -291,13 +347,12 @@ public final class ItemShield {
             }
         }
         for (TrackedEntity tracked : noLongerProtected) {
-            try {
-                // No longer protected: restore normal (visible by default) behaviour.
-                tracked.entity.setVisibleByDefault(true);
-            } catch (RuntimeException ex) {
-                metrics.recordInternalError();
-            }
-            unregister(tracked, "configuration change");
+            // No longer protected: restore vanilla visibility. setVisibleByDefault(true)
+            // only affects future trackers, so viewers that have the entity hidden need
+            // an explicit spawn (restoreAndUntrack) or they stay invisible until the
+            // chunk is resent. This is the path used when hide-all-living-entities is
+            // switched back to false and the config is reloaded.
+            restoreAndUntrack(tracked);
         }
     }
 
@@ -461,8 +516,15 @@ public final class ItemShield {
         long startNanos = System.nanoTime();
         tickCounter = tick;
         try {
+            long phase = System.nanoTime();
             pollPositions(budget);
+            maxPollNanos = Math.max(maxPollNanos, System.nanoTime() - phase);
+            phase = System.nanoTime();
+            processSweepQueue(budget);
+            maxSweepNanos = Math.max(maxSweepNanos, System.nanoTime() - phase);
+            phase = System.nanoTime();
             evaluateDirty(budget);
+            maxEvalNanos = Math.max(maxEvalNanos, System.nanoTime() - phase);
         } catch (RuntimeException ex) {
             metrics.recordInternalError();
             plugin.getLogger().log(Level.SEVERE, "ItemShield tick error (fail-closed: items remain hidden)", ex);
@@ -479,7 +541,7 @@ public final class ItemShield {
         }
         int limit = Math.min(size, MAX_POSITION_POLLS_PER_TICK);
         for (int i = 0; i < limit; i++) {
-            if ((i & 63) == 0 && budget.expired()) {
+            if (budget.expired()) {
                 return;
             }
             int index = (pollCursor + i) % size;
@@ -529,7 +591,7 @@ public final class ItemShield {
     private void evaluateFifo(TimeBudget budget, long indexRevision) {
         int evaluated = 0;
         while (!dirty.isEmpty() && evaluated < MAX_EVALUATIONS_PER_TICK) {
-            if ((evaluated & 31) == 0 && budget.expired()) {
+            if (budget.expired()) {
                 break;
             }
             TrackedEntity tracked = dirty.pollFirst();
@@ -600,7 +662,7 @@ public final class ItemShield {
         int evaluated = 0;
         int remainingStart = 0;
         for (int i = 0; i < order.length; i++) {
-            if ((evaluated & 15) == 0 && budget.expired()) {
+            if (budget.expired()) {
                 remainingStart = i;
                 break;
             }
@@ -716,9 +778,9 @@ public final class ItemShield {
                 return EvalOutcome.VISIBLE;
             }
         }
-        // Hostile mobs are only hidden by real occlusion (walls, terrain, underground).
-        // Turning away or standing farther away must not make them pop out: mob ESP is
-        // less valuable to cheats than breaking normal fights.
+        // Living mobs (monsters, animals, villagers...) are only hidden by real occlusion
+        // (walls, terrain, underground). Turning away or standing farther away must not
+        // make them pop out: mob ESP is less valuable to cheats than breaking normal play.
         // Every living mob counts, not just Monster/Enemy: slimes, ghasts, golems and the
         // dragon all pop otherwise. Armor stands and players keep the strict policy because
         // they leak storage/player positions; items and minecarts do too (loot ESP).
@@ -737,8 +799,11 @@ public final class ItemShield {
         if (DEBUG_ENTITIES && livingMob) {
             plugin.getLogger().info("[debug] zombie eval viewer=" + viewer.player().getName() + " dist=" + Math.sqrt(distSq) + " occlusionOnly=" + occlusionOnly + " fov=" + OcclusionEngine.insideFov(viewer, tracked.centerX, tracked.centerY, tracked.centerZ, policy.fovCosHalf()));
         }
-        if (distSq > allowedDistance * allowedDistance) {
+        if (!withinRevealDistance(distSq, allowedDistance)) {
             return EvalOutcome.HIDDEN;
+        }
+        if (livingMob && withinInteractionRange(distSq)) {
+            return EvalOutcome.VISIBLE;
         }
         if (livingMob) {
             // Light-medium wall check: only a truly touching mob skips the line-of-sight
@@ -786,6 +851,16 @@ public final class ItemShield {
             plugin.getLogger().info("[debug] zombie los=" + visible);
         }
         return visible ? EvalOutcome.VISIBLE : EvalOutcome.HIDDEN;
+    }
+
+    /** Vanilla interaction/attack fairness floor (3 blocks, independent of config). */
+    static boolean withinInteractionRange(double distanceSq) {
+        return distanceSq <= INTERACTION_VISIBLE_DISTANCE_SQ;
+    }
+
+    /** Inclusive distance gate shared by item and monster reveal radii. */
+    static boolean withinRevealDistance(double distanceSq, double maxDistance) {
+        return distanceSq <= maxDistance * maxDistance;
     }
 
     private void show(TrackedEntity tracked, ViewerSession viewer) {
@@ -1037,7 +1112,11 @@ public final class ItemShield {
                 .append(" revealedPairs=").append(revealedPairCount)
                 .append(" dirtyQueue=").append(dirty.size())
                 .append(" viewerIndexChunks=").append(viewersByChunk.size())
-                .append(" itemChunks=").append(byChunk.size());
+                .append(" itemChunks=").append(byChunk.size())
+                .append(" sweepQueue=").append(sweepQueue.size())
+                .append(" maxPollUs=").append(maxPollNanos / 1000)
+                .append(" maxSweepUs=").append(maxSweepNanos / 1000)
+                .append(" maxEvalUs=").append(maxEvalNanos / 1000);
         return builder.toString();
     }
 

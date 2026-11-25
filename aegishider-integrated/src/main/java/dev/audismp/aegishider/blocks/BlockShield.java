@@ -4,6 +4,7 @@ import dev.audismp.aegishider.AegishiderPlugin;
 import dev.audismp.aegishider.config.AegishiderConfig;
 import dev.audismp.aegishider.config.WorldSettings;
 import dev.audismp.aegishider.core.BlockVisibility;
+import dev.audismp.aegishider.core.CandidatePlan;
 import dev.audismp.aegishider.core.SessionRegistry;
 import dev.audismp.aegishider.core.TimeBudget;
 import dev.audismp.aegishider.core.ViewerSession;
@@ -12,6 +13,7 @@ import dev.audismp.aegishider.index.HiddenBlockIndex;
 import dev.audismp.aegishider.metrics.Metrics;
 import dev.audismp.aegishider.occlusion.OcclusionEngine;
 import dev.audismp.aegishider.util.BlockPosUtil;
+import io.papermc.paper.math.Position;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -51,10 +53,10 @@ import java.util.logging.Level;
 public final class BlockShield {
 
     private static final int MAX_CANDIDATES_PER_SCAN = 2048;
-    private static final int MAX_REVEAL_CHECKS_PER_TICK = 192;
+    private static final int MAX_REVEAL_CHECKS_PER_TICK = 128;
     /** First seconds after a viewer joins are spread over more ticks to avoid a join spike. */
     private static final int JOIN_RAMP_TICKS = 60;
-    private static final int RAMP_CHECKS_PER_TICK = 32;
+    private static final int RAMP_CHECKS_PER_TICK = 24;
     private long maxHideNanos;
     private long maxRebuildNanos;
     private long maxEvalNanos;
@@ -163,7 +165,8 @@ public final class BlockShield {
             return;
         }
         state.forceDirty = true;
-        hideOutOfRangeReveals(viewer, state, settings);
+        hideOutOfRangeReveals(viewer, state, settings,
+                TimeBudget.ofMillis(Math.max(0.25, plugin.config().mainThreadBudgetMs())));
     }
 
     /** Any block in the world changed: line-of-sight caches are now suspect. */
@@ -321,7 +324,7 @@ public final class BlockShield {
         state.lastFullScanTick = tickCounter;
 
         long hideStarted = System.nanoTime();
-        hideOutOfRangeReveals(viewer, state, settings);
+        hideOutOfRangeReveals(viewer, state, settings, budget);
         maxHideNanos = Math.max(maxHideNanos, System.nanoTime() - hideStarted);
 
         if (state.joinTick < 0) {
@@ -331,7 +334,7 @@ public final class BlockShield {
         int maxChecks = ramping ? RAMP_CHECKS_PER_TICK : MAX_REVEAL_CHECKS_PER_TICK;
         if (state.candidates.length == 0 || state.candidateCursor >= state.candidates.length) {
             long rebuildStarted = System.nanoTime();
-            rebuildCandidates(viewer, state, settings);
+            rebuildCandidates(viewer, state, settings, budget);
             maxRebuildNanos = Math.max(maxRebuildNanos, System.nanoTime() - rebuildStarted);
         }
         long evalStarted = System.nanoTime();
@@ -341,7 +344,8 @@ public final class BlockShield {
 
     // ── Reveal bookkeeping ─────────────────────────────────────────────────
 
-    private void hideOutOfRangeReveals(ViewerSession viewer, ViewerState state, WorldSettings settings) {
+    private void hideOutOfRangeReveals(ViewerSession viewer, ViewerState state,
+                                       WorldSettings settings, TimeBudget budget) {
         double keepDistance = settings.blockProtection().revealDistance()
                 * settings.blockProtection().keepDistanceFactor();
         double keepSq = keepDistance * keepDistance;
@@ -351,29 +355,71 @@ public final class BlockShield {
         }
         World world = viewer.player().getWorld();
         long worldId = viewer.worldId();
+        Map<Position, BlockData> changes = new HashMap<>();
+        List<Long> hidePositions = new ArrayList<>();
         for (long pos : revealed) {
+            if (budget.expired()) {
+                flushFakeBatch(viewer, changes, hidePositions);
+                state.forceDirty = true;
+                return;
+            }
             if (!index.isHidden(worldId, pos)) {
                 // The block is no longer protected: the server already sent the real
                 // change; just drop the marker.
                 blockVisibility.markHidden(viewer.playerId(), pos);
                 continue;
             }
-            if (settings.yShield().masksBlock(viewer.eyeY(), BlockPosUtil.decodeY(pos))) {
-                // The viewer crossed above the Y-shield line. Re-hide immediately instead
-                // of waiting for the chunk refresh spread over the next ticks.
-                blockVisibility.markHidden(viewer.playerId(), pos);
-                sendFake(viewer.player(), world, pos, settings);
-                metrics.recordBlockRehidden();
-                continue;
+            int y = BlockPosUtil.decodeY(pos);
+            boolean yMasked = settings.yShield().masksBlock(viewer.eyeY(), y);
+            if (!yMasked) {
+                double dx = BlockPosUtil.decodeX(pos) + 0.5 - viewer.eyeX();
+                double dy = y + 0.5 - viewer.eyeY();
+                double dz = BlockPosUtil.decodeZ(pos) + 0.5 - viewer.eyeZ();
+                if (dx * dx + dy * dy + dz * dz <= keepSq) {
+                    continue;
+                }
             }
-            double dx = BlockPosUtil.decodeX(pos) + 0.5 - viewer.eyeX();
-            double dy = BlockPosUtil.decodeY(pos) + 0.5 - viewer.eyeY();
-            double dz = BlockPosUtil.decodeZ(pos) + 0.5 - viewer.eyeZ();
-            if (dx * dx + dy * dy + dz * dz > keepSq) {
+            Material material = yMasked ? settings.yShield().filler()
+                    : plugin.hiddenBlockIndex().filler(worldId, pos,
+                    settings.blockProtection().replaceWith());
+            changes.put(Position.block(BlockPosUtil.decodeX(pos), y, BlockPosUtil.decodeZ(pos)),
+                    fillerFor(material));
+            hidePositions.add(pos);
+            if (changes.size() >= 8) {
+                flushFakeBatch(viewer, changes, hidePositions);
+                if (budget.expired()) {
+                    state.forceDirty = true;
+                    return;
+                }
+            }
+        }
+        flushFakeBatch(viewer, changes, hidePositions);
+    }
+
+    /**
+     * Sends one multi-block update for all re-hides instead of one packet per block.
+     * A large base leaving the reveal radius used to cost tens of main-thread packet
+     * calls; markers are only cleared after a successful send so a failed batch retries.
+     */
+    private void flushFakeBatch(ViewerSession viewer, Map<Position, BlockData> changes,
+                                List<Long> positions) {
+        if (changes.isEmpty()) {
+            return;
+        }
+        try {
+            viewer.player().sendMultiBlockChange(changes);
+            for (long pos : positions) {
                 blockVisibility.markHidden(viewer.playerId(), pos);
-                sendFake(viewer.player(), world, pos, settings);
                 metrics.recordBlockRehidden();
             }
+        } catch (RuntimeException ex) {
+            metrics.recordInternalError();
+            if (plugin.config().debug().verboseErrors()) {
+                plugin.getLogger().log(Level.WARNING, "Failed to batch re-hide protected blocks", ex);
+            }
+        } finally {
+            changes.clear();
+            positions.clear();
         }
     }
 
@@ -385,40 +431,34 @@ public final class BlockShield {
         state.reset();
     }
 
-    private void rebuildCandidates(ViewerSession viewer, ViewerState state, WorldSettings settings) {
-        World world = viewer.player().getWorld();
+    private void rebuildCandidates(ViewerSession viewer, ViewerState state, WorldSettings settings,
+                                   TimeBudget budget) {
         long worldId = viewer.worldId();
         int radius = Math.max(1, (int) Math.ceil(settings.blockProtection().revealDistance() / 16.0));
         int centerX = viewer.blockX() >> 4;
         int centerZ = viewer.blockZ() >> 4;
-        long[] buffer = new long[64];
-        int size = 0;
+        List<CandidatePlan.Chunk> chunks = new ArrayList<>();
+        outer:
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
+                if (budget.expired()) {
+                    state.forceDirty = true;
+                    break outer;
+                }
                 HiddenBlockIndex.ChunkView view = index.chunkView(worldId, centerX + dx, centerZ + dz);
                 if (view == null || view.size() == 0) {
                     continue;
                 }
-                long[] positions = view.positions();
-                if (size + positions.length > MAX_CANDIDATES_PER_SCAN) {
-                    continue;
-                }
-                if (size + positions.length > buffer.length) {
-                    int newSize = Math.max(buffer.length * 2, size + positions.length);
-                    newSize = Math.min(newSize, MAX_CANDIDATES_PER_SCAN);
-                    long[] grown = new long[newSize];
-                    System.arraycopy(buffer, 0, grown, 0, size);
-                    buffer = grown;
-                }
-                System.arraycopy(positions, 0, buffer, size, positions.length);
-                size += positions.length;
+                chunks.add(new CandidatePlan.Chunk(centerX + dx, centerZ + dz, view.positions()));
             }
         }
-        long[] candidates = new long[size];
-        System.arraycopy(buffer, 0, candidates, 0, size);
+        // Fair selection: every chunk gets a quota before any chunk can consume the
+        // whole 2,048-position budget. Previously a dense base permanently starved the
+        // chunks at the end of the scan order, so their containers stayed stone.
+        long[] candidates = CandidatePlan.select(chunks, centerX, centerZ, MAX_CANDIDATES_PER_SCAN);
         state.candidates = candidates;
         state.candidateCursor = 0;
-        state.hiddenCandidates = size;
+        state.hiddenCandidates = candidates.length;
     }
 
     private void evaluateCandidates(ViewerSession viewer, ViewerState state, WorldSettings settings,
@@ -435,7 +475,7 @@ public final class BlockShield {
         // information has not arrived yet and a block-change packet would be ignored.
         Player player = viewer.player();
         while (cursor < candidates.length && checks < maxChecks) {
-            if ((checks & 15) == 0 && budget.expired()) {
+            if (budget.expired()) {
                 state.candidateCursor = cursor;
                 return;
             }
@@ -519,18 +559,7 @@ public final class BlockShield {
         }
     }
 
-    private void sendFake(Player player, World world, long pos, WorldSettings settings) {
-        long worldId = dev.audismp.aegishider.core.WorldKeys.idOf(world);
-        int y = BlockPosUtil.decodeY(pos);
-        Material material = settings.yShield().masksBlock(player.getEyeLocation().getY(), y)
-                ? settings.yShield().filler()
-                : plugin.hiddenBlockIndex().filler(worldId, pos,
-                settings.blockProtection().replaceWith());
-        BlockData filler = fillerFor(material);
-        int x = BlockPosUtil.decodeX(pos);
-        int z = BlockPosUtil.decodeZ(pos);
-        player.sendBlockChange(new Location(world, x, y, z), filler);
-    }
+
 
     public BlockData fillerFor(WorldSettings settings) {
         return fillerFor(settings.blockProtection().replaceWith());

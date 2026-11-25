@@ -9,6 +9,7 @@ import dev.audismp.aegishider.config.WorldSettings.EntityHeightShield;
 import dev.audismp.aegishider.config.WorldSettings.ItemProtection;
 import dev.audismp.aegishider.util.MaterialSets;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
@@ -30,6 +31,63 @@ public final class ConfigLoader {
     private ConfigLoader() {
     }
 
+    /**
+     * Built-in entity defaults, used when no world section/item list is configured.
+     * They intentionally include hostile mobs: an empty config must not silently
+     * downgrade entity protection to dropped items only. Every other living type
+     * (animals, villagers, golems...) is covered by {@code hide-all-living-entities},
+     * which defaults to true; servers that want animals visible can opt out.
+     */
+    private static final Set<EntityType> BUILTIN_ITEM_TYPES = Set.of(
+            EntityType.ITEM,
+            EntityType.ITEM_FRAME,
+            EntityType.GLOW_ITEM_FRAME,
+            EntityType.ARMOR_STAND,
+            EntityType.CHEST_MINECART,
+            EntityType.HOPPER_MINECART,
+            EntityType.FURNACE_MINECART,
+            EntityType.TNT_MINECART,
+            EntityType.ZOMBIE,
+            EntityType.ZOMBIE_VILLAGER,
+            EntityType.HUSK,
+            EntityType.DROWNED,
+            EntityType.SKELETON,
+            EntityType.STRAY,
+            EntityType.BOGGED,
+            EntityType.WITHER_SKELETON,
+            EntityType.CREEPER,
+            EntityType.SPIDER,
+            EntityType.CAVE_SPIDER,
+            EntityType.ENDERMAN,
+            EntityType.ENDERMITE,
+            EntityType.SILVERFISH,
+            EntityType.WITCH,
+            EntityType.PILLAGER,
+            EntityType.VINDICATOR,
+            EntityType.EVOKER,
+            EntityType.ILLUSIONER,
+            EntityType.RAVAGER,
+            EntityType.VEX,
+            EntityType.ZOMBIFIED_PIGLIN,
+            EntityType.PIGLIN,
+            EntityType.PIGLIN_BRUTE,
+            EntityType.HOGLIN,
+            EntityType.ZOGLIN,
+            EntityType.BLAZE,
+            EntityType.GHAST,
+            EntityType.MAGMA_CUBE,
+            EntityType.SLIME,
+            EntityType.PHANTOM,
+            EntityType.SHULKER,
+            EntityType.GUARDIAN,
+            EntityType.ELDER_GUARDIAN,
+            EntityType.WARDEN,
+            EntityType.WITHER,
+            EntityType.ENDER_DRAGON,
+            EntityType.IRON_GOLEM,
+            EntityType.BREEZE
+    );
+
     static final String[] BUILTIN_HIDDEN_BLOCKS = {
             "CHEST", "TRAPPED_CHEST", "BARREL", "ENDER_CHEST",
             "ENCHANTING_TABLE", "BEACON",
@@ -50,6 +108,16 @@ public final class ConfigLoader {
     };
 
     public static AegishiderConfig load(FileConfiguration cfg, long revision) {
+        return load(cfg, revision, Map.of());
+    }
+
+    /**
+     * @param environments loaded world name -> dimension. Used only to choose fair
+     *                     per-dimension Y-shield defaults: Nether/End terrain sits below
+     *                     the overworld cut line, so a full-volume mask there is wrong.
+     */
+    public static AegishiderConfig load(FileConfiguration cfg, long revision,
+                                        Map<String, World.Environment> environments) {
         List<String> warnings = new ArrayList<>();
 
         boolean failClosed = cfg.getBoolean("security.fail-closed", true);
@@ -79,7 +147,7 @@ public final class ConfigLoader {
         }
 
         WorldSettings builtinDefault = parseWorld("default",
-                cfg.getConfigurationSection("worlds.default"), warnings, true);
+                cfg.getConfigurationSection("worlds.default"), warnings, true, null);
 
         Map<String, WorldSettings> worlds = new LinkedHashMap<>();
         ConfigurationSection worldsSection = cfg.getConfigurationSection("worlds");
@@ -93,7 +161,22 @@ public final class ConfigLoader {
                     warnings.add("World '" + worldName + "': configuration is not a section; ignored");
                     continue;
                 }
-                worlds.put(worldName, parseWorld(worldName, section, warnings, false));
+                World.Environment environment = environments == null
+                        ? null : environments.get(worldName);
+                worlds.put(worldName, parseWorld(worldName, section, warnings, false, environment));
+            }
+        }
+        // Worlds that are loaded but have no explicit section still need the dimension
+        // default. The "default" section is overworld-shaped, so copying it verbatim to
+        // the Nether/End would replace their lava sea / void with stone.
+        if (environments != null) {
+            for (Map.Entry<String, World.Environment> entry : environments.entrySet()) {
+                if (worlds.containsKey(entry.getKey()) || !isNonOverworld(entry.getValue())) {
+                    continue;
+                }
+                worlds.put(entry.getKey(), builtinDefault.withYShield(WorldSettings.YShield.disabled()));
+                warnings.add("World '" + entry.getKey() + "': " + entry.getValue()
+                        + " defaults to y-shield disabled; enable it explicitly to mask that dimension");
             }
         }
         if (worlds.isEmpty() && worldsSection == null) {
@@ -124,7 +207,8 @@ public final class ConfigLoader {
     }
 
     private static WorldSettings parseWorld(String worldName, ConfigurationSection section,
-                                            List<String> warnings, boolean builtinDefault) {
+                                            List<String> warnings, boolean builtinDefault,
+                                            World.Environment environment) {
         String bypassPermission = "aegishider.bypass";
         if (section != null) {
             bypassPermission = section.getString("bypass-permission", "aegishider.bypass");
@@ -137,11 +221,14 @@ public final class ConfigLoader {
         // The "default" section of the config is itself the built-in fallback. When it is
         // absent, every world gets the same secure built-in block/item policy.
         if (section == null) {
+            WorldSettings.YShield defaultYShield = isNonOverworld(environment)
+                    ? WorldSettings.YShield.disabled()
+                    : new WorldSettings.YShield(true, 40, 0, Material.STONE);
             return builtinDefault
                     ? new WorldSettings(true, bypassPermission, builtinBlockProtection(warnings, worldName),
                     builtinItemProtection(warnings, worldName), WorldSettings.PlayerProtection.disabled(),
                     new EntityHeightShield(true, 16.0, 50.0, 12.0),
-                    new WorldSettings.YShield(true, 40, 0, Material.STONE),
+                    defaultYShield,
                     WorldSettings.TunnelShield.disabled())
                     : WorldSettings.disabled(bypassPermission);
         }
@@ -243,33 +330,45 @@ public final class ConfigLoader {
         // ── Item / entity protection ───────────────────────────────────────
         ConfigurationSection itemSection = section.getConfigurationSection("item-protection");
         boolean itemsEnabled = itemSection == null || itemSection.getBoolean("enabled", true);
+        // Every living mob (monsters AND animals/villagers) uses the same distance/Y/
+        // occlusion policy by default. ItemShield keeps a hard 3-block interaction floor,
+        // so farms and trading halls still have working hitboxes. Servers that prefer
+        // visible animals can opt out with hide-all-living-entities: false; monsters
+        // remain covered by the explicit list above in that case.
         boolean protectAllLiving = itemSection == null
                 || itemSection.getBoolean("hide-all-living-entities", true);
         List<String> entityTypeNames = itemSection != null
                 ? itemSection.getStringList("hidden-entity-types")
-                : List.of("ITEM");
-        if (entityTypeNames.isEmpty()) {
-            entityTypeNames = List.of("ITEM");
-        }
+                : List.of();
         Set<EntityType> hiddenTypes = EnumSet.noneOf(EntityType.class);
-        for (String raw : entityTypeNames) {
-            if (raw == null || raw.isBlank()) {
-                continue;
+        if (entityTypeNames.isEmpty()) {
+            // An absent item section, or one without a list, must still hide hostile
+            // mobs. Falling back to ITEM alone was a silent protection downgrade.
+            hiddenTypes.addAll(BUILTIN_ITEM_TYPES);
+            if (itemSection != null) {
+                warnings.add("World '" + worldName + "': item-protection.hidden-entity-types is empty; "
+                        + "using built-in item/hostile-mob defaults plus all-living protection");
             }
-            try {
-                EntityType type = EntityType.valueOf(raw.trim().toUpperCase());
-                if (type == EntityType.PLAYER) {
-                    warnings.add("World '" + worldName + "': PLAYER entity hiding is not supported "
-                            + "(breaks teams/combat); entry ignored");
+        } else {
+            for (String raw : entityTypeNames) {
+                if (raw == null || raw.isBlank()) {
                     continue;
                 }
-                if (type == EntityType.UNKNOWN) {
-                    warnings.add("World '" + worldName + "': ignored unknown entity type '" + raw + "'");
-                    continue;
+                try {
+                    EntityType type = EntityType.valueOf(raw.trim().toUpperCase());
+                    if (type == EntityType.PLAYER) {
+                        warnings.add("World '" + worldName + "': PLAYER entity hiding is not supported "
+                                + "(breaks teams/combat); entry ignored");
+                        continue;
+                    }
+                    if (type == EntityType.UNKNOWN) {
+                        warnings.add("World '" + worldName + "': ignored unknown entity type '" + raw + "'");
+                        continue;
+                    }
+                    hiddenTypes.add(type);
+                } catch (IllegalArgumentException ex) {
+                    warnings.add("World '" + worldName + "': unknown entity type '" + raw + "' ignored");
                 }
-                hiddenTypes.add(type);
-            } catch (IllegalArgumentException ex) {
-                warnings.add("World '" + worldName + "': unknown entity type '" + raw + "' ignored");
             }
         }
         if (hiddenTypes.isEmpty() && !protectAllLiving) {
@@ -300,10 +399,10 @@ public final class ConfigLoader {
         // a solid wall is hidden; a pen behind a fence, glass or bars stays visible. Set 0
         // for strict at all ranges or 4 for the old close-range always-visible behaviour.
         double mobMeleeVisibleDistance = itemSection != null
-                ? clampDouble(itemSection.getDouble("mob-melee-visible-distance", 1.0),
+                ? clampDouble(itemSection.getDouble("mob-melee-visible-distance", 3.0),
                 0.0, 4.0, warnings, worldName,
                 "item-protection.mob-melee-visible-distance")
-                : 1.0;
+                : 3.0;
         ItemProtection itemProtection = new ItemProtection(itemsEnabled, WorldSettings.copyEntityTypes(hiddenTypes),
                 itemDistance, itemFov, ownerGrace, updateInterval, occlusionOnlyMonsters,
                 monsterMaxDistance, mobMeleeVisibleDistance, protectAllLiving);
@@ -363,7 +462,18 @@ public final class ConfigLoader {
         // block below the configured line, including cave rooms whose containers were
         // already replaced. Servers that need the old distant-only behaviour can set
         // real-chunk-radius > 0; 0 masks every chunk in view.
-        boolean yEnabled = ySection == null || ySection.getBoolean("enabled", true);
+        boolean yEnabled;
+        if (ySection != null && ySection.contains("enabled")) {
+            yEnabled = ySection.getBoolean("enabled", true);
+        } else {
+            // Nether/End are disabled by default: their terrain (lava sea, void) sits
+            // below the overworld cut line, and masking it as stone breaks movement.
+            yEnabled = !isNonOverworld(environment);
+            if (!yEnabled) {
+                warnings.add("World '" + worldName + "': y-shield defaults to disabled in "
+                        + environment + " (enable it explicitly if this dimension needs it)");
+            }
+        }
         int yBelow = ySection != null
                 ? clampInt(ySection.getInt("hide-below-y", 40), -256, 512,
                 warnings, worldName, "y-shield.hide-below-y")
@@ -411,9 +521,12 @@ public final class ConfigLoader {
     }
 
     private static ItemProtection builtinItemProtection(List<String> warnings, String worldName) {
-        Set<EntityType> types = EnumSet.of(EntityType.ITEM);
-        return new ItemProtection(true, WorldSettings.copyEntityTypes(types), 24.0, 360.0, true, 2,
-                true, 96.0, 1.0, true);
+        return new ItemProtection(true, WorldSettings.copyEntityTypes(BUILTIN_ITEM_TYPES),
+                24.0, 360.0, true, 2, true, 96.0, 3.0, true);
+    }
+
+    private static boolean isNonOverworld(World.Environment environment) {
+        return environment == World.Environment.NETHER || environment == World.Environment.THE_END;
     }
 
     private static Material parseMaterial(String raw, Material fallback, List<String> warnings,
