@@ -1,13 +1,16 @@
-# Aegishider 4.0.4
+# Aegishider 4.0.5
 
 Server-side **anti-ESP / anti-base-ESP / anti-storage-ESP** for **Paper 1.21.1 – 26.3**
 (Java 21; Paper 26.x runs on Java 25). Protected data is removed from outgoing packets
 before a client can receive it, and item/entity visibility uses Paper's native per-player
 visibility API.
 
-Security model: **fail-closed for the packet/visibility path**. Errors, unknown worlds,
-stale state, timeouts, missing PacketEvents and queue pressure keep protected data hidden.
-The licence is a separate product gate (see below).
+Security model: **fail-closed on every path the plugin controls**. Errors, unknown worlds,
+stale state, timeouts and queue pressure keep protected data hidden. The packet layer needs
+PacketEvents 2.14.0+: without it the plugin still loads, but the packet path is reported
+**INACTIVE** in `/aegishider status` and the plugin does not claim fail-closed for hides that
+only the packet layer can perform — install PacketEvents and restart to activate it. The
+licence is a separate product gate (see below).
 
 ---
 
@@ -16,13 +19,13 @@ The licence is a separate product gate (see below).
 The shipped `platform.yml` uses `enforcement: enforce`. The plugin loads and exposes its
 commands, but **protection stays disabled until this server is activated on the platform**:
 
-1. Put the matching `Aegishider-4.0.4-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
+1. Put the matching `Aegishider-4.0.5-mc<version>.jar` and **PacketEvents 2.14.0+** in `plugins/`.
 2. Start the server. Protection is intentionally inactive.
 3. Run `/aegishider license link`; the server registers an Ed25519 installation identity
    and prints a 16-character activation code plus the portal URL.
 4. Sign in (free account) at the **Aegishider Control Platform** — website alias
    `https://aegishider-platform.audijuju1.workers.dev` (the API base is
-   `https://basehider-platform.audijuju1.workers.dev`) — open **การเปิดใช้งาน** and enter the code.
+   `https://aegishider-platform.audijuju1.workers.dev`) — open **การเปิดใช้งาน** and enter the code.
 5. Run `/aegishider license refresh`, then `/aegishider status`; `protection` must be `ACTIVE`.
 
 The platform is free. Leases are Ed25519-signed, refresh in the background and use a 72-hour
@@ -51,9 +54,42 @@ without it the plugin still protects entities/items but block protection is repo
 
 `config.yml` is never rewritten on upgrade. Add the new base blocks from the shipped
 `hidden-blocks` list (pistons, bookshelf, workstations, anvils, cauldrons, redstone),
-set `y-shield.enabled: true` with `real-chunk-radius: 0`, and add
-`item-protection.mob-melee-visible-distance: 1.0`. Alternatively, back up your config
-and delete it once to let 4.0.4 write the new secure defaults.
+set `y-shield.enabled: true` with `real-chunk-radius: 0`, and set
+`item-protection.mob-melee-visible-distance: 3.0`. If your existing config contains
+`hide-all-living-entities: false`, that explicit opt-out is kept; remove it or set it to
+`true` to hide animals and villagers like the new default. Alternatively, back up your
+config and delete it once to let 4.0.5 write the new secure defaults.
+
+## 4.0.5 performance hardening
+
+- **Bounded entity work.** Periodic safety sweeps are queued and processed at most
+  32 entities per tick instead of hiding a whole chunk synchronously. Position polls are
+  capped at 256/tick, evaluations at 256/tick, and the time budget is checked every four
+  evaluations instead of every 16-32.
+- **Bounded block work.** Reveal checks are capped at 128/tick (24 during the join ramp),
+  the candidate rebuild checks the tick budget per chunk, and out-of-range re-hides check
+  the budget every 16 markers.
+- **Bounded packet maintenance.** The packet-detected block bridge drains at most 512
+  positions per tick, pending entity registrations 64, dropped-chunk resends 32, and
+  Y-shield chunk refreshes 4 per tick.
+- The visibility policy and fail-closed behaviour are unchanged. Work is deferred, never
+  skipped in the unsafe direction; a deferred item/block stays hidden.
+
+## 4.0.5 entity visibility defaults
+
+- **Monsters and animals are hidden by default.** `item-protection.hide-all-living-entities`
+  now defaults to `true`. Cows, pigs, sheep, horses, wolves, villagers, golems and allays
+  use the same distance/Y/occlusion policy as hostile mobs; a config with no `worlds`
+  section gets this automatically, and an explicit `hidden-entity-types` list does not
+  turn it off.
+- **Hard 3-block interaction floor.** A living entity within 3 blocks on the viewer's own
+  visible floor is always shown, even through a wall, so farms, pens and trading halls keep
+  working. `item-protection.mob-melee-visible-distance` (default 3.0) is an additional
+  close-range allowance up to 4 blocks; it cannot lower the built-in floor.
+- **Distance and Y still apply.** Living entities are never revealed beyond
+  `monster-max-distance` (96), below `y-shield.hide-below-y` for a masked viewer, or across
+  the `entity-height-shield` floor band. Set `hide-all-living-entities: false` to keep
+  animals and villagers visible; hostile mobs remain covered by the explicit list.
 
 ## 4.0.4 base-block and Y-shield changes
 
@@ -84,12 +120,13 @@ and delete it once to let 4.0.4 write the new secure defaults.
 - **`BEACON` and `BOOKSHELF` are back in the default hidden set.** Servers with public
   spawn landmarks can remove them from `hidden-blocks`; they remain visible within the
   normal 24-block reveal radius and with clear line of sight regardless.
-- **Living-mob wall check (light-medium).** Monsters and animals now require a real
-  line of sight everywhere except inside a 1-block touching radius
-  (`item-protection.mob-melee-visible-distance`, 0-4). A cow or zombie directly behind a
-  solid wall is hidden even at 2-4 blocks, while a fence, glass pane, bars, or a head
-  peeking over a ledge still shows it. The check samples the body centre and the head;
-  there is no extra raycast tax for far mobs beyond the existing occlusion pass.
+- **Living-mob wall check (light-medium).** Monsters, animals and villagers require a
+  real line of sight beyond the built-in 3-block interaction floor. A cow or zombie
+  directly behind a solid wall is hidden beyond 3 blocks, while a fence, glass pane, bars,
+  or a head peeking over a ledge still shows it. `item-protection.mob-melee-visible-distance`
+  (default 3.0, range 0-4) is an additional close-range allowance and cannot reduce the
+  hard floor. The check samples the body centre and the head; there is no extra raycast
+  tax for far mobs beyond the existing occlusion pass.
 
 ## 4.0.0 behaviour changes
 
@@ -134,7 +171,9 @@ and delete it once to let 4.0.4 write the new secure defaults.
 
 ## What it protects
 
-- Dropped items/entities, optionally item frames, armour stands and storage minecarts.
+- Dropped items, item frames, armour stands, storage minecarts and all living entities
+  (monsters, animals, villagers, golems...). `hide-all-living-entities` defaults to true;
+  their visibility follows distance/Y/occlusion with the hard 3-block interaction floor.
 - Configured tile-entity blocks (chests, barrels, shulkers, hoppers, furnaces, dispensers,
   spawners, trial spawners, vaults, ...) discovered from real chunk data.
 - Tunnel / dug-hole shield (defaults off): player-mined blocks beyond 28 blocks are shown
@@ -166,8 +205,10 @@ and item stacks behave like vanilla. Hidden items can still be picked up.
   storage room cannot starve a dropped item next to the player.
 - **Player shield gets 15% of the tick budget** (was 7.5%) so a 50-player sweep does not
   fall several ticks behind.
-- Monsters are occlusion-only, player distance hiding is off, and Tunnel Shield is off by
-  default. Existing world sections can override any of these per world.
+- Living mobs (monsters, animals and villagers) are occlusion-only with the hard 3-block
+  interaction floor; player distance hiding is off and Tunnel Shield is off by default.
+  Existing world sections can override any of these per world, including
+  `hide-all-living-entities: false` to keep animals/villagers visible.
 
 ## Commands / permissions
 
@@ -249,13 +290,13 @@ pipeline additionally needs its venv and an Ed25519 release key outside the repo
 
 ```bash
 cd aegishider-integrated
-mvn -B test                                  # 152 tests
+mvn -B test                                  # 179 tests
 mvn -B -Pmc1211 -Dmaven.test.skip=true package
 
 # local hardened build: all six profiles + string encryption + ProGuard + SHA256SUMS
 JAVA21_HOME=... JAVA25_HOME=... MVN=... PROGUARD_JAR=... ASM_JAR=... \
   STRINGCRYPT_CLASSES=... bash ../scripts/harden-local.sh
-# artifacts: dist/obf/Aegishider-4.0.4-*.jar + dist/obf/SHA256SUMS
+# artifacts: dist/obf/Aegishider-4.0.5-*.jar + dist/obf/SHA256SUMS
 # or run the whole matrix + string encryption + ProGuard + manifests:
 cd ..
 SENTINEL_PY=/d/sentinel-shield/.venv/Scripts/python.exe bash scripts/release.sh
@@ -267,7 +308,7 @@ obfuscated; signed manifest sidecars only when using the Sentinel pipeline) and
 
 ## Verification snapshot
 
-- 152 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
+- 179 unit tests, 0 failures (1 POSIX-only test skipped on Windows).
 - A–F packet harness PASS on Paper 1.21.4 (plain and ProGuard-obfuscated jar); the same
   harness detects A/C/D/E/F leaks in the legacy BaseHider 3.0.0 baseline.
 - 4.0.4 live verification: Paper 1.21.11 (Java 21) and Paper 26.3 (Java 25) with

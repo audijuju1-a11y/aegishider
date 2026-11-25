@@ -7,11 +7,13 @@ import dev.audismp.aegishider.config.ConfigLoader;
 import dev.audismp.aegishider.config.WorldSettings;
 import dev.audismp.aegishider.core.BlockVisibility;
 import dev.audismp.aegishider.core.BoundedTaskExecutor;
+import dev.audismp.aegishider.core.ChunkRefreshPlan;
 import dev.audismp.aegishider.core.RaycastBudget;
 import dev.audismp.aegishider.core.SessionRegistry;
 import dev.audismp.aegishider.core.TimeBudget;
 import dev.audismp.aegishider.core.ViewerSession;
 import dev.audismp.aegishider.core.WorldKeys;
+import dev.audismp.aegishider.core.YShieldRefreshQueue;
 import dev.audismp.aegishider.detection.MiningAnalytics;
 import dev.audismp.aegishider.detection.RaidAnalytics;
 import dev.audismp.aegishider.index.BlockDiscovery;
@@ -46,7 +48,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayDeque;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -78,6 +81,17 @@ import java.util.logging.Level;
 public final class AegishiderPlugin extends JavaPlugin {
 
     private static AegishiderPlugin instance;
+    private static final ThreadMXBean THREAD_BEAN = ManagementFactory.getThreadMXBean();
+
+    static {
+        try {
+            if (THREAD_BEAN.isThreadCpuTimeSupported() && !THREAD_BEAN.isThreadCpuTimeEnabled()) {
+                THREAD_BEAN.setThreadCpuTimeEnabled(true);
+            }
+        } catch (RuntimeException ignored) {
+            // CPU timing is diagnostic only; wall time remains the fallback.
+        }
+    }
 
     private volatile AegishiderConfig config;
     private Metrics metrics;
@@ -116,12 +130,13 @@ public final class AegishiderPlugin extends JavaPlugin {
      * chunks are sent again; ascending needs the opposite. Spread over ticks to avoid a
      * teleport-time burst of the whole view distance.
      */
-    private final ArrayDeque<YShieldRefresh> yShieldRefreshes = new ArrayDeque<>();
-    private static final int Y_SHIELD_REFRESH_PER_TICK = 12;
+    private static final int Y_SHIELD_REFRESH_PER_TICK = 4;
     private static final int Y_SHIELD_REFRESH_MAX_QUEUE = 64;
 
-    private record YShieldRefresh(UUID playerId, long worldId, int centerChunkX, int centerChunkZ,
-                                  int radius, int index, int total) {
+    private final YShieldRefreshQueue<ChunkRefreshJob> yShieldRefreshes =
+            new YShieldRefreshQueue<>(Y_SHIELD_REFRESH_MAX_QUEUE);
+
+    private record ChunkRefreshJob(long worldId, List<ChunkRefreshPlan.Step> steps) {
     }
 
     @Override
@@ -373,6 +388,7 @@ public final class AegishiderPlugin extends JavaPlugin {
         AegishiderConfig current = config;
         tickCounter++;
         long startNanos = System.nanoTime();
+        long cpuStartNanos = cpuNanos();
         try {
             // Second, independent licence gate: PlatformService also checks every five
             // minutes, but this surface runs every five seconds so a lease that expires
@@ -428,14 +444,17 @@ public final class AegishiderPlugin extends JavaPlugin {
             getLogger().log(Level.SEVERE,
                     "Security tick failed (protected data remains hidden)", throwable);
         } finally {
-            long elapsed = System.nanoTime() - startNanos;
+            long wallElapsed = System.nanoTime() - startNanos;
+            long cpuElapsed = cpuNanos() - cpuStartNanos;
+            long measuredElapsed = cpuElapsed > 0 ? cpuElapsed : wallElapsed;
             long budgetNanos = (long) (current.mainThreadBudgetMs() * 1_000_000.0);
-            metrics.recordTick(elapsed, budgetNanos);
-            if (elapsed > budgetNanos * 2 && current.debug().logBudgetOverruns()) {
+            metrics.recordTick(measuredElapsed, budgetNanos);
+            if (measuredElapsed > budgetNanos * 2 && current.debug().logBudgetOverruns()) {
                 long now = System.currentTimeMillis();
                 if (now - lastBudgetWarnMs > 10_000) {
                     lastBudgetWarnMs = now;
-                    getLogger().warning("Aegishider tick took " + (elapsed / 1000) + " us (budget "
+                    getLogger().warning("Aegishider CPU work took " + (measuredElapsed / 1000)
+                            + " us (wall " + (wallElapsed / 1000) + " us, budget "
                             + (budgetNanos / 1000) + " us); visibility work is being deferred");
                 }
             }
@@ -466,8 +485,9 @@ public final class AegishiderPlugin extends JavaPlugin {
                 blockShield.onViewerBypassChanged(session);
                 if (!bypass) {
                     // The bypass client may be holding unsanitized chunks from before the
-                    // permission change. Re-send them through the normal filters.
-                    queueYShieldRefresh(player);
+                    // permission change. Re-send every chunk, including shared ones: a
+                    // stale real chunk is a leak, and this path is rare (permission loss).
+                    queueYShieldRefresh(player, true);
                 }
             }
         }
@@ -495,42 +515,47 @@ public final class AegishiderPlugin extends JavaPlugin {
 
     /** Queues a full view-distance chunk re-send for one viewer after a Y-shield crossing. */
     public void queueYShieldRefresh(Player player) {
+        queueYShieldRefresh(player, false);
+    }
+
+    /**
+     * @param forceShared also refresh chunks that have other viewers. Used when a bypass
+     *                    is revoked: those clients may still hold unsanitized chunks.
+     */
+    public void queueYShieldRefresh(Player player, boolean forceShared) {
         if (player == null || !player.isOnline()) {
             return;
         }
         UUID playerId = player.getUniqueId();
-        // A new crossing supersedes any partially processed refresh for the same viewer.
-        yShieldRefreshes.removeIf(refresh -> refresh.playerId().equals(playerId));
-        while (yShieldRefreshes.size() >= Y_SHIELD_REFRESH_MAX_QUEUE) {
-            yShieldRefreshes.pollFirst();
-        }
         int radius = Math.max(1, Math.min(getServer().getViewDistance(), 12));
-        int width = radius * 2 + 1;
         Location location = player.getLocation();
-        yShieldRefreshes.addLast(new YShieldRefresh(playerId, WorldKeys.idOf(player.getWorld()),
-                location.getBlockX() >> 4, location.getBlockZ() >> 4, radius, 0,
-                width * width));
+        List<ChunkRefreshPlan.Step> steps = ChunkRefreshPlan.centerOut(
+                location.getBlockX() >> 4, location.getBlockZ() >> 4, radius);
+        // The queue keeps a forced bypass-revocation job alive when a normal Y-crossing
+        // arrives; a plain removeIf(playerId) would silently weaken that re-send.
+        yShieldRefreshes.enqueue(playerId, forceShared,
+                new ChunkRefreshJob(WorldKeys.idOf(player.getWorld()), steps));
     }
 
     private void processYShieldRefreshes() {
         for (int processed = 0; processed < Y_SHIELD_REFRESH_PER_TICK; processed++) {
-            YShieldRefresh refresh = yShieldRefreshes.pollFirst();
+            YShieldRefreshQueue.Job<ChunkRefreshJob> refresh = yShieldRefreshes.poll();
             if (refresh == null) {
                 return;
             }
             Player player = getServer().getPlayer(refresh.playerId());
+            ChunkRefreshJob job = refresh.payload();
             if (player == null || !player.isOnline()
-                    || WorldKeys.idOf(player.getWorld()) != refresh.worldId()) {
+                    || WorldKeys.idOf(player.getWorld()) != job.worldId()) {
                 continue;
             }
-            int width = refresh.radius() * 2 + 1;
-            int dx = refresh.index() % width - refresh.radius();
-            int dz = refresh.index() / width - refresh.radius();
-            int chunkX = refresh.centerChunkX() + dx;
-            int chunkZ = refresh.centerChunkZ() + dz;
+            if (refresh.index() >= job.steps().size()) {
+                continue;
+            }
+            ChunkRefreshPlan.Step step = job.steps().get(refresh.index());
             try {
-                if (player.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-                    player.getWorld().refreshChunk(chunkX, chunkZ);
+                if (player.getWorld().isChunkLoaded(step.chunkX(), step.chunkZ())) {
+                    refreshChunkForViewer(player, step, refresh.forceShared());
                 }
             } catch (RuntimeException exception) {
                 // A failed refresh keeps the client's previous (masked) copy, which is the
@@ -539,11 +564,36 @@ public final class AegishiderPlugin extends JavaPlugin {
                         + exception.getMessage());
             }
             int next = refresh.index() + 1;
-            if (next < refresh.total()) {
-                yShieldRefreshes.addLast(new YShieldRefresh(refresh.playerId(),
-                        refresh.worldId(), refresh.centerChunkX(), refresh.centerChunkZ(),
-                        refresh.radius(), next, refresh.total()));
+            if (next < job.steps().size()) {
+                yShieldRefreshes.requeue(refresh.withIndex(next));
             }
+        }
+    }
+
+    /**
+     * Resends one chunk for the crossing player where the API allows it. The player's
+     * own 3x3 area is collision-critical and is refreshed even when shared; every farther
+     * chunk is refreshed only when this player is its sole viewer, so one player's Y
+     * crossing no longer blasts the whole view distance at every nearby player.
+     */
+    private void refreshChunkForViewer(Player viewer, ChunkRefreshPlan.Step step,
+                                       boolean forceShared) {
+        World world = viewer.getWorld();
+        long chunkKey = Chunk.getChunkKey(step.chunkX(), step.chunkZ());
+        if (!viewer.isChunkSent(chunkKey)) {
+            return;
+        }
+        int viewers = 0;
+        for (Player other : world.getPlayers()) {
+            if (other.isChunkSent(chunkKey)) {
+                viewers++;
+                if (viewers > 1) {
+                    break;
+                }
+            }
+        }
+        if (forceShared || viewers <= 1 || step.distanceSq() <= 4) {
+            world.refreshChunk(step.chunkX(), step.chunkZ());
         }
     }
 
@@ -788,7 +838,11 @@ public final class AegishiderPlugin extends JavaPlugin {
 
     void loadConfig(long revision) {
         reloadConfig();
-        AegishiderConfig loaded = ConfigLoader.load(getConfig(), revision);
+        Map<String, World.Environment> environments = new java.util.HashMap<>();
+        for (World world : getServer().getWorlds()) {
+            environments.put(world.getName(), world.getEnvironment());
+        }
+        AegishiderConfig loaded = ConfigLoader.load(getConfig(), revision, environments);
         this.config = loaded;
         for (String warning : loaded.warnings()) {
             getLogger().warning("Config: " + warning);
@@ -862,7 +916,7 @@ public final class AegishiderPlugin extends JavaPlugin {
         // already-loaded chunks must be registered + hidden immediately, not only when the
         // chunk happens to be rescanned later.
         for (Player player : getServer().getOnlinePlayers()) {
-            itemShield.sweepChunkRadius(player, 8);
+            itemShield.sweepChunkRadius(player, 4);
         }
 
         // Re-discover every loaded chunk (adds newly configured blocks, removes stale ones);
@@ -1049,4 +1103,12 @@ public final class AegishiderPlugin extends JavaPlugin {
     public GatewayWatchdog gatewayWatchdog() { return gatewayWatchdog; }
 
     public DiagnosticsExporter diagnosticsExporter() { return diagnosticsExporter; }
+    private static long cpuNanos() {
+        try {
+            return Math.max(0L, THREAD_BEAN.getCurrentThreadCpuTime());
+        } catch (RuntimeException ignored) {
+            return 0L;
+        }
+    }
+
 }

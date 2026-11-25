@@ -33,6 +33,21 @@ class DetectedProtectedBlocksTest {
     }
 
     @Test
+    void boundedDrainLeavesRemainderForNextTick() {
+        DetectedProtectedBlocks bridge = new DetectedProtectedBlocks(32);
+        for (int i = 0; i < 20; i++) {
+            bridge.add(1L, i);
+        }
+        List<Map.Entry<Long, long[]>> first = bridge.drain(8);
+        long firstCount = first.stream().mapToInt(entry -> entry.getValue().length).sum();
+        assertEquals(8L, firstCount);
+        assertEquals(12, bridge.trackedPositions());
+        List<Map.Entry<Long, long[]>> second = bridge.drain(8);
+        assertEquals(8L, second.stream().mapToInt(entry -> entry.getValue().length).sum());
+        assertEquals(4, bridge.trackedPositions());
+    }
+
+    @Test
     void overflowIsCountedAndBounded() {
         DetectedProtectedBlocks bridge = new DetectedProtectedBlocks(2);
         bridge.add(1L, 1L);

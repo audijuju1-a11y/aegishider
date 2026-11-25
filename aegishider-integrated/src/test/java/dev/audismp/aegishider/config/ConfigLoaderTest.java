@@ -36,9 +36,11 @@ class ConfigLoaderTest {
         assertTrue(defaults.hiddenMaterials().contains(Material.CHEST));
         assertTrue(defaults.hiddenMaterials().contains(Material.SPAWNER));
         assertTrue(defaults.hiddenEntityTypes().contains(org.bukkit.entity.EntityType.ITEM));
-        assertTrue(defaults.itemProtection().protectAllLiving());
+        assertTrue(defaults.itemProtection().protectAllLiving(),
+                "every living type is covered by the default policy");
         assertTrue(defaults.itemProtection().isHiddenType(org.bukkit.entity.EntityType.COW));
-        assertEquals(1.0, defaults.itemProtection().mobMeleeVisibleDistance(), 1e-9);
+        assertTrue(defaults.itemProtection().isHiddenType(org.bukkit.entity.EntityType.VILLAGER));
+        assertEquals(3.0, defaults.itemProtection().mobMeleeVisibleDistance(), 1e-9);
         assertTrue(defaults.entityHeightShield().enabled());
         assertEquals(16.0, defaults.entityHeightShield().maxVerticalDistance(), 1e-9);
         assertEquals(50.0, defaults.entityHeightShield().undergroundY(), 1e-9);
@@ -388,9 +390,11 @@ class ConfigLoaderTest {
             WorldSettings settings = config.world("world");
             assertTrue(settings.playerProtection().enabled());
             assertFalse(settings.playerProtection().distanceHiding());
-            assertTrue(settings.itemProtection().protectAllLiving());
+            assertTrue(settings.itemProtection().protectAllLiving(),
+                    "shipped config must hide animals/villagers by default");
             assertTrue(settings.itemProtection().isHiddenType(org.bukkit.entity.EntityType.COW));
-            assertEquals(1.0, settings.itemProtection().mobMeleeVisibleDistance(), 1e-9);
+            assertTrue(settings.itemProtection().isHiddenType(org.bukkit.entity.EntityType.VILLAGER));
+            assertEquals(3.0, settings.itemProtection().mobMeleeVisibleDistance(), 1e-9);
             assertTrue(settings.entityHeightShield().enabled());
             assertEquals(16.0, settings.entityHeightShield().maxVerticalDistance(), 1e-9);
             assertEquals(50.0, settings.entityHeightShield().undergroundY(), 1e-9);

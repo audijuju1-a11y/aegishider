@@ -300,6 +300,9 @@ public final class PacketEventsGateway implements PacketGateway {
                     chunks.remove(key);
                     continue;
                 }
+                if (requested >= 32) {
+                    break;
+                }
                 try {
                     player.getWorld().refreshChunk(BlockPosUtil.chunkXOf(key), BlockPosUtil.chunkZOf(key));
                     requested++;
@@ -329,7 +332,7 @@ public final class PacketEventsGateway implements PacketGateway {
     public void drainDetectedBlockPositions() {
         // Runs on the main thread: register detected positions immediately (fail-closed) and
         // schedule a real discovery to reconcile/remove them if the blocks changed.
-        for (var entry : detectedProtectedBlocks.drain()) {
+        for (var entry : detectedProtectedBlocks.drain(512)) {
             long worldId = entry.getKey();
             long[] positions = entry.getValue();
             java.util.UUID worldUuid = WorldKeys.uuidOf(worldId);
@@ -349,7 +352,9 @@ public final class PacketEventsGateway implements PacketGateway {
     @Override
     public void drainPendingEntityRegistrations() {
         PendingEntityRegistration pending;
-        while ((pending = pendingEntityRegistrations.poll()) != null) {
+        int processed = 0;
+        while (processed < 64 && (pending = pendingEntityRegistrations.poll()) != null) {
+            processed++;
             org.bukkit.entity.Entity entity = plugin.getServer().getEntity(pending.uuid());
             if (entity == null || WorldKeys.idOf(entity.getWorld()) != pending.worldId()) {
                 continue;
@@ -719,7 +724,10 @@ public final class PacketEventsGateway implements PacketGateway {
             return;
         }
         WorldSettings.YShield yShield = info.yShield();
-        if (yShield.masksBlock(context.session().eyeY(), y)) {
+        // Air is a removal and must never be rewritten to the filler: doing so resurrects
+        // a mined block (ghost block) and makes the server look desynced. Tunnel Shield
+        // still gets its chance to mask air below, which is its documented behaviour.
+        if (yShield.masksBlockUpdate(context.session().eyeY(), y, stateId)) {
             int fillerId = materialCache.fillerStateId(protocolVersion, yShield.filler());
             if (fillerId <= 0) {
                 event.setCancelled(true);
@@ -804,7 +812,7 @@ public final class PacketEventsGateway implements PacketGateway {
         WorldSettings.YShield yShield = info.yShield();
         for (WrapperPlayServerMultiBlockChange.EncodedBlock block : blocks) {
             long blockPos = BlockPosUtil.encode(block.getX(), block.getY(), block.getZ());
-            if (yShield.masksBlock(context.session().eyeY(), block.getY())) {
+            if (yShield.masksBlockUpdate(context.session().eyeY(), block.getY(), block.getBlockId())) {
                 int fillerId = materialCache.fillerStateId(protocolVersion, yShield.filler());
                 if (fillerId <= 0) {
                     event.setCancelled(true);

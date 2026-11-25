@@ -93,6 +93,13 @@ public final class WorldSettings {
          */
         public static final double VIEWER_MARGIN = 2.0;
 
+        /**
+         * Minimum eye-to-entity vertical gap before the Y-shield may hide an entity.
+         * A normal floor/step is 0-2 blocks, and two players on the same floor must not
+         * disappear from each other just because one is a block lower near the cut line.
+         */
+        public static final double ENTITY_MIN_VERTICAL_GAP = 4.0;
+
         /** True when this viewer is high enough above the line to receive a masked world. */
         public boolean masksViewer(double eyeY) {
             return enabled && eyeY >= hideBelowY + VIEWER_MARGIN;
@@ -117,7 +124,21 @@ public final class WorldSettings {
 
         /** True when an entity at {@code entityY} must be hidden for this viewer. */
         public boolean masksEntity(double eyeY, double entityY) {
-            return masksViewer(eyeY) && entityY < hideBelowY;
+            if (!masksViewer(eyeY) || entityY >= hideBelowY) {
+                return false;
+            }
+            // Dead band: eye and entity on the same floor stay visible. Without this a
+            // player at eye 42.1 could not see a friend standing at y=39 in the same
+            // open room, which is a false hide and a PvP fairness bug.
+            return eyeY - entityY >= ENTITY_MIN_VERTICAL_GAP;
+        }
+
+        /**
+         * Block-update variant: air removals must never be rewritten to the filler.
+         * Replacing air with the filler resurrects a mined block (ghost block).
+         */
+        public boolean masksBlockUpdate(double eyeY, int y, int stateId) {
+            return stateId != 0 && masksBlock(eyeY, y);
         }
 
         public static YShield disabled() {
@@ -255,6 +276,12 @@ public final class WorldSettings {
 
     public TunnelShield tunnelShield() {
         return tunnelShield;
+    }
+
+    /** Returns a copy of these world settings with a different Y-shield policy. */
+    public WorldSettings withYShield(YShield shield) {
+        return new WorldSettings(enabled, bypassPermission, blockProtection, itemProtection,
+                playerProtection, entityHeightShield, shield, tunnelShield);
     }
 
     /** Convenience: set of materials hidden in this world (empty when disabled). */

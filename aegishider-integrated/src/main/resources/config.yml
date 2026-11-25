@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Aegishider 4.0.4 - server-side anti-ESP visibility control
+# Aegishider 4.0.5 - server-side anti-ESP visibility control
 #
 # Security model: FAIL-CLOSED.
 #   * A protected block/entity is hidden from a viewer unless the visibility
@@ -39,8 +39,10 @@ security:
   raycast-budget-per-tick: 180
 
 worlds:
-  # Settings under "default" apply to every world that is not explicitly
-  # listed below. Add e.g. "world_nether:" with the same structure to override.
+  # Settings under "default" apply to every overworld-like world that is not
+  # explicitly listed below. Add e.g. "world_nether:" with the same structure
+  # to override. Nether/End worlds that are not listed still inherit these
+  # block/item settings, but their y-shield defaults to disabled (see below).
   default:
     enabled: true
     bypass-permission: aegishider.bypass
@@ -159,8 +161,9 @@ worlds:
       # Entity types hidden by default and only revealed through the same
       # distance/line-of-sight policy. This is the anti-entity-ESP list.
       # ITEM covers every dropped item (player, mob, block, natural, custom,
-      # enchanted, shulker contents...). Hostile monsters are listed so the
-      # behaviour stays obvious even when hide-all-living-entities is disabled.
+      # enchanted, shulker contents...). Hostile monsters are listed explicitly so
+      # the behaviour stays obvious even if all-living protection is disabled.
+      # Animals/villagers are covered by hide-all-living-entities below.
       # Players are handled by player-protection below.
       hidden-entity-types:
         - ITEM
@@ -215,24 +218,29 @@ worlds:
         # The thrower sees their own item only for the first 2 seconds or within 8 blocks
         # (bounded on purpose: an unbounded owner exemption would keep own items in ESP).
         owner-grace: true
-      # Living mobs (monsters, animals, villagers, slimes, golems, the dragon): hide when
-      # a wall or terrain blocks the line of sight. Distance and FOV are ignored, so
-      # turning around never makes them pop in/out. The centre and head are sampled; a
-      # fence, glass pane, bars or a low ledge remains see-through, while a solid wall
-      # hides the mob even at close range.
-      # mob-melee-visible-distance is the light-medium wall check: only a truly touching
-      # mob (default 1 block) is shown without a line-of-sight test. 0 = strict at all
-      # ranges, 4 = the old always-visible close range.
+      # Living mobs (monsters AND animals, villagers, slimes, golems, the dragon): hide
+      # when a wall or terrain blocks the line of sight, when they are beyond
+      # monster-max-distance, or when the Y/height shields separate them from the viewer.
+      # FOV is ignored, so turning around never makes them pop in/out. The centre and head
+      # are sampled; a fence, glass pane, bars or a low ledge remains see-through, while a
+      # solid wall hides the mob even at close range.
+      # mob-melee-visible-distance adds a close-range allowance on top of the hard
+      # 3-block interaction floor in ItemShield: a mob this close is shown without a
+      # line-of-sight test. 3 blocks (default) covers vanilla interaction/attack range;
+      # 4 extends the always-visible band to 4 blocks; 0-3 cannot lower the built-in
+      # floor, so farms and trading halls always keep their hitboxes within 3 blocks.
       # Items, minecarts, armor stands and item frames keep the strict distance +
       # line-of-sight policy (those are the real loot/base ESP targets).
       # Set monster-occlusion-only false to restore the strict FOV/distance policy too.
       monster-occlusion-only: true
       monster-max-distance: 96.0
-      mob-melee-visible-distance: 1.0
-      # Protect every living entity (monsters, animals, villagers, golems, allays,
-      # armor stands...) without listing each type. Farms, animal pens and villagers
-      # inside a hidden base are never sent to a viewer that is not supposed to see
-      # that base. Players are handled by player-protection below.
+      mob-melee-visible-distance: 3.0
+      # Protect every living entity (monsters, animals, villagers, golems, allays...)
+      # without listing each type. ON by default: cows and villagers must not leak base
+      # positions either. They use the same distance/Y/occlusion policy as monsters, and
+      # the hard 3-block interaction floor below keeps farms, pens and trading halls
+      # usable. Set this to false only if the server wants animals/villagers always
+      # visible (monsters stay covered by the explicit list above).
       hide-all-living-entities: true
       # Re-evaluate item visibility every N ticks.
       update-interval-ticks: 2
@@ -282,6 +290,11 @@ worlds:
     # Crossing the line re-sends the chunks around the viewer, so a player who descends
     # into the base (or a legal cave) sees the real world again. The 2-block margin keeps
     # the viewer's own feet/body space real at the boundary.
+    # Dimension-aware default: enabled for overworld-like worlds, DISABLED for
+    # NETHER/THE_END worlds that do not set "enabled" explicitly. Masking the
+    # Nether lava sea or the End void as stone breaks movement and portals.
+    # Set enabled: true in an explicit world section only if that dimension needs
+    # a full underground mask.
     # real-chunk-radius: 0 masks every chunk in view. Set 1-16 only if a server wants a
     # small near-viewer area to stay real from above (not recommended for anti-ESP).
     y-shield:
