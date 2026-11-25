@@ -1,6 +1,10 @@
 User-agent: *
 Allow: /
 
+Disallow: /app/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
 Disallow: /download/
 
 Sitemap: https://aegishider.pages.dev/sitemap.xml

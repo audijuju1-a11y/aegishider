@@ -28,6 +28,7 @@ export interface PageOptions {
   noIndex?: boolean;
   noFooter?: boolean;
   status?: number;
+  jsonLd?: unknown;
 }
 
 export function publicPage(c: Ctx, options: PageOptions): Response {
@@ -44,6 +45,7 @@ export function publicPage(c: Ctx, options: PageOptions): Response {
     noIndex: options.noIndex,
     noFooter: options.noFooter,
     baseUrl: c.env.APP_URL,
+    jsonLd: options.jsonLd,
   });
   return htmlResponse(c, html, options.status ?? 200);
 }
@@ -95,6 +97,8 @@ export function redirectTo(c: Ctx, path: string, params: Record<string, string> 
 export function safeInternalPath(value: string | undefined, fallback = "/app"): string {
   if (!value) return fallback;
   if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\")) return fallback;
+  // Control characters can break the Location header or smuggle a second response.
+  if (/[\u0000-\u001f\u007f]/.test(value)) return fallback;
   if (value.startsWith("/auth/") || value.startsWith("/api/")) return fallback;
   return value;
 }

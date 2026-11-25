@@ -43,7 +43,7 @@ export async function getStatusReport(env: Env): Promise<StatusReport> {
       key: "api",
       name: "เว็บและ API",
       status: "operational",
-      detail: "คำขอนี้ถูกประมวลผลสำเร็จ",
+      detail: "ตอบสนองได้ในขณะที่ตรวจ",
     },
     {
       key: "database",
@@ -61,15 +61,23 @@ export async function getStatusReport(env: Env): Promise<StatusReport> {
       detail: "ยังไม่ได้รับ heartbeat จากเซิร์ฟเวอร์ลูกค้า",
     });
   } else {
-    const stale = health.lastProcessedAt === 0 || now() - health.lastProcessedAt > 30 * 60 * 1000;
+    // Do not call the pipeline healthy when nothing has been processed recently. A quiet
+    // queue is "no data" (not degraded); a stale queue with pending work is degraded.
+    const stale = health.lastProcessedAt === 0 || now() - health.lastProcessedAt > 6 * 60 * 60 * 1000;
+    const status: ComponentStatus = health.pendingEvents > 500
+      ? "degraded"
+      : stale
+        ? health.pendingEvents > 0 ? "degraded" : "no_data"
+        : "operational";
     components.push({
       key: "telemetry",
       name: "การประมวลผล telemetry",
-      status: health.pendingEvents > 500 || (stale && health.pendingEvents > 0) ? "degraded" : "operational",
-      detail:
-        health.lastProcessedAt > 0
-          ? `ประมวลผลล่าสุด ${timeAgo(health.lastProcessedAt, "th")}`
-          : "ยังไม่มีการประมวลผล",
+      status,
+      detail: stale
+        ? health.lastProcessedAt > 0
+          ? `ไม่มีข้อมูลใหม่ในช่วง 6 ชม. — ประมวลผลล่าสุด ${timeAgo(health.lastProcessedAt, "th")}`
+          : "ยังไม่มีการประมวลผล"
+        : `ประมวลผลล่าสุด ${timeAgo(health.lastProcessedAt, "th")} · ค้าง ${health.pendingEvents} รายการ`,
     });
   }
 

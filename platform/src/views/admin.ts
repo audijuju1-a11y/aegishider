@@ -30,10 +30,6 @@ function table(headers: string[], rows: SafeHtml[], empty = "ยังไม่�
   </table></div>`;
 }
 
-function money(cents: number, currency = "THB"): string {
-  return new Intl.NumberFormat("th-TH", { style: "currency", currency, maximumFractionDigits: 0 }).format(cents / 100);
-}
-
 /* -------------------------------------------------------------------------- */
 /* Dashboard                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -60,7 +56,7 @@ function sparkBars(series: number[], labels: string[], color: string): SafeHtml 
 
 function miniChart(title: string, series: number[], labels: string[], color: string, hint: string): SafeHtml {
   return html`<div>
-    <div class="spread" style="align-items:baseline"><b style="font-size:.82rem">${title}</b><span class="mono" style="font-size:.55rem">${hint}</span></div>
+    <div class="spread" style="align-items:baseline"><b style="font-size:.82rem">${title}</b><span class="mono" style="font-size:.72rem">${hint}</span></div>
     <div style="margin-top:.45rem;color:var(--text-2)">${sparkBars(series, labels, color)}</div>
   </div>`;
 }
@@ -71,6 +67,7 @@ export function adminDashboardPage(
   auditEvents: Array<{ id: string; actor_email: string; action: string; target_type: string; created_at: number; reason: string | null }>,
   analytics: AdminAnalytics,
   guards: GuardSummary[],
+  permissions: { licensesWrite: boolean; productsWrite: boolean; releasesRead: boolean; securityRead: boolean; settingsRead: boolean },
 ): SafeHtml {
   const labels = analytics.days.map((day) => day.label);
   const activationsTotal = analytics.days.reduce((sum, day) => sum + day.activations, 0);
@@ -89,7 +86,7 @@ export function adminDashboardPage(
     </div>
 
     <div class="card" style="margin-top:1rem">
-      <div class="card-head"><h3>ข้อมูลเชิงลึก 14 วัน</h3><span class="mono" style="font-size:.55rem">activations ${activationsTotal} · events ${telemetryTotal}</span></div>
+      <div class="card-head"><h3>ข้อมูลเชิงลึก 14 วัน</h3><span class="mono" style="font-size:.72rem">activations ${activationsTotal} · events ${telemetryTotal}</span></div>
       <div class="card-body grid-2">
         ${miniChart("การเปิดใช้งานไลเซนส์", analytics.days.map((day) => day.activations), labels, "var(--accent)", `รวม ${activationsTotal}`)}
         ${miniChart("Telemetry ที่รับเข้า", analytics.days.map((day) => day.telemetry), labels, "#38bdf8", `รวม ${telemetryTotal}`)}
@@ -139,7 +136,7 @@ export function adminDashboardPage(
         <div class="card-body" style="padding:0">
           ${table(["เวลา", "เหตุการณ์", "ระดับ"], securityEvents.slice(0, 8).map((event) => html`<tr>
             <td class="muted">${timeAgo(event.created_at)}</td>
-            <td><code>${event.event_type}</code><div class="muted" style="font-size:.68rem">${event.user_email ?? event.installation_name ?? "—"}</div></td>
+            <td><code>${event.event_type}</code><div class="muted" style="font-size:.75rem">${event.user_email ?? event.installation_name ?? "—"}</div></td>
             <td>${badge(event.severity)}</td>
           </tr>`), "ยังไม่มีเหตุการณ์")}
         </div>
@@ -150,7 +147,7 @@ export function adminDashboardPage(
           ${table(["เวลา", "ผู้กระทำ", "การกระทำ"], auditEvents.slice(0, 8).map((event) => html`<tr>
             <td class="muted">${timeAgo(event.created_at)}</td>
             <td class="muted">${event.actor_email}</td>
-            <td><code>${event.action}</code><div class="muted" style="font-size:.68rem">${event.target_type}${event.reason ? ` · ${event.reason}` : ""}</div></td>
+            <td><code>${event.action}</code><div class="muted" style="font-size:.75rem">${event.target_type}${event.reason ? ` · ${event.reason}` : ""}</div></td>
           </tr>`), "ยังไม่มีการกระทำ")}
         </div>
       </div>
@@ -159,11 +156,11 @@ export function adminDashboardPage(
     <div class="card" style="margin-top:1rem">
       <div class="card-head"><h3>ทางลัด</h3></div>
       <div class="card-body row">
-        <a class="btn btn-primary btn-sm" href="/admin/licenses/new">${icon("key")} ออกไลเซนส์</a>
-        <a class="btn btn-soft btn-sm" href="/admin/products/new">${icon("plus")} เพิ่มผลิตภัณฑ์</a>
-        <a class="btn btn-soft btn-sm" href="/admin/releases">${icon("package")} จัดการรีลีส</a>
-        <a class="btn btn-soft btn-sm" href="/admin/security">${icon("shield")} ศูนย์ความปลอดภัย</a>
-        <a class="btn btn-soft btn-sm" href="/admin/settings">${icon("settings")} ตั้งค่า</a>
+        ${permissions.licensesWrite ? html`<a class="btn btn-primary btn-sm" href="/admin/licenses/new">${icon("key")} ออกไลเซนส์</a>` : raw("")}
+        ${permissions.productsWrite ? html`<a class="btn btn-soft btn-sm" href="/admin/products/new">${icon("plus")} เพิ่มผลิตภัณฑ์</a>` : raw("")}
+        ${permissions.releasesRead ? html`<a class="btn btn-soft btn-sm" href="/admin/releases">${icon("package")} จัดการรีลีส</a>` : raw("")}
+        ${permissions.securityRead ? html`<a class="btn btn-soft btn-sm" href="/admin/security">${icon("shield")} ศูนย์ความปลอดภัย</a>` : raw("")}
+        ${permissions.settingsRead ? html`<a class="btn btn-soft btn-sm" href="/admin/settings">${icon("settings")} ตั้งค่า</a>` : raw("")}
       </div>
     </div>`;
 }
@@ -181,7 +178,7 @@ export function adminCustomersPage(rows: CustomerRow[], q: string): SafeHtml {
     ${table(
       ["ลูกค้า", "องค์กร", "ไลเซนส์", "เซิร์ฟเวอร์", "สถานะ", "สมัครเมื่อ"],
       rows.map((row) => html`<tr>
-        <td><a href="/admin/customers/${row.id}"><b>${row.display_name ?? row.email}</b></a><div class="muted" style="font-size:.7rem">${row.email}</div></td>
+        <td><a href="/admin/customers/${row.id}"><b>${row.display_name ?? row.email}</b></a><div class="muted" style="font-size:.75rem">${row.email}</div></td>
         <td class="muted">${row.org_names ?? "—"}</td>
         <td class="num">${row.license_count}</td>
         <td class="num">${row.server_count}</td>
@@ -203,6 +200,7 @@ export function adminCustomerDetailPage(
   licenses: AdminLicenseRow[],
   servers: AdminInstallationRow[],
   csrf: string,
+  permissions: { status: boolean; role: boolean },
 ): SafeHtml {
   return html`
     <div class="grid-2" style="align-items:start">
@@ -225,7 +223,7 @@ export function adminCustomerDetailPage(
           ${data.orgs.length === 0
             ? html`<p class="muted" style="font-size:.82rem">ไม่มีองค์กร</p>`
             : html`<div class="stack" style="gap:.5rem">${data.orgs.map((org) => html`<div class="spread card card-pad" style="box-shadow:none">
-                <div><b style="font-size:.85rem">${org.name}</b><div class="mono" style="font-size:.5rem">${org.id}</div></div>
+                <div><b style="font-size:.85rem">${org.name}</b><div class="mono" style="font-size:.72rem">${org.id}</div></div>
                 <span class="badge">${org.role}</span>
               </div>`)}</div>`}
         </div>
@@ -235,25 +233,31 @@ export function adminCustomerDetailPage(
     <div class="card" style="margin-top:1rem">
       <div class="card-head"><h3>การจัดการบัญชี</h3></div>
       <div class="card-body">
-        <div class="row">
-          <form method="post" action="/admin/customers/${data.user.id}/status" class="row" data-confirm="ยืนยันการเปลี่ยนสถานะบัญชี?">
-            ${csrfInput(csrf)}
-            <select class="select" name="status" style="width:auto">
-              <option value="active" ${data.user.status === "active" ? raw("selected") : raw("")}>ใช้งาน</option>
-              <option value="suspended" ${data.user.status === "suspended" ? raw("selected") : raw("")}>ระงับ</option>
-              <option value="deleted" ${data.user.status === "deleted" ? raw("selected") : raw("")}>ลบ (soft delete)</option>
-            </select>
-            <input class="input" name="reason" placeholder="เหตุผล (บันทึกใน audit)" style="width:220px" required>
-            <button class="btn btn-soft btn-sm" type="submit">บันทึกสถานะ</button>
-          </form>
-          <form method="post" action="/admin/customers/${data.user.id}/role" class="row" data-confirm="ยืนยันการเปลี่ยนบทบาท?">
-            ${csrfInput(csrf)}
-            <select class="select" name="role" style="width:auto">
-              ${["customer", "support", "product_manager", "security_analyst", "read_only_admin", "admin", "super_admin"].map((role) => html`<option value="${role}" ${data.user.role === role ? raw("selected") : raw("")}>${role}</option>`)}
-            </select>
-            <button class="btn btn-soft btn-sm" type="submit">เปลี่ยนบทบาท</button>
-          </form>
-        </div>
+        ${permissions.status || permissions.role
+          ? html`<div class="row">
+              ${permissions.status
+                ? html`<form method="post" action="/admin/customers/${data.user.id}/status" class="row" data-confirm="ยืนยันการเปลี่ยนสถานะบัญชี?">
+                    ${csrfInput(csrf)}
+                    <select class="select" name="status" style="width:auto">
+                      <option value="active" ${data.user.status === "active" ? raw("selected") : raw("")}>ใช้งาน</option>
+                      <option value="suspended" ${data.user.status === "suspended" ? raw("selected") : raw("")}>ระงับ</option>
+                      <option value="deleted" ${data.user.status === "deleted" ? raw("selected") : raw("")}>ลบ (soft delete)</option>
+                    </select>
+                    <input class="input" name="reason" placeholder="เหตุผล (บันทึกใน audit)" style="width:220px" required>
+                    <button class="btn btn-soft btn-sm" type="submit">บันทึกสถานะ</button>
+                  </form>`
+                : raw("")}
+              ${permissions.role
+                ? html`<form method="post" action="/admin/customers/${data.user.id}/role" class="row" data-confirm="ยืนยันการเปลี่ยนบทบาท?">
+                    ${csrfInput(csrf)}
+                    <select class="select" name="role" style="width:auto">
+                      ${["customer", "support", "product_manager", "security_analyst", "read_only_admin", "admin", "super_admin"].map((role) => html`<option value="${role}" ${data.user.role === role ? raw("selected") : raw("")}>${role}</option>`)}
+                    </select>
+                    <button class="btn btn-soft btn-sm" type="submit">เปลี่ยนบทบาท</button>
+                  </form>`
+                : raw("")}
+            </div>`
+          : html`<p class="muted" style="font-size:.8rem">บทบาทของคุณเป็นแบบอ่านอย่างเดียว — ไม่สามารถเปลี่ยนสถานะหรือบทบาทบัญชีได้</p>`}
       </div>
     </div>
 
@@ -295,8 +299,8 @@ export function adminLicensesPage(rows: AdminLicenseRow[], q: string, status: st
     ${table(
       ["ผลิตภัณฑ์", "ลูกค้า", "คำนำหน้า", "สถานะ", "เซิร์ฟเวอร์", "หมดอายุ", ""],
       rows.map((row) => html`<tr>
-        <td><a href="/admin/licenses/${row.id}"><b>${row.product_name}</b></a><div class="muted" style="font-size:.68rem">${row.plan_name ?? "—"}</div></td>
-        <td class="muted">${row.customer_email}<div style="font-size:.68rem">${row.org_name}</div></td>
+        <td><a href="/admin/licenses/${row.id}"><b>${row.product_name}</b></a><div class="muted" style="font-size:.75rem">${row.plan_name ?? "—"}</div></td>
+        <td class="muted">${row.customer_email}<div style="font-size:.75rem">${row.org_name}</div></td>
         <td><code>${row.key_prefix}…</code></td>
         <td>${badge(row.status)}</td>
         <td class="num">${row.active_activations}/${row.activation_limit}</td>
@@ -326,7 +330,7 @@ export function adminIssueLicensePage(
         <div class="field"><label for="plan_id">แพ็กเกจ (ถ้ามี)</label>
           <select class="select" id="plan_id" name="plan_id">
             <option value="">— ไม่ระบุแพ็กเกจ —</option>
-            ${plans.map((plan) => html`<option value="${plan.id}">${plan.product_name} · ${plan.name} · ${money(plan.price_cents, plan.currency)}</option>`)}
+            ${plans.map((plan) => html`<option value="${plan.id}">${plan.product_name} · ${plan.name} · ฟรี</option>`)}
           </select>
         </div>
         <div class="field-row">
@@ -334,7 +338,7 @@ export function adminIssueLicensePage(
           <div class="field"><label for="expires_at">วันหมดอายุ (เว้นว่าง = ถาวร)</label><input class="input" id="expires_at" name="expires_at" type="date"></div>
         </div>
         <button class="btn btn-primary" type="submit">${icon("key")} ออกไลเซนส์</button>
-        <p class="muted" style="font-size:.7rem">license key แบบเต็มจะแสดงครั้งเดียวหลังสร้าง — เก็บไว้อย่างปลอดภัย</p>
+        <p class="muted" style="font-size:.75rem">license key แบบเต็มจะแสดงครั้งเดียวหลังสร้าง — เก็บไว้อย่างปลอดภัย</p>
       </form>
     </div>
   </div>`;
@@ -426,11 +430,10 @@ export function adminProductsPage(products: ProductRow[]): SafeHtml {
       <a class="btn btn-primary btn-sm" href="/admin/products/new">${icon("plus")} เพิ่มผลิตภัณฑ์</a>
     </div>
     ${table(
-      ["ผลิตภัณฑ์", "สถานะ", "ราคา", "หมวด", "อัปเดต", ""],
+      ["ผลิตภัณฑ์", "สถานะ", "หมวด", "อัปเดต", ""],
       products.map((product) => html`<tr>
-        <td><b>${product.name}</b><div class="mono" style="font-size:.55rem">/plugins/${product.slug}</div></td>
+        <td><b>${product.name}</b><div class="mono" style="font-size:.72rem">/plugins/${product.slug}</div></td>
         <td>${badge(product.status)}${product.featured ? html`<span class="badge badge--info">featured</span>` : raw("")}</td>
-        <td class="num">${product.price_cents > 0 ? money(product.price_cents, product.currency) : "ติดต่อ"}</td>
         <td class="muted">${product.category}</td>
         <td class="muted">${formatDate(product.updated_at)}</td>
         <td><a class="btn btn-ghost btn-sm" href="/admin/products/${product.id}">แก้ไข</a></td>
@@ -466,16 +469,10 @@ export function adminProductFormPage(
               </select>
             </div>
           </div>
-          <div class="field-row">
-            <div class="field"><label>ราคา (สตางค์, 0 = ฟรี)</label><input class="input" name="price_cents" type="number" min="0" value="${value("price_cents", "0")}"></div>
-            <div class="field"><label>สกุลเงิน</label><input class="input" name="currency" maxlength="3" value="${value("currency", "THB")}"></div>
-          </div>
+          <div class="alert alert--info">${icon("shield")}<div>ทุกผลิตภัณฑ์บนแพลตฟอร์มนี้ฟรี — ไม่มีระบบชำระเงิน ไม่มีกระเป๋าเงิน และไม่มีลิงก์ซื้อ</div></div>
           <div class="field"><label>ความเข้ากันได้ (JSON)</label><textarea class="textarea" name="compatibility" style="min-height:90px">${value("compatibility", "{}")}</textarea></div>
           <div class="field"><label>ฟีเจอร์ (JSON array)</label><textarea class="textarea" name="features" style="min-height:110px">${value("features", "[]")}</textarea></div>
-          <div class="field-row">
-            <div class="field"><label>ลิงก์เอกสาร</label><input class="input" name="docs_url" value="${value("docs_url")}"></div>
-            <div class="field"><label>ลิงก์ซื้อ</label><input class="input" name="purchase_url" value="${value("purchase_url")}"></div>
-          </div>
+          <div class="field"><label>ลิงก์เอกสาร</label><input class="input" name="docs_url" value="${value("docs_url")}"></div>
           <label class="check"><input type="checkbox" name="featured" value="1" ${product?.featured ? raw("checked") : raw("")}> แสดงเป็นผลิตภัณฑ์แนะนำ</label>
           <div class="form-actions">
             <button class="btn btn-primary" type="submit">${product ? "บันทึก" : "สร้างผลิตภัณฑ์"}</button>
@@ -490,10 +487,11 @@ export function adminProductFormPage(
           <div class="card-head"><h3>แพ็กเกจ</h3></div>
           <div class="card-body">
             ${plans.length === 0 ? html`<p class="muted" style="font-size:.82rem;margin-bottom:.8rem">ยังไม่มีแพ็กเกจ</p>` : html`<div class="table-wrap" style="margin-bottom:.8rem"><table class="table">
-              <thead><tr><th>ชื่อ</th><th>Code</th><th>ราคา</th><th>เซิร์ฟเวอร์</th><th>รอบ</th></tr></thead>
+              <thead><tr><th>ชื่อ</th><th>Code</th><th>เซิร์ฟเวอร์</th><th>Entitlements</th></tr></thead>
               <tbody>${plans.map((plan) => html`<tr>
                 <td>${plan.name}</td><td><code>${plan.code}</code></td>
-                <td class="num">${money(plan.price_cents)}</td><td class="num">${plan.activation_limit}</td><td class="muted">${plan.billing_interval}</td>
+                <td class="num">${plan.activation_limit}</td>
+                <td class="muted"><code class="mono" style="font-size:.72rem">${plan.entitlements}</code></td>
               </tr>`)}</tbody>
             </table></div>`}
             <form class="form" method="post" action="/admin/products/${product.id}/plans" data-lock>
@@ -502,11 +500,7 @@ export function adminProductFormPage(
                 <div class="field"><label>ชื่อแพ็กเกจ</label><input class="input" name="name" required maxlength="80"></div>
                 <div class="field"><label>Code</label><input class="input" name="code" required maxlength="40" pattern="[a-z0-9_-]+"></div>
               </div>
-              <div class="field-row">
-                <div class="field"><label>ราคา (สตางค์)</label><input class="input" name="price_cents" type="number" min="0" value="0"></div>
-                <div class="field"><label>จำนวนเซิร์ฟเวอร์</label><input class="input" name="activation_limit" type="number" min="1" max="1000" value="1"></div>
-                <div class="field"><label>รอบบิล</label><select class="select" name="billing_interval"><option value="one_time">ซื้อครั้งเดียว</option><option value="monthly">รายเดือน</option><option value="yearly">รายปี</option></select></div>
-              </div>
+              <div class="field"><label>จำนวนเซิร์ฟเวอร์</label><input class="input" name="activation_limit" type="number" min="1" max="1000" value="1"></div>
               <div class="field"><label>Entitlements (JSON array)</label><input class="input" name="entitlements" value='["aegishider:block-protection"]'></div>
               <button class="btn btn-soft" type="submit">${icon("plus")} เพิ่มแพ็กเกจ</button>
             </form>
@@ -542,7 +536,7 @@ export function adminReleasesPage(
             </form>
             <form method="post" action="/admin/releases/${release.id}/file" enctype="multipart/form-data" class="inline-form">
               ${csrfInput(csrf)}
-              <input class="input" type="file" name="artifact" accept=".jar,application/java-archive" required style="max-width:150px;font-size:.65rem;padding:.3rem">
+              <input class="input" type="file" name="artifact" accept=".jar,application/java-archive" required style="max-width:150px;font-size:.72rem;padding:.3rem">
               <button class="btn btn-soft btn-sm" type="submit">${icon("download")} อัปโหลด</button>
             </form>
           </td>
@@ -589,8 +583,8 @@ export function adminServersPage(rows: AdminInstallationRow[], q: string): SafeH
     ${table(
       ["เซิร์ฟเวอร์", "ลูกค้า", "ผลิตภัณฑ์", "สถานะ", "เวอร์ชัน", "Heartbeat"],
       rows.map((row) => html`<tr>
-        <td><a href="/admin/servers/${row.id}"><b>${row.display_name ?? row.installation_uuid.slice(0, 8)}</b></a><div class="mono" style="font-size:.5rem">${row.fingerprint_sha256.slice(0, 16)}…</div></td>
-        <td class="muted">${row.customer_email ?? "—"}<div style="font-size:.68rem">${row.org_name ?? ""}</div></td>
+        <td><a href="/admin/servers/${row.id}"><b>${row.display_name ?? row.installation_uuid.slice(0, 8)}</b></a><div class="mono" style="font-size:.72rem">${row.fingerprint_sha256.slice(0, 16)}…</div></td>
+        <td class="muted">${row.customer_email ?? "—"}<div style="font-size:.75rem">${row.org_name ?? ""}</div></td>
         <td class="muted">${row.product_name}</td>
         <td>${badge(row.status)}</td>
         <td class="muted">${row.plugin_version ?? "—"}</td>
@@ -740,7 +734,7 @@ export function adminServerDetailPage(
 
     ${alerts.length
       ? html`<div class="card" style="margin-top:1rem">
-          <div class="card-head"><h3>การแจ้งเตือนสุขภาพ</h3><span class="mono" style="font-size:.55rem">${alerts.length} รายการ</span></div>
+          <div class="card-head"><h3>การแจ้งเตือนสุขภาพ</h3><span class="mono" style="font-size:.72rem">${alerts.length} รายการ</span></div>
           <div class="card-body stack" style="gap:.45rem">
             ${alerts.map((alert) => html`<div class="alert ${alert.level === "error" ? "alert--error" : "alert--info"}" style="margin:0">${alert.text}</div>`)}
           </div>
@@ -753,7 +747,7 @@ export function adminServerDetailPage(
         <div class="card-body">
           ${detailList([
             { label: "UUID", value: html`<code>${installation.installation_uuid}</code>` },
-            { label: "Fingerprint", value: html`<code style="font-size:.62rem">${installation.fingerprint_sha256}</code>` },
+            { label: "Fingerprint", value: html`<code style="font-size:.72rem">${installation.fingerprint_sha256}</code>` },
             { label: "ผลิตภัณฑ์", value: installation.product_name },
             { label: "ลูกค้า", value: installation.customer_email ?? "—" },
             { label: "องค์กร", value: installation.org_name ?? "—" },
@@ -818,7 +812,7 @@ export function adminServerDetailPage(
 
     ${worlds.length
       ? html`<div class="card" style="margin-top:1rem">
-          <div class="card-head"><h3>โลกที่โหลดอยู่</h3><span class="mono" style="font-size:.55rem">${worlds.length} worlds</span></div>
+          <div class="card-head"><h3>โลกที่โหลดอยู่</h3><span class="mono" style="font-size:.72rem">${worlds.length} worlds</span></div>
           <div class="card-body" style="padding:0">
             ${table(["โลก", "Environment", "ผู้เล่น", "Chunks", "Entities"], worlds.map((world) => html`<tr>
               <td><code>${stringField(world, "name") ?? "—"}</code></td>
@@ -833,7 +827,7 @@ export function adminServerDetailPage(
 
     ${recent.length
       ? html`<div class="card" style="margin-top:1rem">
-          <div class="card-head"><h3>แนวโน้ม 5 นาที</h3><span class="mono" style="font-size:.55rem">${recent.length} buckets</span></div>
+          <div class="card-head"><h3>แนวโน้ม 5 นาที</h3><span class="mono" style="font-size:.72rem">${recent.length} buckets</span></div>
           <div class="card-body grid-2">
             ${miniChart("TPS เฉลี่ย", recent.map((row) => row.tps_avg ?? 0), labels, "var(--accent)", "จาก telemetry rollups")}
             ${miniChart("ผู้เล่นออนไลน์", recent.map((row) => row.players_online ?? 0), labels, "#38bdf8", "aggregate")}
@@ -894,7 +888,7 @@ export function adminTicketPage(
       <div class="card-body">
         <div class="stack" style="gap:.8rem">
           ${messages.map((message) => html`<div class="card card-pad" style="box-shadow:none;background:var(--surface-2)">
-            <div class="spread"><b style="font-size:.78rem">${message.author_role}${message.internal ? " · ภายใน" : ""}</b><span class="mono" style="font-size:.5rem">${formatWhen(message.created_at)}</span></div>
+            <div class="spread"><b style="font-size:.78rem">${message.author_role}${message.internal ? " · ภายใน" : ""}</b><span class="mono" style="font-size:.72rem">${formatWhen(message.created_at)}</span></div>
             <p class="text-2" style="font-size:.82rem;line-height:1.7;margin-top:.35rem;white-space:pre-wrap">${message.body}</p>
           </div>`)}
         </div>
@@ -930,7 +924,7 @@ export function adminSecurityPage(
     <div class="card" style="margin-bottom:1rem">
       <div class="card-head">
         <h3>การแจ้งเตือนอัตโนมัติ</h3>
-        <span class="mono" style="font-size:.55rem">ตรวจทุก 5 นาที · 5xx &gt; 1% · DLQ &gt; 0</span>
+        <span class="mono" style="font-size:.72rem">ตรวจทุก 5 นาที · 5xx &gt; 1% · DLQ &gt; 0</span>
       </div>
       <div class="card-body" style="padding:0">
         ${table(
@@ -950,17 +944,17 @@ export function adminSecurityPage(
     <div class="card" style="margin-bottom:1rem">
       <div class="card-head">
         <h3>Dead letter queue</h3>
-        <span class="mono" style="font-size:.55rem">${dlq.open} ค้าง · ${dlq.last24h} ใน 24 ชม.${dlq.oldestFailedAt ? ` · เก่าสุด ${timeAgo(dlq.oldestFailedAt)}` : ""}</span>
+        <span class="mono" style="font-size:.72rem">${dlq.open} ค้าง · ${dlq.last24h} ใน 24 ชม.${dlq.oldestFailedAt ? ` · เก่าสุด ${timeAgo(dlq.oldestFailedAt)}` : ""}</span>
       </div>
       <div class="card-body" style="padding:0">
         ${table(
           ["เวลา", "เหตุการณ์", "เซิร์ฟเวอร์", "ลอง", "payload", ""],
           deadLetters.map((row) => html`<tr>
             <td class="muted">${formatWhen(row.failed_at)}</td>
-            <td><code>${row.event_id ?? row.message_id}</code><div class="muted" style="font-size:.68rem">${row.kind ?? row.queue}</div></td>
+            <td><code>${row.event_id ?? row.message_id}</code><div class="muted" style="font-size:.75rem">${row.kind ?? row.queue}</div></td>
             <td class="muted"><code>${row.installation_id?.slice(0, 16) ?? "—"}</code></td>
             <td class="num">${row.attempts}</td>
-            <td><details><summary class="muted" style="font-size:.7rem;cursor:pointer">ดู</summary><pre class="code-block" style="max-width:420px">${row.payload}</pre></details></td>
+            <td><details><summary class="muted" style="font-size:.75rem;cursor:pointer">ดู</summary><pre class="code-block" style="max-width:420px">${row.payload}</pre></details></td>
             <td><form method="post" action="/admin/security/dlq/${row.id}/resolve" class="inline-form" data-confirm="ทำเครื่องหมายว่าข้อความนี้จัดการแล้ว?">
               ${csrfInput(csrf)}<button class="btn btn-ghost btn-sm" type="submit">จัดการแล้ว</button>
             </form></td>
@@ -970,7 +964,7 @@ export function adminSecurityPage(
       </div>
     </div>
     <div class="card" style="margin-bottom:1rem">
-      <div class="card-head"><h3>การป้องกันการเดารหัสเปิดใช้งาน</h3><span class="mono" style="font-size:.55rem">ล็อก 5 นาทีเมื่อผิด 5 ครั้ง · 10 นาทีเมื่อผิด 10 ครั้ง · เพิ่มขึ้นเรื่อย ๆ</span></div>
+      <div class="card-head"><h3>การป้องกันการเดารหัสเปิดใช้งาน</h3><span class="mono" style="font-size:.72rem">ล็อก 5 นาทีเมื่อผิด 5 ครั้ง · 10 นาทีเมื่อผิด 10 ครั้ง · เพิ่มขึ้นเรื่อย ๆ</span></div>
       <div class="card-body" style="padding:0">
         ${table(
           ["IP hash", "ผิดสะสม", "level", "ล็อกถึง", "ปลั๊กอิน", "ชื่อเซิร์ฟเวอร์ที่เห็นจาก IP นี้"],
@@ -993,7 +987,7 @@ export function adminSecurityPage(
           ["เวลา", "เหตุการณ์", "ระดับ", "ที่มา", "IP hash"],
           events.map((event) => html`<tr>
             <td class="muted">${formatWhen(event.created_at)}</td>
-            <td><code>${event.event_type}</code><div class="muted" style="font-size:.68rem">${event.details.slice(0, 120)}</div></td>
+            <td><code>${event.event_type}</code><div class="muted" style="font-size:.75rem">${event.details.slice(0, 120)}</div></td>
             <td>${badge(event.severity)}</td>
             <td class="muted">${event.user_email ?? event.installation_name ?? "—"}</td>
             <td><code>${event.ip_hash?.slice(0, 12) ?? "—"}</code></td>
@@ -1013,9 +1007,9 @@ export function adminAuditPage(
       <td class="muted">${formatWhen(event.created_at)}</td>
       <td class="muted">${event.actor_email}</td>
       <td><code>${event.action}</code></td>
-      <td class="muted">${event.target_type}${event.target_id ? html`<div class="mono" style="font-size:.5rem">${event.target_id}</div>` : raw("")}</td>
+      <td class="muted">${event.target_type}${event.target_id ? html`<div class="mono" style="font-size:.72rem">${event.target_id}</div>` : raw("")}</td>
       <td class="muted">${event.reason ?? "—"}</td>
-      <td><details><summary class="muted" style="font-size:.7rem;cursor:pointer">ดู</summary><pre class="code-block" style="max-width:320px">${event.before_summary ?? "null"}\n→ ${event.after_summary ?? "null"}</pre></details></td>
+      <td><details><summary class="muted" style="font-size:.75rem;cursor:pointer">ดู</summary><pre class="code-block" style="max-width:320px">${event.before_summary ?? "null"}\n→ ${event.after_summary ?? "null"}</pre></details></td>
     </tr>`),
     "ยังไม่มีบันทึกการตรวจสอบ",
   );
@@ -1071,7 +1065,7 @@ export function adminSettingsPage(
         <div class="card-head"><h3>ค่าจาก environment</h3></div>
         <div class="card-body">
           ${detailList(envInfo.map((item) => ({ label: item.label, value: item.value })))}
-          <p class="muted" style="font-size:.7rem;margin-top:1rem">ค่าเหล่านี้มาจาก secrets/vars ของ Worker — แก้ไขผ่าน Wrangler หรือ Dashboard เท่านั้น</p>
+          <p class="muted" style="font-size:.75rem;margin-top:1rem">ค่าเหล่านี้มาจาก secrets/vars ของ Worker — แก้ไขผ่าน Wrangler หรือ Dashboard เท่านั้น</p>
         </div>
       </div>
     </div>`;

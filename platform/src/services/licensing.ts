@@ -109,6 +109,10 @@ export async function activePublicKeys(env: Env): Promise<PublicKeyRecord[]> {
 /* License keys                                                               */
 /* -------------------------------------------------------------------------- */
 
+/** Raw keys stay readable for the documented one-time window; the portal deletes the
+ * KV copy on first display, so the full key never becomes a permanent credential. */
+export const NEW_LICENSE_KEY_TTL_SECONDS = 7 * 24 * HOUR;
+
 export async function hashLicenseKey(env: Env, rawKey: string): Promise<string> {
   const pepper = env.LICENSE_KEY_PEPPER;
   if (!pepper) throw configError("ยังไม่ได้ตั้งค่า LICENSE_KEY_PEPPER");
@@ -605,8 +609,9 @@ async function createFreeLicense(
     onlyIfNoActive: true,
   });
   if (!issued) return null;
-  // Shown once, soon after issue; a long-lived KV copy of the raw key is unnecessary risk.
-  await env.CACHE.put(`newlic:${issued.id}`, issued.rawKey, { expirationTtl: 600 });
+  await env.CACHE.put(`newlic:${issued.id}`, issued.rawKey, {
+    expirationTtl: NEW_LICENSE_KEY_TTL_SECONDS,
+  });
   const row = await getLicenseRow(env, issued.id);
   if (!row) throw notFound("ไม่พบไลเซนส์ที่สร้างใหม่");
   await recordSecurityEvent(env, {

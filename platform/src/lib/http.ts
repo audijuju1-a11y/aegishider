@@ -3,7 +3,7 @@ import { getCookie, setCookie } from "hono/cookie";
 import type { AppEnv, Env } from "../env";
 import { isProduction } from "../env";
 import { AppError, badRequest, configError, forbidden } from "./errors";
-import { hmacSha256Hex } from "./core";
+import { hmacSha256Hex, timingSafeEqual } from "./core";
 
 export const SESSION_COOKIE = "bh_session";
 export const CSRF_COOKIE = "bh_csrf";
@@ -121,7 +121,7 @@ export function verifyCsrf(c: Ctx, submitted: string | undefined): void {
   }
 
   const cookie = csrfCookieValue(c);
-  if (!cookie || !submitted || cookie !== submitted) {
+  if (!cookie || !submitted || !timingSafeEqual(cookie, submitted)) {
     throw forbidden("CSRF token ไม่ถูกต้อง กรุณารีเฟรชหน้าแล้วลองใหม่");
   }
 }

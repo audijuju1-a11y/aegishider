@@ -1,5 +1,5 @@
 import { SafeHtml, html, raw } from "../lib/html";
-import { csrfInput, icon } from "./ui";
+import { csrfInput, icon, passwordToggle } from "./ui";
 import { turnstileWidget } from "./marketing";
 
 export function loginPage(options: {
@@ -23,12 +23,16 @@ export function loginPage(options: {
         </div>
         <div class="field">
           <label for="password">รหัสผ่าน</label>
-          <input class="input" id="password" name="password" type="password" required minlength="10" maxlength="200" autocomplete="current-password" placeholder="อย่างน้อย 10 ตัวอักษร">
+          <input class="input" id="password" name="password" type="password" required minlength="10" maxlength="200" autocomplete="current-password" placeholder="รหัสผ่านของคุณ">
         </div>
-        <div class="field">
-          <label for="totp">รหัส 2FA (ถ้าเปิดใช้)</label>
-          <input class="input" id="totp" name="totp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456">
-        </div>
+        ${passwordToggle()}
+        <details class="field-more">
+          <summary>เปิดใช้ 2FA อยู่? กรอกรหัสที่นี่</summary>
+          <div class="field" style="margin-top:.6rem">
+            <label for="totp">รหัส 2FA 6 หลัก</label>
+            <input class="input" id="totp" name="totp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456">
+          </div>
+        </details>
         ${turnstileWidget(options.siteKey, "login")}
         <button class="btn btn-primary btn-block" type="submit">${icon("lock")} เข้าสู่ระบบ</button>
       </form>
@@ -72,11 +76,15 @@ export function registerPage(options: {
           <label for="password_confirm">ยืนยันรหัสผ่าน</label>
           <input class="input" id="password_confirm" name="password_confirm" type="password" required minlength="10" maxlength="200" autocomplete="new-password" placeholder="กรอกรหัสผ่านอีกครั้ง">
         </div>
+        ${passwordToggle()}
         ${turnstileWidget(options.siteKey, "register")}
         <button class="btn btn-primary btn-block" type="submit">${icon("lock")} สมัครบัญชี</button>
       </form>
-      <p class="muted" style="font-size:.68rem;margin-top:.8rem;line-height:1.7">
+      <p class="muted" style="font-size:.75rem;margin-top:.8rem;line-height:1.7">
         หลังสมัคร ระบบจะแสดงรหัสกู้คืนบัญชี 10 ชุดในหน้าความปลอดภัย จนกว่าคุณจะกดซ่อน (ไม่เกิน 15 นาที) — เก็บไว้ใช้เมื่อลืมรหัสผ่าน เพราะแพลตฟอร์มไม่ส่งอีเมล
+      </p>
+      <p class="muted" style="font-size:.75rem;margin-top:.5rem;line-height:1.7">
+        การสมัครถือว่าคุณยอมรับ <a href="/legal/terms">ข้อกำหนดการใช้งาน</a> และ <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a>
       </p>
       <div class="auth-footer">
         มีบัญชีแล้ว? <a href="/auth/login?next=${encodeURIComponent(options.next)}">เข้าสู่ระบบ</a>
@@ -114,10 +122,11 @@ export function recoverPage(options: {
           <label for="password_confirm">ยืนยันรหัสผ่านใหม่</label>
           <input class="input" id="password_confirm" name="password_confirm" type="password" required minlength="10" maxlength="200" autocomplete="new-password">
         </div>
+        ${passwordToggle()}
         ${turnstileWidget(options.siteKey, "recover")}
         <button class="btn btn-primary btn-block" type="submit">${icon("key")} ตั้งรหัสผ่านใหม่</button>
       </form>
-      <p class="muted" style="font-size:.68rem;margin-top:.8rem;line-height:1.7">
+      <p class="muted" style="font-size:.75rem;margin-top:.8rem;line-height:1.7">
         การใช้รหัสกู้คืนจะออกจากระบบทุกเซสชันและปิด 2FA ของบัญชี จากนั้นระบบจะออกรหัสกู้คืนชุดใหม่ให้หลังเข้าสู่ระบบ
       </p>
       <div class="auth-footer">

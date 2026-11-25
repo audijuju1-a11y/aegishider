@@ -58,6 +58,7 @@ export interface ReleaseRow {
   supported_platforms: string;
   artifact_url: string | null;
   artifact_sha256: string | null;
+  artifact_size_bytes: number | null;
   signing_key_id: string | null;
   artifact_signature: string | null;
   released_at: number;

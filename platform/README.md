@@ -120,7 +120,7 @@ the Ed25519 canonical string and headers, and short `curl` examples, linked from
 
 ```bash
 pnpm typecheck          # strict TypeScript, no errors
-pnpm test               # 46 tests: crypto, platform, auth, recovery/TOTP, auth redirect/limits, script hash, developer page, public docs pages, licensing, tenancy, admin, telemetry
+pnpm test               # 51 tests: crypto, platform, auth, recovery/TOTP, auth redirect/limits, registration switch, security re-auth, one-time key display, discoverability files, product build selector, script hash, developer page, public docs pages, licensing, tenancy, admin, telemetry
 node scripts/e2e-license.mjs
 
 # plugin client (Java 21 / Maven)

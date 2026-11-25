@@ -4,8 +4,8 @@
   "description": "แพลตฟอร์มปลั๊กอิน Minecraft ฟรี พร้อมไลเซนส์ Ed25519 และ telemetry",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#06080b",
-  "theme_color": "#06080b",
+  "background_color": "#05070a",
+  "theme_color": "#05070a",
   "lang": "th",
   "icons": [
     {

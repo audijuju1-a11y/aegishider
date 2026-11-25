@@ -42,7 +42,7 @@ marketingRoutes.get("/", async (c) => {
   ]);
   return publicPage(c, {
     title: "แพลตฟอร์มปลั๊กอิน Minecraft ฟรี",
-    description: "พอร์ทัลเจ้าของเซิร์ฟเวอร์และคอนโซลผู้ดูแล พร้อมไลเซนส์ Ed25519, telemetry และไบล์ปลั๊กอินฟรี",
+    description: "พอร์ทัลเจ้าของเซิร์ฟเวอร์และคอนโซลผู้ดูแล พร้อมไลเซนส์ Ed25519, telemetry และไฟล์ปลั๊กอินฟรี",
     body: marketingHome(products, langOf(c), content),
   });
 });
@@ -88,7 +88,61 @@ marketingRoutes.get("/release/:id/download", async (c) => {
   });
 });
 
+marketingRoutes.get("/favicon.ico", (c) => c.redirect("/assets/img/logo-32.png", 301));
+
+marketingRoutes.get("/site.webmanifest", (c) => {
+  c.header("Content-Type", "application/manifest+json; charset=utf-8");
+  c.header("Cache-Control", "public, max-age=3600");
+  return c.body(JSON.stringify({
+    name: "Aegishider Control Platform",
+    short_name: "Aegishider",
+    description: "แพลตฟอร์มปลั๊กอิน Minecraft ฟรี พร้อมไลเซนส์ Ed25519 และ telemetry",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#05070a",
+    theme_color: "#05070a",
+    lang: "th",
+    icons: [
+      { src: "/assets/img/logo-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/assets/img/logo-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+    ],
+  }));
+});
+
+marketingRoutes.get("/.well-known/security.txt", (c) => {
+  const base = c.env.APP_URL.replace(/\/$/, "");
+  c.header("Content-Type", "text/plain; charset=utf-8");
+  c.header("Cache-Control", "public, max-age=3600");
+  return c.body([
+    `Contact: ${base}/contact`,
+    `Policy: ${base}/docs/security`,
+    "Preferred-Languages: th, en",
+    `Canonical: ${base}/.well-known/security.txt`,
+    "Expires: 2027-11-24T00:00:00.000Z",
+    "",
+  ].join("\n"));
+});
+
+marketingRoutes.get("/sitemap.xml", async (c) => {
+  const products = await listProductSummaries(c.env, { statuses: ["published"], limit: 50 });
+  const base = c.env.APP_URL.replace(/\/$/, "");
+  const paths = [
+    "/", "/plugins", "/pricing", "/changelog", "/docs", "/developers", "/status",
+    "/support", "/contact", "/about", "/capabilities", "/legal/terms", "/legal/privacy",
+    ...products.map((product) => `/plugins/${product.slug}`),
+    ...docs.map((doc) => `/docs/${doc.slug}`),
+  ];
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${paths.map((path) => `  <url><loc>${base}${path}</loc></url>`).join("\n")}
+</urlset>`;
+  c.header("Content-Type", "application/xml; charset=utf-8");
+  c.header("Cache-Control", "public, max-age=3600");
+  return c.body(body);
+});
+
 marketingRoutes.get("/plugins/basehider", (c) => c.redirect("/plugins/aegishider", 301));
+marketingRoutes.get("/plugins/aegishider/capabilities", (c) => c.redirect("/capabilities", 301));
 
 marketingRoutes.get("/plugins/:slug", async (c) => {
   const product = await getProductView(c.env, c.req.param("slug"));
@@ -112,15 +166,29 @@ marketingRoutes.get("/plugins/:slug", async (c) => {
       authed: Boolean(user),
       siteKey: c.env.TURNSTILE_SITE_KEY ?? "",
     }),
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: product.name,
+      applicationCategory: "GameApplication",
+      operatingSystem: "Paper Minecraft server",
+      softwareVersion: product.latestRelease?.version.split("+")[0] ?? undefined,
+      url: `${c.env.APP_URL.replace(/\/$/, "")}/plugins/${product.slug}`,
+      description: product.seo_description ?? product.tagline,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+    },
   });
 });
 
 marketingRoutes.get("/pricing", async (c) => {
-  const products = await listProductSummaries(c.env, { statuses: ["published"], limit: 50 });
+  const [products, content] = await Promise.all([
+    listProductSummaries(c.env, { statuses: ["published"], limit: 50 }),
+    getSiteContent(c.env),
+  ]);
   return publicPage(c, {
     title: "ราคา",
     description: "ทุกผลิตภัณฑ์ฟรี 100% ไม่มีระบบชำระเงิน",
-    body: pricingPage(products),
+    body: pricingPage(products, content.pricingNote),
   });
 });
 
@@ -206,7 +274,7 @@ marketingRoutes.get("/support", (c) => {
 marketingRoutes.get("/contact", (c) => {
   return publicPage(c, {
     title: "ติดต่อเรา",
-    description: "ติดต่อทีมงาน Aegishider เรื่องการซื้อ ปัญหาเทคนิค หรือความปลอดภัย",
+    description: "ติดต่อทีมงาน Aegishider เรื่องการใช้งาน ปัญหาเทคนิค หรือความปลอดภัย",
     body: contactPage({ siteKey: c.env.TURNSTILE_SITE_KEY ?? "", csrf: c.get("csrfToken") ?? "", lang: langOf(c) }),
   });
 });

@@ -1,6 +1,6 @@
 # Aegishider Control Platform — status
 
-Updated: 2026-11-23
+Updated: 2026-11-24
 
 > Honest verification status. The platform is now **free**: wallet, orders, Stripe, PromptPay,
 > slips and top-ups were removed. It is deployed to production (Worker `3579adc4`, D1 migration 0005,
@@ -33,12 +33,18 @@ Updated: 2026-11-23
 | Public developer page | Implemented | `/developers` with endpoint table, signing canonical string/headers, rate limits and examples; linked in nav/footer |
 | Architecture roadmap A-01…A-15 | Closed or explicitly deferred | Status + decisions in `docs/13-architecture-roadmap.md`; CI ratchet `scripts/check-architecture.mjs`; signing-key rotation CLI `scripts/rotate-signing-key.mjs`; history rewrite deliberately not executed |
 | Production sign-up / sign-in | Verified | browser E2E: register → `/app` with a free licence; logout → password login → `/app` |
-| Platform test suite | 46 tests passing (7 files) | crypto + platform + free licensing + reset/re-activation + guard ladder + password-only auth + session admin + admin hierarchy/key visibility + content-type guards + recovery codes/TOTP replay + registration recovery redirect + TOTP-disable limit |
+| Platform test suite | 51 tests passing (8 files) | crypto + platform + free licensing + reset/re-activation + guard ladder + password-only auth + session admin + admin hierarchy/key visibility + content-type guards + recovery codes/TOTP replay + registration recovery redirect + TOTP-disable limit + registration switch + security re-auth + one-time key display + discoverability files + product build selector |
+| Public sign-up switch | Implemented | `platform.registration_open=false` now closes `/auth/register` (GET/POST) instead of only changing an admin label |
+| Security-action re-auth | Implemented | Recovery-code rotation and TOTP enrolment require the current password and are rate-limited; password changes are rate-limited too |
 | Java plugin client (4.0.5) | Hardened | HTTPS-only (localhost exempt), redirects disabled, response size/depth limits, 16-char codes, server-name registration, integrity pin, POSIX 0600/0700 key files |
 | Java test suite | 153 tests per profile; six profiles: 912 passed, 6 POSIX-only skipped, 0 failures | Temurin JDK 21.0.13.1 / 25.0.5.1 + Maven 3.9.9; `mvn -B -P<profile> clean test`; PacketEvents 2.14.0 present → gateway ACTIVE; absent → plugin disables with NoClassDefFoundError (fail-closed) |
 | Three-gap packet benchmark | Verified | A–F PASS on Paper 1.21.4; baseline jar leaks all three gaps (`docs/09-three-gap-benchmark.md` in the plugin repo) |
 | Local dev | Working | `wrangler dev`; pages, auth, admin and API exercised |
-| Production deployment | Live (canonical proxy) | https://aegishider-platform.audijuju1.workers.dev forwards through a service binding to `basehider-platform`, which holds the production secrets. `/`, `/developers`, `/auth/recover` and `/api/v1/health` return 200; `/app/security` redirects relatively to login; plugin endpoints return JSON 400/401 with no redirect. Migration `0011` applied 2026-11-23 and the current app version is deployed on `basehider-platform` |
+| Production deployment | Live (canonical proxy) | https://aegishider-platform.audijuju1.workers.dev forwards through a service binding to `basehider-platform`, which holds the production secrets. `/`, `/developers`, `/auth/recover` and `/api/v1/health` return 200; `/app/security` redirects relatively to login; plugin endpoints return JSON 400/401 with no redirect. Migration `0011` applied 2026-11-23; the 2026-11-24 build is version `734ecb1d-4569-40c3-8a30-f49f415bd203` on `basehider-platform` |
+| Pages mirror | Verified 2026-11-24 | `aegishider.pages.dev` was rebuilt from the live homepage with the same console hero, local assets and strict CSP; `/plugins`, `/app`, `/docs` and `/latest.jar` redirect to the Worker (4.0.5 build) |
+| Discoverability files | Verified 2026-11-24 | Canonical/`og:url`/JSON-LD on public pages, `/sitemap.xml`, `/site.webmanifest`, `/.well-known/security.txt`, `/favicon.ico`, 1200×630 OG card |
+| Download UX | Verified 2026-11-24 | Product page defaults to the recommended 1.21.11 build, exposes a build selector with exact Paper/Java range, SHA-256 copy, and a collapsed previous-release list |
+| Readability and mobile | Verified 2026-11-24 | Mobile signup CTA and menu login, docs/developer overflow fixed at 360–526px, docs search and code copy, contrast tokens raised, microtype reduced |
 | Production 4.0.5 registry | Verified 2026-11-23 | Six build rows published with R2 artifacts and SHA-256; all six `/release/*/download` URLs return 200; downloaded mc1.21.5 hash matches `be2bdcca…`; `/downloads/Aegishider-4.0.5-SHA256SUMS` returns 200 |
 | Production plugin download | Verified for 3.6.1 (historical) | `/release/rel_bh_361/download` returned the uploaded jar; 4.0.5 artifacts are listed in `docs/releases/Aegishider-4.0.5-SHA256SUMS` and upload from `/admin/releases` |
 | Production registration | Verified | disposable installation registered (16-char code, server_name stored), then removed |
@@ -47,6 +53,11 @@ Updated: 2026-11-23
 
 ## Not done / not verified
 
+- **Custom domain / single origin**: the site still uses the provider hostnames. Moving to a branded domain and
+  one canonical host is a product/DNS decision, not a code-only change; duplicate homepage URLs remain until
+  a domain is attached.
+- **Public demo media and language switch**: no gameplay video/GIF was fabricated; the site uses the real test
+  evidence table. A TH/EN switch and historical uptime chart remain product work.
 - **Password-only trade-off**: removing email verification means account ownership is proven by the password
   alone (plus optional TOTP). Existing passwordless/unverified placeholder accounts are completed by their
   first password registration. Lost credentials are recovered with one-time codes or an operator reset —
@@ -74,7 +85,7 @@ Updated: 2026-11-23
 ~~~bash
 pnpm install
 pnpm typecheck
-pnpm test                 # 45 platform tests passing
+pnpm test                 # 51 platform tests passing
 node scripts/e2e-license.mjs   # requires pnpm dev on :8787
 cd ../aegishider-integrated && mvn test   # 153 plugin tests (Windows and Linux/WSL)
 npx wrangler d1 migrations apply bhcp-db --local

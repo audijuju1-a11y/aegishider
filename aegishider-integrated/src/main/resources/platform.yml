@@ -11,7 +11,7 @@ enabled: true
 
 # Base URL of the platform, without a trailing slash.
 # The plugin calls this API directly (redirects are disabled for security).
-api-base-url: "https://basehider-platform.audijuju1.workers.dev"
+api-base-url: "https://aegishider-platform.audijuju1.workers.dev"
 
 # Product slug registered on the platform.
 product: aegishider

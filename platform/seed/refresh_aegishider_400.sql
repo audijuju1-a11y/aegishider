@@ -18,7 +18,7 @@ UPDATE products SET
   tagline_en         = 'Hide containers and dropped items before the data ever reaches the client.',
   description        = 'Aegishider 4.0.0 คือปลั๊กอินสำหรับเซิร์ฟเวอร์ Paper 1.21.1 ถึง 26.3 ที่ช่วยซ่อนหีบ กล่องเก็บของ และไอเท็มที่ตกอยู่ ไม่ให้คนอื่นมองเห็น — โดยไม่ส่งข้อมูลเหล่านั้นออกจากเซิร์ฟเวอร์ตั้งแต่แรก
 
-มีไบล์แยกตามรุ่นเซิร์ฟเวอร์ 6 รุ่น (1.21.1, 1.21.4, 1.21.5, 1.21.11, 26.1, 26.3) ทุกไบล์ผ่าน Sentinel Shield obfuscation และมี manifest เซ็น Ed25519 ตรวจสอบได้
+มีบิลด์แยกตามรุ่นเซิร์ฟเวอร์ 6 รุ่น (1.21.1, 1.21.4, 1.21.5, 1.21.11, 26.1, 26.3) ทุกบิลด์ผ่าน Sentinel Shield obfuscation และมี manifest เซ็น Ed25519 ตรวจสอบได้
 
 ระบบตัดสินใจจากระยะทาง มุมมอง และสิ่งกีดขวาง ถ้าผู้เล่นอยู่ใกล้ มองเห็น และไม่มีอะไรบัง ก็จะเห็นของตามปกติ แต่ถ้าไม่แน่ใจ ระบบจะซ่อนไว้ก่อน',
   category           = 'security',
@@ -27,7 +27,7 @@ UPDATE products SET
   docs_url           = '/docs/aegishider',
   compatibility      = '{"minecraft":["1.21.1","1.21.4","1.21.5","1.21.11","26.1.2","26.3"],"servers":["Paper"],"java":["21","25"],"requires":["PacketEvents 2.14.0+"]}',
   seo_title          = 'Aegishider 4.0.0 — ปลั๊กอินซ่อนหีบและไอเท็มสำหรับ Paper 1.21.1–26.3',
-  seo_description    = 'ปลั๊กอิน Paper 1.21.1–26.3 ที่ซ่อนหีบและไอเท็มก่อนส่งถึงเกมผู้เล่น พร้อมไบล์แยกตามรุ่น Sentinel Shield obfuscation และหลักฐานการทดสอบจริง',
+  seo_description    = 'ปลั๊กอิน Paper 1.21.1–26.3 ที่ซ่อนหีบและไอเท็มก่อนส่งถึงเกมผู้เล่น พร้อมบิลด์แยกตามรุ่น Sentinel Shield obfuscation และหลักฐานการทดสอบจริง',
   updated_at         = (CAST(strftime('%s','now') AS INTEGER) * 1000)
 WHERE id = 'prod_basehider';
 

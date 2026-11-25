@@ -116,7 +116,7 @@ const th: Dict = {
   "admin.dashboard": "แดชบอร์ด",
   "admin.customers": "ลูกค้า",
   "admin.licenses": "ไลเซนส์",
-  "admin.products": "สินค้า",
+  "admin.products": "ผลิตภัณฑ์",
   "admin.releases": "รีลีส",
   "admin.servers": "เซิร์ฟเวอร์",
   "admin.orders": "คำสั่งซื้อ",

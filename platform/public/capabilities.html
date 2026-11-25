@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="th" data-protected="true">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aegishider 4.0.5 — ซ่อนทั้งฐาน ไม่ใช่แค่ซ่อนแร่ | ความสามารถทั้งหมด</title>
+<meta name="description" content="ปลั๊กอิน Paper ที่ตัดข้อมูลหีบ บล็อกฐาน ห้องใต้ดิน ไอเท็มตกพื้น และม็อบ ออกจากแพ็กเก็ตก่อนถึงไคลเอนต์ พร้อมหลักฐานจากไคลเอนต์จริง 153 tests และฟรี 100%">
+<meta name="theme-color" content="#05070a">
+<link rel="canonical" href="https://aegishider-platform.audijuju1.workers.dev/capabilities">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="th_TH">
+<meta property="og:site_name" content="Aegishider">
+<meta property="og:title" content="Aegishider 4.0.5 — ซ่อนทั้งฐาน ไม่ใช่แค่ซ่อนแร่">
+<meta property="og:description" content="Packet-level base defense สำหรับ Paper: หีบ บล็อกฐาน ห้องใต้ดิน ไอเท็ม และม็อบ ถูกซ่อนก่อนถึงไคลเอนต์ พร้อมตัวเลขและหลักฐานจริง">
+<meta property="og:url" content="https://aegishider-platform.audijuju1.workers.dev/capabilities">
+<meta property="og:image" content="https://aegishider-platform.audijuju1.workers.dev/assets/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Aegishider 4.0.5 — ซ่อนทั้งฐาน ไม่ใช่แค่ซ่อนแร่">
+<meta name="twitter:description" content="Packet-level base defense สำหรับ Paper พร้อมหลักฐานจากไคลเอนต์จริง ฟรี 100%">
+<meta name="twitter:image" content="https://aegishider-platform.audijuju1.workers.dev/assets/img/og-card.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Aegishider","applicationCategory":"GameApplication","operatingSystem":"Paper 1.21.1–26.3 / Java 21+","softwareVersion":"4.0.5","url":"https://aegishider-platform.audijuju1.workers.dev/capabilities","description":"Packet-level base defense for Paper: containers, base blocks, underground volume, dropped items and mobs are removed from outgoing packets before they reach the client.","offers":{"@type":"Offer","price":"0","priceCurrency":"THB"}}</script>
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/img/logo-192.webp">
+<style>
+@font-face{
+  font-family:"Anuphan";font-style:normal;font-weight:100 700;font-display:swap;
+  src:url("/assets/fonts/anuphan-var-thai.woff2") format("woff2");
+  unicode-range:U+0E01-0E5B,U+200C-200D,U+25CC,U+2D7F;
+}
+@font-face{
+  font-family:"Anuphan";font-style:normal;font-weight:100 700;font-display:swap;
+  src:url("/assets/fonts/anuphan-var-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:"Anuphan";font-style:normal;font-weight:100 700;font-display:swap;
+  src:url("/assets/fonts/anuphan-var-latin-ext.woff2") format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:400;font-display:swap;src:url("/assets/fonts/ibm-plex-mono-400-latin.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:500;font-display:swap;src:url("/assets/fonts/ibm-plex-mono-500-latin.woff2") format("woff2")}
+
+:root{
+  --bg:#05070a;--bg-2:#080c11;--surface:#0a1017;--surface-2:#0e151f;--surface-3:#121c27;
+  --line:rgba(236,201,121,.14);--line-soft:rgba(255,255,255,.08);--line-strong:rgba(236,201,121,.3);
+  --text:#f4f1e8;--text-2:#c6cdd7;--muted:#96a2b2;--muted-2:#7c8999;
+  --gold:#ecc979;--gold-hi:#ffe7ad;--gold-deep:#c99a3f;--gold-ink:#171006;
+  --jade:#8be2a2;--red:#ff8b80;--blue:#7cc7e8;
+  --sans:"Anuphan","Noto Sans Thai",Tahoma,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --shell:1200px;--pad:clamp(1.1rem,4vw,2rem);--radius:16px;--radius-lg:24px;
+  --ease:cubic-bezier(.2,.7,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:104px;-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(1100px 720px at 76% -14%,rgba(236,201,121,.12),transparent 62%),
+    radial-gradient(820px 560px at -10% 18%,rgba(90,160,190,.07),transparent 60%),
+    radial-gradient(700px 520px at 50% 112%,rgba(236,201,121,.05),transparent 62%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.45;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%);
+  mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%);
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+h1,h2,h3,h4,p,ul,ol,dl,dd,figure,blockquote{margin:0}
+ul,ol{padding:0;list-style:none}
+code,kbd{font-family:var(--mono)}
+::selection{background:rgba(236,201,121,.28);color:#fff}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+.shell{width:min(100% - var(--pad)*2,var(--shell));margin-inline:auto}
+.mono{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase}
+.muted{color:var(--muted)}
+.skip{position:fixed;top:-100px;left:1rem;z-index:200;background:var(--gold);color:var(--gold-ink);padding:.7rem 1rem;border-radius:8px;font-weight:600}
+.skip:focus{top:1rem}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.btn-block{width:100%}
+
+/* header */
+.announce{border-bottom:1px solid var(--line-soft);background:rgba(236,201,121,.045);font-size:.79rem;color:var(--text-2)}
+.announce .shell{display:flex;align-items:center;gap:.6rem;min-height:38px;flex-wrap:wrap}
+.announce .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);flex:none}
+.announce a{margin-left:auto;color:var(--gold);font-weight:500;white-space:nowrap}
+.announce a:hover{color:var(--gold-hi)}
+.site-header{position:sticky;top:0;z-index:80;background:rgba(5,7,10,.78);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);border-bottom:1px solid transparent;transition:border-color .25s}
+.site-header.is-stuck{border-bottom-color:var(--line-soft)}
+.header-inner{height:72px;display:flex;align-items:center;gap:1.6rem}
+.brand{display:inline-flex;align-items:center;gap:.65rem;flex:none}
+.brand img{width:34px;height:34px;border-radius:9px;filter:drop-shadow(0 0 14px rgba(236,201,121,.28))}
+.brand b{font-size:1.04rem;font-weight:600;letter-spacing:.01em;line-height:1.1;display:block}
+.brand small{display:block;font-family:var(--mono);font-size:.53rem;letter-spacing:.18em;color:var(--gold);margin-top:.15rem}
+.nav{display:flex;align-items:center;gap:1.35rem;margin-inline:auto;font-size:.84rem}
+.nav a{color:#aab4c1;position:relative;padding:.3rem 0;white-space:nowrap;transition:color .2s}
+.nav a::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;background:linear-gradient(90deg,var(--gold),var(--gold-hi));transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
+.nav a:hover{color:#fff}
+.nav a:hover::after{transform:scaleX(1)}
+.header-cta{flex:none}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.72rem 1.1rem;border-radius:12px;border:1px solid transparent;font-size:.88rem;font-weight:600;line-height:1.2;cursor:pointer;white-space:nowrap;transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s,border-color .18s}
+.btn:hover{transform:translateY(-1px)}
+.btn svg{width:1.05em;height:1.05em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn-primary{background:linear-gradient(135deg,#f4d991 0%,#e7bf69 48%,#c9963c 100%);color:var(--gold-ink);border-color:rgba(255,240,200,.55);box-shadow:0 14px 30px -16px rgba(226,189,109,.65),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn-primary:hover{box-shadow:0 18px 38px -16px rgba(226,189,109,.8),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn-ghost{border-color:var(--line-soft);background:rgba(255,255,255,.02);color:var(--text-2)}
+.btn-ghost:hover{border-color:rgba(236,201,121,.45);background:rgba(236,201,121,.06);color:#fff}
+.btn-lg{padding:.88rem 1.3rem;font-size:.94rem}
+.btn-sm{padding:.45rem .75rem;font-size:.78rem;border-radius:10px}
+
+/* hero */
+.hero{position:relative;padding:clamp(3rem,6vw,5.6rem) 0 clamp(2.6rem,5vw,4.2rem);overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.03fr .97fr;gap:clamp(2rem,4.6vw,4.4rem);align-items:center;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:.65rem;color:var(--gold);font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase}
+.eyebrow::before{content:"";width:24px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.hero h1{font-size:clamp(2.9rem,6.1vw,5.35rem);line-height:1.06;letter-spacing:-.025em;font-weight:600;margin:1rem 0 1.25rem}
+.hero h1 em{font-style:normal;display:inline-block;background:linear-gradient(120deg,#fff6d9 0%,#f2d58f 38%,#c9963c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 30px rgba(236,201,121,.15))}
+.hero-lead{max-width:39rem;color:var(--text-2);font-size:clamp(.98rem,1.35vw,1.09rem);line-height:1.85}
+.hero-lead b{color:#fff;font-weight:600}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.7rem}
+.hero-note{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .9rem;margin-top:1rem;font-size:.76rem;color:var(--muted)}
+.hero-note span{display:inline-flex;align-items:center;gap:.35rem}
+.hero-note svg{width:.95em;height:.95em;stroke:var(--jade);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hero-stats{display:flex;flex-wrap:wrap;gap:1.6rem;margin-top:1.9rem;padding-top:1.35rem;border-top:1px solid var(--line-soft);max-width:32rem}
+.hero-stat b{display:block;font-family:var(--mono);font-size:1.15rem;color:var(--gold-hi);letter-spacing:.02em}
+.hero-stat span{font-size:.7rem;color:var(--muted);letter-spacing:.02em}
+
+/* console */
+.console{position:relative;border:1px solid var(--line-strong);border-radius:var(--radius-lg);background:linear-gradient(160deg,rgba(18,28,39,.94),rgba(7,11,16,.98));box-shadow:0 40px 90px -50px #000,0 0 0 1px rgba(255,255,255,.03) inset,0 0 70px -30px rgba(236,201,121,.35);overflow:hidden}
+.console::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,rgba(255,231,173,.055) 40%,transparent 60%);transform:translateX(-120%);animation:scan 7s var(--ease) infinite}
+@keyframes scan{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
+.console-top{display:flex;align-items:center;gap:.7rem;padding:.7rem .95rem;border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.02)}
+.dots{display:flex;gap:4px}
+.dots i{width:7px;height:7px;border-radius:50%;background:#39434f;display:block}
+.dots i:nth-child(2){background:#4c5a69}
+.dots i:nth-child(3){background:var(--gold-deep)}
+.console-top .mono{font-size:.56rem;color:var(--muted);letter-spacing:.12em}
+.pill{display:inline-flex;align-items:center;gap:.35rem;border-radius:99px;padding:.18rem .5rem;font-family:var(--mono);font-size:.5rem;letter-spacing:.12em;border:1px solid}
+.pill.ok{color:var(--jade);border-color:rgba(139,226,162,.35);background:rgba(139,226,162,.07);margin-left:auto}
+.pill .led{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;display:block}
+.console-body{padding:1.05rem 1.1rem 1rem}
+.console-status{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+.console-status p{font-size:.5rem;color:var(--muted);letter-spacing:.2em}
+.console-status strong{display:block;font-family:var(--mono);font-size:clamp(1.35rem,2.5vw,1.75rem);font-weight:500;letter-spacing:.06em;color:var(--gold-hi);line-height:1.2;margin-top:.2rem}
+.console-sub{font-family:var(--mono);font-size:.52rem;color:var(--muted);letter-spacing:.07em;margin-top:.35rem}
+.console-sub b{color:var(--jade);font-weight:500}
+.ring{width:52px;height:52px;flex:none;position:relative;display:grid;place-items:center}
+.ring::before,.ring::after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(236,201,121,.28)}
+.ring::before{inset:0}
+.ring::after{inset:9px;border-color:rgba(236,201,121,.5);animation:pulse 2.6s var(--ease) infinite}
+.ring svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.4}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.08);opacity:.45}}
+.diff{margin-top:1rem;border:1px solid var(--line-soft);border-radius:12px;background:#060a0f;overflow:hidden}
+.diff-head{display:flex;justify-content:space-between;padding:.45rem .7rem;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:.5rem;letter-spacing:.13em;color:var(--muted-2)}
+.diff-row{display:grid;grid-template-columns:1.05fr .7fr .1fr .75fr;align-items:center;gap:.5rem;padding:.42rem .7rem;font-family:var(--mono);font-size:.57rem;border-bottom:1px solid rgba(255,255,255,.035)}
+.diff-row:last-child{border-bottom:0}
+.diff-row span{color:var(--muted-2);letter-spacing:.04em}
+.diff-row code{color:var(--text-2);font-size:.56rem;overflow:hidden;text-overflow:ellipsis}
+.diff-row i{color:var(--muted-2);font-style:normal;text-align:center}
+.diff-row code.hide{color:var(--gold);background:rgba(236,201,121,.08);border:1px solid rgba(236,201,121,.18);border-radius:5px;padding:.08rem .3rem;text-align:center;white-space:nowrap}
+.diff-row code.hide::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--gold);margin-right:.3rem;vertical-align:1px}
+.console-foot{display:flex;justify-content:space-between;gap:.75rem;padding:.55rem .85rem;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:.49rem;letter-spacing:.08em;color:var(--muted-2);background:rgba(255,255,255,.015);flex-wrap:wrap}
+.console-foot b{color:var(--gold);font-weight:500}
+
+/* stat band */
+.band{border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.014)}
+.band-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-soft)}
+.band-item{background:var(--bg);padding:1.15rem 1.2rem}
+.band-item b{display:block;font-family:var(--mono);font-size:1.22rem;color:var(--gold-hi);letter-spacing:.02em;line-height:1.3}
+.band-item span{font-size:.73rem;color:var(--muted)}
+.band-note{padding:.7rem 0;font-size:.68rem;color:var(--muted-2);text-align:center;line-height:1.6}
+
+/* sections */
+.section{padding:clamp(4rem,8vw,7rem) 0;position:relative}
+.section-head{max-width:760px;margin-bottom:2.4rem}
+.section-head h2{font-size:clamp(2rem,4.2vw,3.25rem);line-height:1.14;letter-spacing:-.02em;font-weight:600;margin:.8rem 0 .9rem}
+.section-head h2 em{font-style:normal;color:var(--gold)}
+.section-head p{color:var(--text-2);font-size:1rem;line-height:1.85;max-width:66ch}
+.section-head.center{margin-inline:auto;text-align:center}
+.section-head.center p{margin-inline:auto}
+.section-head.center .eyebrow{justify-content:center}
+
+/* threat */
+.threats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.threat{position:relative;border:1px solid var(--line-soft);border-radius:var(--radius);background:linear-gradient(165deg,rgba(18,28,39,.6),rgba(8,12,17,.85));padding:1.35rem;overflow:hidden;transition:border-color .25s,transform .25s}
+.threat:hover{border-color:rgba(236,201,121,.3);transform:translateY(-2px)}
+.threat-num{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;color:var(--gold);border:1px solid rgba(236,201,121,.25);border-radius:6px;padding:.14rem .4rem;display:inline-block}
+.threat h3{font-size:1.08rem;line-height:1.45;margin:.85rem 0 .5rem;font-weight:600}
+.threat p{font-size:.85rem;color:var(--muted);line-height:1.8}
+.threat .cost{display:flex;align-items:center;gap:.4rem;margin-top:.85rem;font-family:var(--mono);font-size:.55rem;letter-spacing:.06em;color:var(--red)}
+.threat .cost::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor}
+.callout{display:flex;align-items:flex-start;gap:1rem;margin-top:1.2rem;padding:1.1rem 1.2rem;border-left:2px solid var(--gold);background:linear-gradient(90deg,rgba(236,201,121,.08),transparent 70%);border-radius:0 12px 12px 0}
+.callout b{color:var(--gold-hi);font-weight:600}
+.callout p{font-size:.9rem;color:var(--text-2);line-height:1.8}
+
+/* demo */
+.demo-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(1.6rem,4vw,3.6rem);align-items:center}
+.demo-copy h3{font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.3;font-weight:600;margin-bottom:.7rem}
+.demo-copy>p{color:var(--text-2);font-size:.93rem;line-height:1.85}
+.demo-list{display:grid;gap:.55rem;margin-top:1.2rem}
+.demo-list li{display:flex;gap:.6rem;align-items:flex-start;font-size:.84rem;color:var(--muted)}
+.demo-list li b{color:var(--text-2);font-weight:500}
+.demo-list svg{width:1rem;height:1rem;stroke:var(--gold);fill:none;stroke-width:1.8;flex:none;margin-top:.22rem}
+.demo-card{border:1px solid var(--line-soft);border-radius:var(--radius-lg);background:linear-gradient(170deg,rgba(18,28,39,.8),rgba(6,10,15,.96));padding:1rem;box-shadow:0 30px 70px -55px #000}
+.demo-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.2rem .2rem .85rem}
+.demo-top .mono{font-size:.52rem;color:var(--muted);letter-spacing:.16em}
+.demo-top strong{display:block;font-size:.9rem;margin-top:.2rem;color:var(--gold-hi);font-weight:600}
+.switch{width:52px;height:29px;border-radius:99px;border:1px solid rgba(236,201,121,.4);background:rgba(236,201,121,.15);position:relative;cursor:pointer;flex:none;transition:background .2s,border-color .2s;padding:0}
+.switch::after{content:"";position:absolute;top:3px;left:27px;width:21px;height:21px;border-radius:50%;background:linear-gradient(135deg,#ffe7ad,#c99a3f);box-shadow:0 2px 8px rgba(0,0,0,.5);transition:left .2s var(--ease),background .2s}
+.switch[aria-checked="false"]{background:rgba(255,255,255,.06);border-color:var(--line-soft)}
+.switch[aria-checked="false"]::after{left:3px;background:#5c6875}
+.xray{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line-soft);background:#0a0e14}
+.xray svg{width:100%;height:auto}
+.xray .room,.xray .chest,.xray .esp,.xray .item-glow{transition:opacity .5s var(--ease)}
+.xray .mask,.xray .mask-label{transition:opacity .5s var(--ease)}
+.xray .mask,.xray .mask-label{opacity:1}
+.xray .room,.xray .esp,.xray .item-glow{opacity:0}
+html[data-protected="true"] .xray .room,
+html[data-protected="true"] .xray .esp{opacity:0}
+html[data-protected="true"] .xray .mask,
+html[data-protected="true"] .xray .mask-label{opacity:1}
+html[data-protected="false"] .xray .room,
+html[data-protected="false"] .xray .esp{opacity:1}
+html[data-protected="false"] .xray .mask,
+html[data-protected="false"] .xray .mask-label{opacity:0}
+.demo-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.8rem;font-family:var(--mono);font-size:.53rem;letter-spacing:.05em;color:var(--muted-2)}
+.demo-foot b{color:var(--jade);font-weight:500}
+html[data-protected="false"] .demo-foot b{color:var(--red)}
+.demo-readout{margin-top:.5rem;font-size:.76rem;color:var(--muted);line-height:1.7}
+
+/* features */
+.fgroup{margin-top:2.6rem}
+.fgroup:first-of-type{margin-top:0}
+.fgroup-head{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;padding-bottom:.7rem;border-bottom:1px solid var(--line-soft)}
+.fgroup-head span{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;color:var(--gold)}
+.fgroup-head h3{font-size:1.06rem;font-weight:600;letter-spacing:.01em}
+.fgroup-head small{margin-left:auto;font-family:var(--mono);font-size:.52rem;color:var(--muted-2);letter-spacing:.08em}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem}
+.fcard{position:relative;border:1px solid var(--line-soft);border-radius:14px;background:linear-gradient(165deg,rgba(18,28,39,.55),rgba(7,11,16,.8));padding:1.15rem 1.15rem 1.05rem;transition:border-color .25s,transform .25s,background .25s;display:flex;flex-direction:column}
+.fcard:hover{border-color:rgba(236,201,121,.28);transform:translateY(-2px);background:linear-gradient(165deg,rgba(23,35,48,.7),rgba(7,11,16,.9))}
+.fcard-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.7rem}
+.fcode{font-family:var(--mono);font-size:.52rem;letter-spacing:.12em;color:var(--gold)}
+.tag{font-family:var(--mono);font-size:.45rem;letter-spacing:.1em;color:var(--muted-2);border:1px solid var(--line-soft);border-radius:5px;padding:.13rem .32rem;white-space:nowrap}
+.fcard h3{font-size:.99rem;line-height:1.5;font-weight:600;margin-bottom:.4rem}
+.fcard p{font-size:.81rem;color:var(--muted);line-height:1.8}
+.fcard p code{font-size:.72rem;color:var(--text-2);background:rgba(255,255,255,.05);border:1px solid var(--line-soft);border-radius:4px;padding:.02rem .25rem}
+.fcard .micro{margin-top:auto;padding-top:.75rem;font-family:var(--mono);font-size:.5rem;letter-spacing:.06em;color:var(--muted-2);display:flex;align-items:center;gap:.35rem}
+.fcard .micro::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--gold);flex:none}
+
+/* evidence */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:14px;overflow:hidden;margin-bottom:1.2rem}
+.metric{background:var(--surface);padding:1.2rem 1.15rem}
+.metric .mono{font-size:.5rem;color:var(--muted-2);letter-spacing:.13em}
+.metric b{display:block;font-family:var(--mono);font-weight:500;font-size:clamp(1.35rem,2.4vw,1.75rem);color:var(--gold-hi);letter-spacing:-.01em;margin:.45rem 0 .15rem;line-height:1.2}
+.metric span{font-size:.7rem;color:var(--muted);line-height:1.55;display:block}
+.metric em{font-style:normal;color:var(--jade)}
+.table-card{border:1px solid var(--line-soft);border-radius:14px;background:rgba(8,12,17,.7);overflow:hidden}
+.table-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;padding:.8rem 1rem;border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.015)}
+.table-head b{font-size:.82rem;font-weight:600}
+.table-head span{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;color:var(--muted-2)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:620px}
+th,td{text-align:left;padding:.7rem .85rem;border-bottom:1px solid rgba(255,255,255,.045);vertical-align:top}
+thead th{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;color:var(--muted-2);text-transform:uppercase;background:rgba(255,255,255,.02);white-space:nowrap}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+tbody th{font-weight:500;color:var(--text-2);font-size:.78rem}
+td{color:var(--muted)}
+td.good{color:var(--jade)}
+td.bad{color:var(--red)}
+.yes{color:var(--jade)}
+.no{color:var(--red)}
+.part{color:var(--gold)}
+.table-note{padding:.75rem 1rem;font-size:.66rem;color:var(--muted-2);line-height:1.7;border-top:1px solid var(--line-soft)}
+.proof-strip{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.chip{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--line-soft);border-radius:99px;padding:.28rem .65rem;font-family:var(--mono);font-size:.52rem;letter-spacing:.06em;color:var(--muted)}
+.chip b{color:var(--gold);font-weight:500}
+.chip::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--gold);flex:none}
+
+/* comparison */
+.compare{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(1.5rem,4vw,3rem);align-items:start}
+.compare-copy h2{font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.15;letter-spacing:-.02em;font-weight:600;margin:.8rem 0 .8rem}
+.compare-copy p{color:var(--text-2);font-size:.92rem;line-height:1.85}
+.compare-copy .fine{margin-top:1rem;font-size:.72rem;color:var(--muted-2);line-height:1.75;border-left:1px solid var(--line);padding-left:.8rem}
+
+/* install */
+.install-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(1.5rem,4vw,3rem);align-items:start}
+.steps{display:grid;gap:.7rem;counter-reset:step}
+.step{display:grid;grid-template-columns:auto 1fr;gap:.85rem;padding:1rem 1.05rem;border:1px solid var(--line-soft);border-radius:12px;background:rgba(9,14,20,.7)}
+.step-num{width:30px;height:30px;border-radius:8px;border:1px solid rgba(236,201,121,.3);background:rgba(236,201,121,.07);display:grid;place-items:center;font-family:var(--mono);font-size:.65rem;color:var(--gold);flex:none}
+.step h3{font-size:.9rem;font-weight:600;margin-bottom:.2rem}
+.step p{font-size:.79rem;color:var(--muted);line-height:1.75}
+.step code{display:inline-block;margin-top:.4rem;font-size:.7rem;color:var(--gold-hi);background:#060a0f;border:1px solid var(--line-soft);border-radius:5px;padding:.12rem .4rem;word-break:break-word}
+.install-side{border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:1.4rem;background:linear-gradient(165deg,rgba(236,201,121,.07),rgba(8,12,17,.85) 55%);position:sticky;top:96px}
+.install-side .mono{font-size:.52rem;color:var(--gold);letter-spacing:.14em}
+.install-side h3{font-size:1.3rem;line-height:1.4;font-weight:600;margin:.55rem 0 .7rem}
+.install-side p{font-size:.82rem;color:var(--muted);line-height:1.8}
+.install-side .req{display:grid;gap:.45rem;margin:1rem 0 1.2rem;padding-top:1rem;border-top:1px solid var(--line-soft)}
+.install-side .req li{display:flex;justify-content:space-between;gap:.7rem;font-size:.74rem;color:var(--muted)}
+.install-side .req b{color:var(--text-2);font-weight:500;text-align:right}
+.install-side .fine{margin-top:.8rem;font-size:.66rem;color:var(--muted-2);line-height:1.7}
+
+/* limits */
+.limits{display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem}
+.limit{display:grid;grid-template-columns:auto 1fr;gap:.8rem;padding:1rem 1.05rem;border:1px solid var(--line-soft);border-radius:12px;background:rgba(9,14,20,.55)}
+.limit-mark{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,139,128,.35);color:var(--red);display:grid;place-items:center;font-family:var(--mono);font-size:.65rem;flex:none;background:rgba(255,139,128,.06)}
+.limit h3{font-size:.87rem;font-weight:600;margin-bottom:.2rem}
+.limit p{font-size:.77rem;color:var(--muted);line-height:1.75}
+
+/* faq */
+.faq{max-width:880px;margin-inline:auto;border-top:1px solid var(--line-soft)}
+.faq details{border-bottom:1px solid var(--line-soft)}
+.faq summary{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.05rem 0;cursor:pointer;list-style:none;font-size:.93rem;font-weight:500;color:var(--text-2)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-family:var(--mono);font-size:1.1rem;color:var(--gold);transition:transform .25s;flex:none;line-height:1}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details[open] summary{color:#fff}
+.faq .answer{padding:0 0 1.1rem;max-width:72ch;font-size:.84rem;color:var(--muted);line-height:1.85}
+.faq .answer b{color:var(--text-2);font-weight:500}
+
+/* final cta */
+.final{padding:0 0 clamp(4rem,8vw,6rem)}
+.final-panel{position:relative;border:1px solid var(--line-strong);border-radius:26px;padding:clamp(2rem,5vw,3.6rem);text-align:center;overflow:hidden;background:linear-gradient(160deg,rgba(236,201,121,.1),rgba(8,12,17,.9) 58%)}
+.final-panel::before{content:"";position:absolute;inset:-40% 30%;background:radial-gradient(circle,rgba(236,201,121,.14),transparent 60%);pointer-events:none}
+.final-panel>*{position:relative}
+.final-panel h2{font-size:clamp(2rem,4.4vw,3.2rem);line-height:1.15;letter-spacing:-.02em;font-weight:600;margin:.7rem auto 1rem;max-width:18ch}
+.final-panel p{color:var(--text-2);max-width:52ch;margin:0 auto;font-size:.95rem;line-height:1.85}
+.final-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem;margin-top:1.6rem}
+.final-fine{margin-top:1rem;font-size:.68rem;color:var(--muted-2)}
+
+/* footer */
+.site-footer{border-top:1px solid var(--line-soft);padding:2.4rem 0 2rem;background:rgba(5,7,10,.6)}
+.footer-top{display:flex;flex-wrap:wrap;gap:2rem;justify-content:space-between;align-items:flex-start}
+.footer-brand{max-width:24rem}
+.footer-brand p{margin-top:.7rem;font-size:.76rem;color:var(--muted);line-height:1.75}
+.footer-links{display:flex;flex-wrap:wrap;gap:2rem}
+.footer-col h3{font-family:var(--mono);font-size:.52rem;letter-spacing:.15em;color:var(--muted-2);margin-bottom:.6rem;font-weight:500}
+.footer-col a{display:block;font-size:.77rem;color:var(--text-2);margin:.3rem 0}
+.footer-col a:hover{color:var(--gold-hi)}
+.footer-bottom{margin-top:2rem;padding-top:1.2rem;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;gap:.8rem;justify-content:space-between;font-size:.66rem;color:var(--muted-2);line-height:1.7}
+.footer-bottom p{max-width:70ch}
+
+/* reveal */
+.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.js .reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  .js .reveal{opacity:1;transform:none}
+}
+
+/* responsive */
+@media (max-width:1040px){
+  .hero-grid{grid-template-columns:1fr;gap:2.4rem}
+  .hero-lead{max-width:none}
+  .console{max-width:620px}
+  .demo-grid,.compare,.install-grid{grid-template-columns:1fr}
+  .install-side{position:static}
+  .fgrid{grid-template-columns:repeat(2,1fr)}
+  .threats{grid-template-columns:1fr}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .band-inner{grid-template-columns:repeat(2,1fr)}
+  .nav{display:none}
+  .header-cta{margin-left:auto}
+}
+@media (max-width:680px){
+  .header-inner{gap:.8rem;height:64px}
+  .brand b{font-size:.94rem}
+  .brand small{font-size:.48rem}
+  .announce .shell{font-size:.7rem;padding-block:.35rem}
+  .announce a{display:none}
+  .hero{padding-top:2.4rem}
+  .hero h1{font-size:clamp(2.45rem,11vw,3.4rem)}
+  .hero-actions .btn{flex:1 1 100%}
+  .hero-stats{gap:1.1rem}
+  .hero-stat b{font-size:1rem}
+  .fgrid,.limits{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  .metric{padding:1rem .9rem}
+  .section-head h2{font-size:clamp(1.75rem,8vw,2.4rem)}
+  .console-body{padding:.9rem}
+  .diff-row{grid-template-columns:1fr .75fr .08fr .8fr;font-size:.5rem;gap:.3rem;padding:.4rem .5rem}
+  .diff-row code{font-size:.49rem}
+  .table-card table{min-width:560px}
+  .fgroup-head small{display:none}
+  .final-panel{border-radius:18px}
+  .footer-links{gap:1.6rem}
+}
+</style>
+</head>
+<body id="top">
+<a class="skip" href="#main">ข้ามไปยังเนื้อหา</a>
+
+<div class="announce">
+  <div class="shell">
+    <span class="dot" aria-hidden="true"></span>
+    <span><b>Aegishider 4.0.5</b> — เพิ่ม full base-block set, Y-shield ครอบทุก chunk และงาน packet/entity ที่ถูกจำกัดต่อ tick</span>
+    <a href="#evidence">ดูหลักฐานจริง →</a>
+  </div>
+</div>
+
+<header class="site-header" id="header">
+  <div class="shell header-inner">
+    <a class="brand" href="#top" aria-label="Aegishider — กลับขึ้นด้านบน">
+      <img src="/assets/img/favicon.svg" width="34" height="34" alt="">
+      <span><b>Aegishider</b><small>PACKET DEFENSE · 4.0.5</small></span>
+    </a>
+    <nav class="nav" aria-label="เมนูหลัก">
+      <a href="#why">ทำไมต้อง Aegis</a>
+      <a href="#capabilities">ความสามารถ</a>
+      <a href="#evidence">หลักฐาน</a>
+      <a href="#compare">เปรียบเทียบ</a>
+      <a href="#install">ติดตั้ง</a>
+      <a href="#faq">คำถาม</a>
+    </nav>
+    <a class="btn btn-primary btn-sm header-cta" href="https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider" target="_blank" rel="noopener">
+      ดาวน์โหลดฟรี
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 21h16"/></svg>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div>
+        <p class="eyebrow">Packet-level base defense · Paper 1.21.1–26.3</p>
+        <h1>ซ่อนทั้งฐาน<br><em>ไม่ใช่แค่ซ่อนแร่</em></h1>
+        <p class="hero-lead">Aegishider เป็น <b>visibility gate ฝั่งเซิร์ฟเวอร์</b> — หีบ บล็อกฐาน ห้องใต้ดิน ไอเท็มตกพื้น และม็อบ ถูกตัดออกจากแพ็กเก็ต<b>ก่อนถึงไคลเอนต์</b> ไม่มีการส่งข้อมูลจริงแล้วค่อยแก้ทีหลัง</p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider" target="_blank" rel="noopener">
+            ดาวน์โหลด 4.0.5 ฟรี
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 21h16"/></svg>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#evidence">
+            ดูหลักฐาน packet จริง
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>
+          </a>
+        </div>
+
+        <div class="hero-note">
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg>ฟรี 100% ไม่มีกระเป๋าเงิน</span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg>Ed25519 ทุกใบอนุญาต</span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg>153 tests</span>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hero-stat"><b>6</b><span>Paper builds</span></div>
+          <div class="hero-stat"><b>8</b><span>live packet scenarios</span></div>
+          <div class="hero-stat"><b>0</b><span>player identifiers sent</span></div>
+        </div>
+      </div>
+
+      <div class="console reveal" role="img" aria-label="แผงแสดงสถานะ Aegishider: protection active, ตัด chest เป็น stone, ตัด block entity, mask ใต้ Y=40 และระงับ spawn packet ของไอเท็ม">
+        <div class="console-top">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="mono">aegishider / visibility-gate</span>
+          <span class="pill ok"><i class="led"></i>FAIL-CLOSED</span>
+        </div>
+        <div class="console-body">
+          <div class="console-status">
+            <div>
+              <p class="mono">PROTECTION</p>
+              <strong>ACTIVE</strong>
+              <div class="console-sub">gateway <b>ACTIVE</b> · block <b>ACTIVE</b> · item <b>ACTIVE</b></div>
+            </div>
+            <div class="ring" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.4 2.9 7.6 7 9 4.1-1.4 7-4.6 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+          </div>
+
+          <div class="diff">
+            <div class="diff-head"><span>OUTGOING PACKET</span><span>CLIENT RECEIVES</span></div>
+            <div class="diff-row"><span>chunk section</span><code>minecraft:chest</code><i>→</i><code class="hide">stone</code></div>
+            <div class="diff-row"><span>block entity</span><code>barrel · shulker</code><i>→</i><code class="hide">stripped</code></div>
+            <div class="diff-row"><span>y &lt; 40</span><code>cave air + base</code><i>→</i><code class="hide">stone</code></div>
+            <div class="diff-row"><span>item @ 24m</span><code>spawn packet</code><i>→</i><code class="hide">withheld</code></div>
+          </div>
+        </div>
+        <div class="console-foot">
+          <span>Paper 1.21.4 · PacketEvents 2.14.0</span>
+          <span>p99 <b>3.0 ms</b> · 24-block reveal</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="band">
+    <div class="shell">
+      <div class="band-inner">
+        <div class="band-item"><b>100–200 µs</b><span>งาน security p50 ต่อ tick</span></div>
+        <div class="band-item"><b>≤ 0.85 ms</b><span>p95 ต่อ tick</span></div>
+        <div class="band-item"><b>≤ 3.0 ms</b><span>p99 ต่อ tick</span></div>
+        <div class="band-item"><b>+0.5–1.4 ms</b><span>MSPT delta เฉลี่ย</span></div>
+      </div>
+      <p class="band-note">งาน security ของปลั๊กอินเอง · วัดบน Paper 1.21.4 build 232, 8 vCPU, ไคลเอนต์ headless 2 ตัว, ไอเท็มตก 0–800 ชิ้น · รวม overhead ของ PacketEvents แล้ว · ตัวเลขจาก engineering report ของโปรเจกต์</p>
+    </div>
+  </div>
+
+  <section class="section" id="why">
+    <div class="shell">
+      <div class="section-head reveal">
+        <p class="eyebrow">ทำไม anti-xray แบบเดิมไม่พอ</p>
+        <h2>มันซ่อน “แร่” — แต่ฐานของคุณ<br><em>ไม่ได้ทำจากแร่</em></h2>
+        <p>ESP ยุคใหม่ไม่ได้สนใจเพชร มันมองหาหีบ ห้องใต้ดิน และไอเท็มที่ตกอยู่ การแทนที่บล็อกแร่จึงไม่แตะสิ่งที่ทำให้ฐานถูกค้นพบ</p>
+      </div>
+
+      <div class="threats">
+        <article class="threat reveal">
+          <span class="threat-num">THREAT 01</span>
+          <h3>Storage ESP<br>หีบคือเป้าหมายแรก</h3>
+          <p>หีบ บาร์เรล ชูล์คเกอร์ และ spawner เป็น block entity — ไม่ใช่แร่ ถ้าไคลเอนต์ได้รับข้อมูล block entity มันก็วาดกรอบให้เห็นได้ทันที</p>
+          <span class="cost">ore-only anti-xray: ไม่ครอบคลุม</span>
+        </article>
+        <article class="threat reveal">
+          <span class="threat-num">THREAT 02</span>
+          <h3>Freecam / base finder<br>เห็นทั้งห้องจากผิวโลก</h3>
+          <p>การซ่อนแร่ไม่ปิด cave air โครงสร้าง หรือห้องใต้ดิน กล้องลอยจึงยังส่องเห็นฐานได้แม้ไม่มีแร่สักก้อน</p>
+          <span class="cost">ore-only anti-xray: ไม่ครอบคลุม</span>
+        </article>
+        <article class="threat reveal">
+          <span class="threat-num">THREAT 03</span>
+          <h3>Item &amp; mob ESP<br>ทะลุกำแพงได้ทุกชนิด</h3>
+          <p>ไอเท็มตกพื้นและม็อบถูกส่งผ่าน entity packet คนละเส้นทางกับ chunk data — anti-xray ที่แก้เฉพาะบล็อกไม่ได้แตะเส้นทางนี้เลย</p>
+          <span class="cost">ore-only anti-xray: ไม่ครอบคลุม</span>
+        </article>
+      </div>
+
+      <div class="callout reveal">
+        <p><b>Aegishider เริ่มจากคำถามเดียว:</b> “ข้อมูลนี้จำเป็นต้องออกจากเซิร์ฟเวอร์หรือยัง?” ถ้าพิสูจน์ไม่ได้ว่าผู้เล่นมองเห็นจริงด้วยระยะ มุมมอง และ line of sight — ข้อมูลนั้นถูกซ่อน</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="demo" style="padding-top:0">
+    <div class="shell">
+      <div class="demo-grid">
+        <div class="demo-copy reveal">
+          <p class="eyebrow">FREE CAM · มองจากผิวโลก</p>
+          <h3>ปิดสวิตช์ แล้วดูสิ่งที่ ESP<br>ได้รับจากเซิร์ฟเวอร์</h3>
+          <p>ด้านขวาคือหน้าตัดของโลกใต้ฐาน เมื่อ Aegishider เปิด ผู้ชมจากผิวโลกจะได้รับ <b>stone ทั้งโวลุ่ม</b> ไม่ใช่แค่หีบที่ถูกแทน — รวม air ในห้องและถ้ำด้วย</p>
+          <ul class="demo-list">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg><span><b>Y-shield ครอบทุก chunk</b> — default hide-below-y 40 · real-chunk-radius 0</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg><span><b>Section ที่คร่อมเส้นถูกแก้ทีละ layer</b> — ภูมิประเทศด้านบนยังจริง</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg><span><b>ผู้เล่นที่เดินลงไปใต้เส้น</b> จะได้ chunk จริงกลับมาแบบ spread ต่อ tick</span></li>
+          </ul>
+        </div>
+
+        <div class="demo-card reveal">
+          <div class="demo-top">
+            <div>
+              <span class="mono">VIEWER · EYE Y=120</span>
+              <strong id="demoState">Aegishider เปิด</strong>
+            </div>
+            <button class="switch" id="shieldToggle" type="button" role="switch" aria-checked="true" aria-label="เปิดหรือปิด Aegishider ในตัวอย่าง"><span class="sr-only">สลับการป้องกัน</span></button>
+          </div>
+
+          <div class="xray" aria-hidden="true">
+            <svg viewBox="0 0 600 330" role="presentation">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#0b1622"/><stop offset="1" stop-color="#13212d"/>
+                </linearGradient>
+                <linearGradient id="dirt" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#3a2c1d"/><stop offset="1" stop-color="#261d13"/>
+                </linearGradient>
+                <pattern id="stone" width="26" height="26" patternUnits="userSpaceOnUse">
+                  <rect width="26" height="26" fill="#2a313a"/>
+                  <rect x="1" y="1" width="11" height="10" rx="1" fill="#323a44"/>
+                  <rect x="14" y="1" width="11" height="10" rx="1" fill="#2f3741"/>
+                  <rect x="1" y="14" width="11" height="10" rx="1" fill="#2e363f"/>
+                  <rect x="14" y="14" width="11" height="10" rx="1" fill="#343c47"/>
+                </pattern>
+                <linearGradient id="roomGlow" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#ffdf9d"/><stop offset="1" stop-color="#c9963c"/>
+                </linearGradient>
+              </defs>
+
+              <rect width="600" height="330" fill="url(#sky)"/>
+              <g opacity=".18" stroke="#8fb4cc" stroke-width=".5">
+                <path d="M0 30h600M0 60h600M0 90h600M100 0v120M200 0v120M300 0v120M400 0v120M500 0v120"/>
+              </g>
+
+              <rect x="0" y="110" width="600" height="16" fill="#3f5d32"/>
+              <rect x="0" y="126" width="600" height="204" fill="url(#dirt)"/>
+              <rect x="0" y="148" width="600" height="182" fill="url(#stone)"/>
+
+              <g opacity=".55" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#9fb0c1" letter-spacing="1.5">
+                <text x="18" y="104">SURFACE Y=64</text>
+                <text x="18" y="240">Y-SHIELD LINE Y=40</text>
+              </g>
+              <line x1="0" y1="232" x2="600" y2="232" stroke="#ecc979" stroke-width="1" stroke-dasharray="4 5" opacity=".5"/>
+
+              <!-- hidden base room -->
+              <g class="room">
+                <rect x="120" y="186" width="250" height="74" rx="3" fill="#0a0d11"/>
+                <rect x="120" y="186" width="250" height="74" rx="3" fill="none" stroke="#ecc979" stroke-opacity=".25"/>
+                <!-- chests -->
+                <g fill="#b9842f" stroke="#f0cd86" stroke-width="1">
+                  <rect x="146" y="208" width="28" height="22" rx="2"/><rect x="186" y="208" width="28" height="22" rx="2"/>
+                  <rect x="226" y="208" width="28" height="22" rx="2"/>
+                </g>
+                <g stroke="#3a2609" stroke-width="1.2" opacity=".8">
+                  <path d="M146 220h28M186 220h28M226 220h28"/>
+                  <path d="M159 218v4M199 218v4M239 218v4"/>
+                </g>
+                <!-- furnace / spawner -->
+                <rect x="286" y="208" width="24" height="22" rx="2" fill="#5c6672" stroke="#9aa7b5"/>
+                <circle cx="298" cy="219" r="2.5" fill="#ffcf7a"/>
+                <rect x="322" y="204" width="26" height="26" rx="2" fill="#242b33" stroke="#79879a"/>
+                <path d="M328 210h14M328 216h14M328 222h14M333 206v20M340 206v20" stroke="#8b98a8" stroke-width=".8" opacity=".7"/>
+
+                <g class="esp" stroke="#ff8b80" stroke-width="1" stroke-dasharray="3 4" opacity=".65">
+                  <path d="M470 62 160 216"/><path d="M470 62 200 216"/><path d="M470 62 240 216"/><path d="M470 62 334 214"/>
+                </g>
+              </g>
+
+              <!-- stone mask over room -->
+              <g class="mask">
+                <rect x="114" y="180" width="246" height="86" rx="2" fill="url(#stone)"/>
+                <rect x="114" y="180" width="246" height="86" rx="2" fill="#05070a" opacity=".18"/>
+              </g>
+              <g class="mask-label" opacity="1">
+                <rect x="138" y="202" width="198" height="34" rx="6" fill="#05070a" fill-opacity=".82" stroke="#ecc979" stroke-opacity=".35"/>
+                <text x="237" y="217" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#ecc979" letter-spacing="1.6">MASKED BY Y-SHIELD</text>
+                <text x="237" y="229" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8" fill="#96a2b2" letter-spacing="1">CONTAINER STATES = 0</text>
+              </g>
+
+              <!-- freecam eye -->
+              <g transform="translate(470 52)">
+                <circle r="17" fill="#05070a" stroke="#ecc979" stroke-opacity=".55"/>
+                <path d="M-9 0c3-5 15-5 18 0-3 5-15 5-18 0Z" fill="none" stroke="#ecc979" stroke-width="1.2"/>
+                <circle r="2.6" fill="#ecc979"/>
+                <text y="32" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8" fill="#96a2b2" letter-spacing="1.2">FREE CAM</text>
+              </g>
+
+              <g opacity=".5" font-family="'IBM Plex Mono',monospace" font-size="8" fill="#7c8999" letter-spacing="1">
+                <text x="420" y="306">CHUNK 0,0 · SECTION 0–15</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="demo-foot">
+            <span>OUTGOING CONTAINER STATES</span>
+            <b id="demoCount">0</b>
+          </div>
+          <p class="demo-readout" id="demoReadout">ไคลเอนต์ได้รับ stone ทั้งโวลุ่ม — ไม่มี chest, spawner หรือ cave air หลุดออกไป</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="capabilities" style="padding-top:0">
+    <div class="shell">
+      <div class="section-head reveal">
+        <p class="eyebrow">ความสามารถทั้งหมด · Aegishider 4.0.5</p>
+        <h2>ครบทุกชั้นของ<br><em>base concealment</em></h2>
+        <p>ไม่ได้ป้องกันแค่แร่ — ปิดข้อมูลตั้งแต่ chunk palette, block entity, packet การกระทำ ไปจนถึง entity visibility และจัดการงานทั้งหมดให้อยู่ในงบต่อ tick</p>
+      </div>
+
+      <div class="fgroup reveal">
+        <div class="fgroup-head"><span>GROUP A</span><h3>ซ่อนฐานและโลกใต้ดิน</h3><small>05 CAPABILITIES</small></div>
+        <div class="fgrid">
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">BASE-01</span><span class="tag">PRE-SEND STRIP</span></div>
+            <h3>Container &amp; block-entity shield</h3>
+            <p>หีบ trapped chest, ender chest, barrel, shulker, hopper, furnace, dispenser, spawner, trial spawner และ vault ถูกตัดจาก chunk data รวมถึง block-entity packet <b>ก่อนเขียนแพ็กเก็ต</b> พร้อม TE-scan อิสระใน chunk เดียวกัน</p>
+            <span class="micro">ไม่มี send-then-patch fallback</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">BASE-02</span><span class="tag">4.0.4 BASE SET</span></div>
+            <h3>บล็อกฐานครบชุด</h3>
+            <p>piston, sticky piston, piston head, bookshelf, crafting/cartography/fletching/smithing table, loom, stonecutter, grindstone, anvil ทั้งสาม, observer, target, composter, daylight detector, cauldron, respawn anchor, bell, lodestone และ beacon</p>
+            <span class="micro">palette-prefiltered state scan</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">BASE-03</span><span class="tag">FULL VOLUME MASK</span></div>
+            <h3>Y-shield ทั้งโวลุ่มใต้ดิน</h3>
+            <p>ผู้ชมที่ตาสูงกว่าเส้น 2 บล็อกได้รับ stone ทั้งโวลุ่มใต้ดิน <b>รวม air ในห้องและถ้ำ</b> ไม่ใช่แค่หีบ — section ที่คร่อมเส้นถูกแก้ทีละ layer เพื่อรักษาภูมิประเทศด้านบน</p>
+            <span class="micro">default Y=40 · real-chunk-radius=0</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">BASE-04</span><span class="tag">OPT-IN</span></div>
+            <h3>Tunnel shield</h3>
+            <p>บล็อกที่ผู้เล่นขุดเกิน 28 บล็อกถูกแสดงเป็นวัสดุเดิม ทำให้ tunnel trace ไม่บอกทางไปฐาน จนกว่าผู้เล่นจะเดินเข้าใกล้พอที่จะเห็นจริง</p>
+            <span class="micro">default off · เปิดต่อ world ได้</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">BASE-05</span><span class="tag">RE-HIDE</span></div>
+            <h3>Chunk resend &amp; cache replay</h3>
+            <p>บังคับ resend, ไคลเอนต์ cache อย่าง Bobby / Distant Horizons หรือ chunk ที่ถูกส่งซ้ำ จะถูก re-hide เป็น stone ทุกครั้ง — สถานะปลายทางใน test คือ <code>final=stone</code> ไม่ใช่ chest</p>
+            <span class="micro">test F · cache leak = 0</span>
+          </article>
+        </div>
+      </div>
+
+      <div class="fgroup reveal">
+        <div class="fgroup-head"><span>GROUP B</span><h3>ซ่อนสิ่งที่ ESP มองเห็น</h3><small>05 CAPABILITIES</small></div>
+        <div class="fgrid">
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">ENT-01</span><span class="tag">0 SPAWN PACKETS</span></div>
+            <h3>ItemShield</h3>
+            <p>ไอเท็มตกพื้นใช้ Paper native <code>setVisibleByDefault(false)</code> — ไม่มี spawn, metadata หรือ movement packet จนกว่าจะผ่านระยะ + FOV + occlusion; การเก็บไอเท็มยังทำงานปกติ</p>
+            <span class="micro">test A · ไกล 24 บล็อกหลังกำแพง = 0 spawn</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">ENT-02</span><span class="tag">LOS ONLY</span></div>
+            <h3>Living-mob wall check</h3>
+            <p>มอนและสัตว์ต้องมี line of sight จริง ยกเว้นระยะแตะ 1 บล็อก ระบบสุ่มตรวจกลางตัวและหัว — ม็อบหลังกำแพงหาย แม้อยู่ในระยะ 2–4 บล็อก แต่ fence, glass pane หรือหัวที่โผล่พ้นขอบยังเห็นได้</p>
+            <span class="micro">ไม่เพิ่ม raycast tax ให้ม็อบไกล</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">ENT-03</span><span class="tag">12-BLOCK DEAD BAND</span></div>
+            <h3>Player height shield</h3>
+            <p>ผู้เล่นที่อยู่ลึกถูกซ่อนจากผิวโลก พร้อม dead band 12 บล็อกรอบ <code>underground-y</code> เพื่อไม่ให้ทีมที่ข้ามเหวหรือ mineshaft มองไม่เห็นกันทั้งที่เห็นจริง; same-floor distance hiding เป็น opt-in</p>
+            <span class="micro">player-vs-player ไม่ถูกซ่อน</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">ENT-04</span><span class="tag">CONFIGURABLE</span></div>
+            <h3>Entity variants &amp; policies</h3>
+            <p>item frame, armour stand และ storage minecart เลือกป้องกันได้; monster เป็น occlusion-only, item เป็น strict distance + LOS; ปรับระยะและ policy แยกต่อ world ได้</p>
+            <span class="micro">config ต่อ world · reload ได้</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">ENT-05</span><span class="tag">NO SIDE-CHANNEL</span></div>
+            <h3>Block actions ใต้เส้นถูกกรอง</h3>
+            <p>block change, multi-block change, block-entity data, block action, break animation และ tracked entity ใต้เส้น ถูกกรองสำหรับ viewer นั้น — เปิดหีบ ดัน piston หรือไอเท็มตกจึงไม่ส่งสัญญาณผ่าน filler</p>
+            <span class="micro">ปิดช่อง leak ระหว่างเล่น</span>
+          </article>
+        </div>
+      </div>
+
+      <div class="fgroup reveal">
+        <div class="fgroup-head"><span>GROUP C</span><h3>ความน่าเชื่อถือและการดำเนินงาน</h3><small>05 CAPABILITIES</small></div>
+        <div class="fgrid">
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">OPS-01</span><span class="tag">DEFAULT DENY</span></div>
+            <h3>Fail-closed ทุกเส้นทาง</h3>
+            <p>unknown world, stale state, exception, หมดเวลา, หมด budget หรือ queue pressure → <b>HIDDEN</b> ทั้งหมด; coverage ไม่ขึ้นกับ TPS และของที่ visible ค้างเกิน 12 ticks จะถูกบังคับซ่อน</p>
+            <span class="micro">ไม่มี “เปิดเมื่อผิดพลาด”</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">OPS-02</span><span class="tag">TIME-SLICED</span></div>
+            <h3>Bounded work 4.0.5</h3>
+            <p>32 entities/tick, 256 position polls, 256 evaluations, 128 reveal checks (24 ช่วง join), 512 packet positions, 64 registrations, 32 resends และ 4 Y-shield refreshes — งานที่ค้างถูกเลื่อน ไม่ถูกข้ามในทางที่รั่ว</p>
+            <span class="micro">security ตัดสินบน main thread แบบมี budget</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">OPS-03</span><span class="tag">OBSERVABLE</span></div>
+            <h3>Diagnostics ที่ใช้ตัดสินใจได้</h3>
+            <p><code>/aegishider status|diag|viewer|export|deep|stats|verify|rescan|reload|license</code> พร้อม histogram p50/p95/p99, watchdog state และ export snapshot แบบ async ที่ไม่แตะ security path</p>
+            <span class="micro">เห็นปัญหาก่อนผู้เล่นเห็น</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">OPS-04</span><span class="tag">FREE · ED25519</span></div>
+            <h3>ใบอนุญาตฟรีที่ตรวจสอบได้</h3>
+            <p>Ed25519 lease อายุ 24 ชม. พร้อม offline grace 72 ชม., activation code 16 ตัว (80-bit), clock-rollback guard และ revocation ที่มีผลรอบ renewal ถัดไป — ฟรี 100% ไม่มีวันหมดอายุ</p>
+            <span class="micro">telemetry ไม่ส่งชื่อผู้เล่น/พิกัด/IP ดิบ</span>
+          </article>
+          <article class="fcard">
+            <div class="fcard-top"><span class="fcode">OPS-05</span><span class="tag">6 BUILDS</span></div>
+            <h3>ตรงทุก Paper line</h3>
+            <p>6 ไจาร์สำหรับ Paper 1.21.1–1.21.4, 1.21.4, 1.21.5–1.21.8, 1.21.9–1.21.11, 26.1.x และ 26.2–26.3 (Java 21 / 25) พร้อมทดสอบ ViaVersion 26.x → 1.21.4</p>
+            <span class="micro">PacketEvents 2.14.0+ · Paper เท่านั้น</span>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="evidence" style="background:rgba(255,255,255,.012);border-block:1px solid var(--line-soft)">
+    <div class="shell">
+      <div class="section-head reveal">
+        <p class="eyebrow">หลักฐาน ไม่ใช่คำโฆษณา</p>
+        <h2>เราวัดจากไคลเอนต์จริง<br><em>และกล้าเปิดตัวเลข</em></h2>
+        <p>ไคลเอนต์จำลองเชื่อมต่อเซิร์ฟเวอร์ทดสอบและถอดรหัส chunk/block entity ด้วยตัวเอง ตารางด้านล่างคือผลบนไจาร์ที่ผ่าน obfuscation แล้ว — ไม่มีข้อมูลเซิร์ฟเวอร์ลูกค้า</p>
+      </div>
+
+      <div class="metrics reveal">
+        <div class="metric"><span class="mono">p50 / TICK</span><b>100–200 µs</b><span>งาน security ของปลั๊กอินเอง</span></div>
+        <div class="metric"><span class="mono">p95 / TICK</span><b>≤ 0.85 ms</b><span>ที่ไอเท็มตก 0–800 ชิ้น</span></div>
+        <div class="metric"><span class="mono">p99 / TICK</span><b>≤ 3.0 ms</b><span>ไม่บล็อก main thread ยาว</span></div>
+        <div class="metric"><span class="mono">MSPT DELTA</span><b>+0.5–1.4 ms</b><span>เฉลี่ย รวม PacketEvents</span></div>
+      </div>
+
+      <div class="table-card reveal">
+        <div class="table-head">
+          <b>A–H · LIVE PACKET SCENARIOS</b>
+          <span>BASEHIDER 3.0.0 → AEGISHIDER 4.0.5</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>สถานการณ์</th><th>BaseHider 3.0.0</th><th>Aegishider 4.0.5</th></tr></thead>
+            <tbody>
+              <tr><th>A · ไอเท็มไกลหลังกำแพง</th><td class="bad">LEAK · 1 spawn/client</td><td class="good">HIDDEN · 0 spawn</td></tr>
+              <tr><th>B · ไอเท็มใกล้ 3 บล็อก</th><td class="good">VISIBLE</td><td class="good">VISIBLE · latency 22–63 ms</td></tr>
+              <tr><th>C · หีบใน chunk ที่ resend</th><td class="bad">LEAK · chest states=2</td><td class="good">HIDDEN · chest states=0</td></tr>
+              <tr><th>D · block entity 160/336 บล็อก</th><td class="bad">LEAK ทั้งสองระยะ</td><td class="good">HIDDEN ทั้งสองระยะ</td></tr>
+              <tr><th>E · ทะเบียน block entity ฝั่งไคลเอนต์</th><td class="bad">DIRTY · hidden BEs=6</td><td class="good">CLEAN · hidden BEs=0</td></tr>
+              <tr><th>F · cache replay (Bobby / DH)</th><td class="bad">CACHE LEAK · final=chest</td><td class="good">RE-HIDE · final=stone</td></tr>
+              <tr><th>G · Y-shield จากพื้นผิว</th><td class="bad">ไม่มีการป้องกัน</td><td class="good">HIDDEN · 213/213 chunks</td></tr>
+              <tr><th>H · บล็อกฐาน / block entity ใต้ดิน</th><td class="bad">LEAK</td><td class="good">0 hidden states / 0 hidden BEs</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">สภาพแวดล้อม: Windows 11, 8 logical CPUs, Paper 1.21.4 build 232, PacketEvents 2.14.0, ไคลเอนต์ headless 2 ตัว (minecraft-protocol), view-distance 4 · ตัวเลขเป็นผลจาก lab ของโปรเจกต์ ไม่ใช่ SLA หรือการรับประกันบนทุกเซิร์ฟเวอร์</p>
+      </div>
+
+      <div class="proof-strip reveal">
+        <span class="chip"><b>153</b> tests</span>
+        <span class="chip"><b>8</b> packet scenarios</span>
+        <span class="chip"><b>6</b> Paper builds</span>
+        <span class="chip"><b>2</b> headless clients</span>
+        <span class="chip"><b>4.0.4</b> live: Paper 1.21.11 + 26.3</span>
+        <span class="chip"><b>SHA-256</b> every release</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="compare">
+    <div class="shell compare">
+      <div class="compare-copy reveal">
+        <p class="eyebrow">เทียบกับ anti-xray ที่ซ่อนแร่</p>
+        <h2>คนละงานกัน<br><em>คนละชั้นการป้องกัน</em></h2>
+        <p>Anti-xray แบบดั้งเดิมออกแบบมาเพื่อทำให้ตำแหน่งแร่คาดเดาไม่ได้ แต่ไม่ได้มีหน้าที่ซ่อนฐาน ไอเท็ม หรือม็อบ ตารางนี้จึงเทียบ “สิ่งที่ข้อมูลรั่วได้” ไม่ใช่คะแนนความเร็วแบบรวม</p>
+        <p class="fine">เปรียบเทียบกับ anti-xray engine ที่เน้นการแทนแร่โดยเฉพาะ (รวมถึง built-in ของ Paper) ไม่ได้ตัดสินปลั๊กอินเจ้าอื่น และไม่ใช้ตัวเลขจากคู่แข่งที่ไม่ได้ตรวจสอบเอง</p>
+      </div>
+
+      <div class="table-card reveal">
+        <div class="table-head"><b>ขอบเขตการป้องกัน</b><span>ORE-ONLY ENGINE · AEGISHIDER 4.0.5</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>สิ่งที่ต้องซ่อน</th><th>Anti-xray แบบแทนแร่</th><th>Aegishider</th></tr></thead>
+            <tbody>
+              <tr><th>แร่ที่ซ่อนในหิน</th><td class="yes">✓ ทำได้</td><td class="yes">✓ ทำได้</td></tr>
+              <tr><th>หีบ / block entity</th><td class="part">△ บางส่วน</td><td class="yes">✓ ครบ</td></tr>
+              <tr><th>บล็อกฐาน (piston / workstation / anvil)</th><td class="no">✗</td><td class="yes">✓</td></tr>
+              <tr><th>ห้องใต้ดินทั้งโวลุ่มจาก freecam</th><td class="no">✗</td><td class="yes">✓ Y-shield</td></tr>
+              <tr><th>ไอเท็มตกพื้น</th><td class="no">✗</td><td class="yes">✓ ItemShield</td></tr>
+              <tr><th>ม็อบหลังกำแพง</th><td class="no">✗</td><td class="yes">✓ LOS check</td></tr>
+              <tr><th>Re-hide หลัง chunk resend / cache replay</th><td class="no">✗</td><td class="yes">✓ final=stone</td></tr>
+              <tr><th>Fail-closed + หลักฐาน packet จริง</th><td class="no">✗</td><td class="yes">✓ A–H evidence</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">“บางส่วน” หมายถึง engine บางตัวสามารถใส่ replacement block แทนหีบได้ แต่ไม่ได้จัดการ block entity ครบทุกชนิดและไม่มีการรับประกันแบบ fail-closed</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="install" style="padding-top:0">
+    <div class="shell">
+      <div class="section-head reveal">
+        <p class="eyebrow">ติดตั้ง · 4 ขั้นตอน</p>
+        <h2>ห้านาทีจากไจาร์<br><em>ถึง protection ACTIVE</em></h2>
+        <p>ฟรี 100% ไม่ต้องใช้บัตร ไม่มีกระเป๋าเงิน — ต้องมีบัญชีฟรีเพียงใบเดียวสำหรับออกใบอนุญาตให้เซิร์ฟเวอร์</p>
+      </div>
+
+      <div class="install-grid">
+        <ol class="steps reveal">
+          <li class="step">
+            <span class="step-num">01</span>
+            <div>
+              <h3>วางไจาร์ให้ตรงกับ Paper</h3>
+              <p>เลือกบิลด์ 1.21.1–1.21.4, 1.21.4, 1.21.5–1.21.8, 1.21.9–1.21.11, 26.1.x หรือ 26.2–26.3 แล้วติดตั้ง PacketEvents 2.14.0+ ลง <code>plugins/</code></p>
+            </div>
+          </li>
+          <li class="step">
+            <span class="step-num">02</span>
+            <div>
+              <h3>สร้างรหัสเปิดใช้งาน</h3>
+              <p>สตาร์ทเซิร์ฟเวอร์ แล้วรันคำสั่งนี้ ระบบจะสร้าง installation identity แบบ Ed25519 และพิมพ์รหัส 16 ตัว</p>
+              <code>/aegishider license link</code>
+            </div>
+          </li>
+          <li class="step">
+            <span class="step-num">03</span>
+            <div>
+              <h3>ยืนยันบนแพลตฟอร์ม</h3>
+              <p>สมัคร/เข้าสู่ระบบฟรี เปิดหน้าการเปิดใช้งาน แล้วใส่รหัส 16 ตัว — ใบอนุญาตออกให้ทันที</p>
+              <code>/app/activations</code>
+            </div>
+          </li>
+          <li class="step">
+            <span class="step-num">04</span>
+            <div>
+              <h3>เปิด protection</h3>
+              <p>รีเฟรชใบอนุญาตแล้วตรวจสถานะ ต้องเห็น <code>protection=ACTIVE</code> และ <code>gateway=ACTIVE</code></p>
+              <code>/aegishider license refresh</code>
+            </div>
+          </li>
+        </ol>
+
+        <aside class="install-side reveal">
+          <p class="mono">AEGISHIDER 4.0.5</p>
+          <h3>พร้อมสำหรับ Paper<br>ที่คุณใช้อยู่</h3>
+          <p>ไจาร์แยกตาม Paper line เพื่อลดความเสี่ยงเรื่อง mapping และ packet format พร้อม SHA-256 ทุกไฟล์บนหน้า release</p>
+          <ul class="req">
+            <li><span>Paper</span><b>1.21.1 – 26.3</b></li>
+            <li><span>Java</span><b>21 · 25 (26.x)</b></li>
+            <li><span>PacketEvents</span><b>2.14.0+</b></li>
+            <li><span>Folia</span><b>ไม่รองรับ</b></li>
+            <li><span>ราคา</span><b>ฟรี 100%</b></li>
+          </ul>
+          <a class="btn btn-primary btn-block" href="https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider" target="_blank" rel="noopener">
+            ไปที่หน้าดาวน์โหลด
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 21h16"/></svg>
+          </a>
+          <a class="btn btn-ghost btn-block" style="margin-top:.55rem" href="https://aegishider-platform.audijuju1.workers.dev/docs/getting-started" target="_blank" rel="noopener">อ่านคู่มือติดตั้ง</a>
+          <p class="fine">protection จะไม่เริ่มจนกว่าจะ activate — เป็น fail-closed by design ไม่ใช่บั๊ก</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="limits" style="padding-top:0">
+    <div class="shell">
+      <div class="section-head reveal">
+        <p class="eyebrow">ข้อจำกัดที่เราบอกตรง ๆ</p>
+        <h2>ความน่าเชื่อถือ<br><em>เริ่มจากความจริง</em></h2>
+        <p>เราไม่เรียกสิ่งนี้ว่า anti-cheat และไม่สัญญาว่าจะหยุดได้ทุกวิธี — Aegishider ลดข้อมูลที่ไคลเอนต์ได้รับลงเหลือเท่าที่พิสูจน์ได้ว่าเห็นจริง</p>
+      </div>
+
+      <div class="limits">
+        <article class="limit reveal"><span class="limit-mark">!</span><div><h3>ไม่รองรับ Folia</h3><p><code>folia-supported: false</code> ใน plugin.yml — เป้าหมายคือ Paper ทุก line ที่ระบุไว้ ถ้าคุณใช้ Folia ต้องเลือกปลั๊กอินอื่นหรือรอการรองรับในอนาคต</p></div></article>
+        <article class="limit reveal"><span class="limit-mark">!</span><div><h3>ไม่ซ่อนผู้เล่นด้วยกัน</h3><p>การซ่อน player-vs-player ถูกตัดออกโดยตั้งใจ เพราะทำให้ทีม มุมมอง F5 และคอมแบตเพี้ยน — height shield ซ่อนเฉพาะผู้เล่นที่อยู่ลึกจากผิวโลก</p></div></article>
+        <article class="limit reveal"><span class="limit-mark">!</span><div><h3>ต้องมี PacketEvents 2.14.0+</h3><p>ถ้าไม่มี ปลั๊กอินยังโหลดและป้องกัน entity/item ได้ แต่ block/container protection จะรายงาน <code>INACTIVE</code> — ไม่มี fallback แบบส่งจริงแล้วแก้ทีหลัง</p></div></article>
+        <article class="limit reveal"><span class="limit-mark">!</span><div><h3>Protection ปิดจนกว่า activate</h3><p>ไลเซนส์เป็น product gate ไม่ใช่แค่ป้าย: เซิร์ฟเวอร์ที่ยังไม่ยืนยันจะอยู่สถานะ <code>WAITING_FOR_LICENSE</code> และไม่เริ่มป้องกัน</p></div></article>
+        <article class="limit reveal"><span class="limit-mark">!</span><div><h3>ตัวเลขเป็น lab ไม่ใช่ SLA</h3><p>p50–p99 และ MSPT delta วัดจากสภาพแวดล้อมทดสอบที่ระบุไว้ ผลบนเซิร์ฟเวอร์จริงขึ้นกับ world, plugin อื่น, จำนวนผู้เล่น และ packet load</p></div></article>
+        <article class="limit reveal"><span class="limit-mark">!</span><div><h3>ไม่มีอะไรแทนการทดสอบ staging</h3><p>ก่อนใช้จริง ควรทดสอบกับ world และชุดปลั๊กอินของคุณเอง โดยเฉพาะถ้าใช้โลกที่โหลด chunk หนักหรือมี cache mod ฝั่งไคลเอนต์</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" style="padding-top:0">
+    <div class="shell">
+      <div class="section-head center reveal">
+        <p class="eyebrow">คำถามที่พบบ่อย</p>
+        <h2>เรื่องที่คนถามก่อนติดตั้ง</h2>
+      </div>
+      <div class="faq reveal">
+        <details open>
+          <summary>ต่างจาก anti-xray ของ Paper อย่างไร?</summary>
+          <p class="answer">Paper anti-xray ทำงานกับ <b>แร่และบล็อกที่กำหนด</b> ใน chunk เป็นหลัก แต่ Aegishider เป็น <b>visibility gate</b> ที่ตัด block entity, บล็อกฐาน, ห้องใต้ดินทั้งโวลุ่ม, ไอเท็ม และม็อบออกจาก packet ตามระยะ มุมมอง และ line of sight — และ re-hide เมื่อ chunk ถูกส่งซ้ำหรือไคลเอนต์ใช้ cache</p>
+        </details>
+        <details>
+          <summary>ผู้เล่นจะเห็นหีบของตัวเองไหม?</summary>
+          <p class="answer">เห็นเมื่อผ่าน policy: ภายใน <b>24 บล็อก</b> และมี line of sight จริง ถ้าอยู่ในฐานของตัวเองและมองเห็นหีบ ก็เปิดใช้ได้ตามปกติ ส่วนผู้เล่นที่อยู่ผิวโลกจะไม่เห็นห้องใต้ดินเพราะ Y-shield</p>
+        </details>
+        <details>
+          <summary>กิน TPS แค่ไหน?</summary>
+          <p class="answer">งาน security ของปลั๊กอินเองวัดได้ p50 <b>100–200 µs</b>, p95 <b>≤0.85 ms</b>, p99 <b>≤3.0 ms</b> ต่อ tick และ MSPT delta เฉลี่ย <b>+0.5–1.4 ms</b> รวม overhead ของ PacketEvents ในชุดทดสอบ งานถูกจำกัดต่อ tick และเลื่อนได้โดยไม่ทำให้ข้อมูลโผล่</p>
+        </details>
+        <details>
+          <summary>ใช้กับ ViaVersion ได้ไหม?</summary>
+          <p class="answer">มี hotfix สำหรับกรณีไคลเอนต์ 26.x เชื่อมผ่าน ViaVersion ไปยังเซิร์ฟเวอร์ 1.21.4 โดย resolve block state ด้วย protocol ของเซิร์ฟเวอร์ และเวอร์ชัน 4.0.4 ถูกทดสอบสดบน Paper 1.21.11 (Java 21) และ Paper 26.3 (Java 25) — ควรทดสอบกับชุด ViaVersion ของคุณเองก่อน production</p>
+        </details>
+        <details>
+          <summary>ฟรีจริงไหม มีเงื่อนไขอะไร?</summary>
+          <p class="answer">ฟรี 100% ไม่มีระบบชำระเงิน ไม่มีกระเป๋าเงิน และไม่มีวันหมดอายุของใบอนุญาต สิ่งที่ต้องมีคือบัญชีฟรีสำหรับ activate เซิร์ฟเวอร์ และ PacketEvents 2.14.0+ สำหรับ block protection</p>
+        </details>
+        <details>
+          <summary>เก็บข้อมูลอะไรบ้าง?</summary>
+          <p class="answer">telemetry ของปลั๊กอินไม่ส่งชื่อผู้เล่น พิกัด หรือ IP ดิบ — เก็บเฉพาะข้อมูล operation แบบ aggregate และสถานะเซิร์ฟเวอร์ที่จำเป็นต่อการดูแลไลเซนส์/สุขภาพระบบ ส่วนแพลตฟอร์มอาจใช้ IP แบบ hash เพื่อ rate limit และป้องกัน abuse</p>
+        </details>
+        <details>
+          <summary>ทำไมไม่รองรับ Folia?</summary>
+          <p class="answer">เพราะ security path ต้องอ่าน world state และตัดสิน visibility อย่างสอดคล้องกันภายใน tick ปัจจุบัน การรองรับ Folia ต้องออกแบบ region-aware ใหม่ทั้งเส้นทาง ไม่ใช่แค่เปลี่ยน scheduler — เราเลือกไม่เคลมสิ่งที่ยังไม่ได้ทดสอบ</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="shell">
+      <div class="final-panel reveal">
+        <p class="eyebrow" style="justify-content:center">FREE · PAPER 1.21.1–26.3</p>
+        <h2>ฐานของคุณไม่ควรเป็น<br>ข้อมูลสาธารณะ</h2>
+        <p>ติดตั้ง Aegishider 4.0.5 แล้วปิดช่องที่ anti-xray มองข้าม — หีบ บล็อกฐาน ห้องใต้ดิน ไอเท็ม และม็อบ</p>
+        <div class="final-actions">
+          <a class="btn btn-primary btn-lg" href="https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider" target="_blank" rel="noopener">
+            ดาวน์โหลด 4.0.5 ฟรี
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 21h16"/></svg>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="https://aegishider-platform.audijuju1.workers.dev/auth/register" target="_blank" rel="noopener">สมัครรับไลเซนส์ฟรี</a>
+        </div>
+        <p class="final-fine">ฟรี 100% · ไม่ใช้บัตร · Ed25519 · 153 tests · หลักฐาน packet จากไคลเอนต์จริง</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="#top">
+          <img src="/assets/img/favicon.svg" width="34" height="34" alt="">
+          <span><b>Aegishider</b><small>PACKET DEFENSE · 4.0.5</small></span>
+        </a>
+        <p>Aegishider เป็นปลั๊กอินฝั่งเซิร์ฟเวอร์สำหรับ Paper ที่ควบคุมว่าข้อมูลใดควรออกจากเซิร์ฟเวอร์ — ไม่ใช่ anti-cheat และไม่ได้สังกัด Mojang Studios หรือ Microsoft</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h3>ผลิตภัณฑ์</h3>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider" target="_blank" rel="noopener">Aegishider 4.0.5</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/plugins" target="_blank" rel="noopener">ผลิตภัณฑ์ทั้งหมด</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/pricing" target="_blank" rel="noopener">ราคา · ฟรี 100%</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/status" target="_blank" rel="noopener">สถานะระบบ</a>
+        </div>
+        <div class="footer-col">
+          <h3>เอกสาร</h3>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/docs/getting-started" target="_blank" rel="noopener">เริ่มต้นใช้งาน</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/docs" target="_blank" rel="noopener">เอกสารทั้งหมด</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/developers" target="_blank" rel="noopener">นักพัฒนา</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/changelog" target="_blank" rel="noopener">Changelog</a>
+        </div>
+        <div class="footer-col">
+          <h3>บัญชี</h3>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/auth/register" target="_blank" rel="noopener">สมัครฟรี</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/auth/login" target="_blank" rel="noopener">เข้าสู่ระบบ</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/app/activations" target="_blank" rel="noopener">การเปิดใช้งาน</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/contact" target="_blank" rel="noopener">ติดต่อ</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Aegishider · สร้างโดย AudiSMP · Minecraft คือเครื่องหมายการค้าของ Mojang Studios · PacketEvents (GPL-3.0) เป็นปลั๊กอินภายนอก · FastUtil (Apache-2.0) ถูก bundle ในไจาร์</p>
+      <p>อัปเดต 25 พ.ย. 2026 · หน้านี้สรุปความสามารถและผลทดสอบจากเอกสารวิศวกรรมของโปรเจกต์ · ตัวเลข lab ไม่ใช่ SLA</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  document.body.classList.add("js");
+
+  var header=document.getElementById("header");
+  function onScroll(){
+    if(!header) return;
+    header.classList.toggle("is-stuck", window.scrollY>8);
+  }
+  window.addEventListener("scroll",onScroll,{passive:true});
+  onScroll();
+
+  var toggle=document.getElementById("shieldToggle");
+  var state=document.getElementById("demoState");
+  var count=document.getElementById("demoCount");
+  var readout=document.getElementById("demoReadout");
+  var root=document.documentElement;
+
+  function setProtected(on){
+    root.setAttribute("data-protected", on ? "true" : "false");
+    if(toggle) toggle.setAttribute("aria-checked", on ? "true" : "false");
+    if(state) state.textContent = on ? "Aegishider เปิด" : "Aegishider ปิด";
+    if(count) count.textContent = on ? "0" : "3";
+    if(readout) readout.textContent = on
+      ? "ไคลเอนต์ได้รับ stone ทั้งโวลุ่ม — ไม่มี chest, spawner หรือ cave air หลุดออกไป"
+      : "ESP เห็นห้องหีบทั้งห้องจากผิวโลก — 3 container states ถูกส่งออกไป";
+  }
+  if(toggle){
+    toggle.addEventListener("click", function(){
+      setProtected(root.getAttribute("data-protected") !== "true");
+    });
+    setProtected(true);
+  }
+
+  var items=document.querySelectorAll(".reveal");
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ entry.target.classList.add("in"); io.unobserve(entry.target); }
+      });
+    },{rootMargin:"0px 0px -8% 0px",threshold:0.08});
+    items.forEach(function(el){ io.observe(el); });
+  } else {
+    items.forEach(function(el){ el.classList.add("in"); });
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener("click", function(e){
+      var id=a.getAttribute("href");
+      if(!id || id==="#") return;
+      var el=document.querySelector(id);
+      if(!el) return;
+      e.preventDefault();
+      el.scrollIntoView({behavior:"smooth",block:"start"});
+      history.replaceState(null,"",id);
+    });
+  });
+})();
+</script>
+</body>
+</html>

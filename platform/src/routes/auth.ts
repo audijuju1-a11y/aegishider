@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
-import type { AppEnv } from "../env";
+import type { AppEnv, Env } from "../env";
 import { isProduction } from "../env";
 import { publicPage, redirectTo, safeInternalPath } from "./helpers";
 import { authMessagePage, loginPage, recoverPage, registerPage } from "../views/auth";
@@ -32,7 +32,7 @@ import { verifyTurnstile } from "../auth/turnstile";
 import { consumeRecoveryCode, issueRecoveryCodes } from "../auth/recovery";
 import { verifyTotp } from "../auth/totp";
 import { enforceRateLimit } from "../lib/rate-limit";
-import { recordSecurityEvent } from "../services/audit";
+import { getSetting, recordSecurityEvent } from "../services/audit";
 import { now } from "../lib/time";
 import { first } from "../lib/db";
 import { timingSafeEqual } from "../lib/core";
@@ -40,6 +40,29 @@ import { timingSafeEqual } from "../lib/core";
 export const authRoutes = new Hono<AppEnv>();
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** The admin switch in /admin/settings must actually stop public sign-ups. */
+async function registrationClosed(env: Env): Promise<boolean> {
+  return (await getSetting(env, "platform.registration_open")) === "false";
+}
+
+function registerClosedPage(
+  c: Parameters<typeof publicPage>[0],
+  status = 403,
+): Response {
+  return publicPage(c, {
+    title: "ปิดรับสมัครชั่วคราว",
+    description: "ขณะนี้แพลตฟอร์มปิดรับสมัครบัญชีใหม่",
+    body: authMessagePage({
+      title: "ปิดรับสมัครชั่วคราว",
+      message: "ขณะนี้แพลตฟอร์มหยุดรับสมัครบัญชีใหม่ชั่วคราว หากมีบัญชีอยู่แล้วสามารถเข้าสู่ระบบได้ตามปกติ",
+      ctaHref: "/auth/login",
+      ctaLabel: "ไปที่หน้าเข้าสู่ระบบ",
+    }),
+    noIndex: true,
+    status,
+  });
+}
 
 function loginErrorPage(c: Parameters<typeof publicPage>[0], next: string, message: string, status = 400): Response {
   return publicPage(c, {
@@ -156,12 +179,13 @@ authRoutes.post("/login", async (c) => {
 /* Registration                                                               */
 /* -------------------------------------------------------------------------- */
 
-authRoutes.get("/register", (c) => {
+authRoutes.get("/register", async (c) => {
   if (c.get("user")) return c.redirect("/app", 303);
+  if (await registrationClosed(c.env)) return registerClosedPage(c);
   const next = safeInternalPath(c.req.query("next"), "/app");
   return publicPage(c, {
     title: "สมัครบัญชี",
-    description: "สมัครบัญชีฟรีด้วยอีเมล แล้วตั้งรหัสผ่านหลังยืนยันอีเมล",
+    description: "สมัครบัญชีฟรีด้วยอีเมลและรหัสผ่าน",
     body: registerPage({
       csrf: c.get("csrfToken") ?? "",
       next,
@@ -173,6 +197,7 @@ authRoutes.get("/register", (c) => {
 
 authRoutes.post("/register", async (c) => {
   const values = await readForm(c);
+  if (await registrationClosed(c.env)) return registerClosedPage(c);
   const email = formValue(values, "email", 200).trim().toLowerCase();
   const password = formValue(values, "password", 200);
   const confirm = formValue(values, "password_confirm", 200);

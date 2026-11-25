@@ -43,6 +43,7 @@ import {
   getLicenseRow,
   issueLicense,
   listLicenseActivations,
+  NEW_LICENSE_KEY_TTL_SECONDS,
   setActivationLimit,
   setLicenseStatus,
 } from "../services/licensing";
@@ -152,6 +153,7 @@ function notFoundPage(c: Ctx, title: string, message: string): Response {
 
 adminRoutes.get("/", async (c) => {
   guard(c, "customers.read");
+  const user = requireUser(c);
   const [stats, security, auditRows, analytics, guards] = await Promise.all([
     getAdminStats(c.env),
     getAdminSecurityEvents(c.env, 10),
@@ -164,7 +166,13 @@ adminRoutes.get("/", async (c) => {
     subtitle: "ภาพรวมทั้งแพลตฟอร์มจากฐานข้อมูลจริง",
     active: "/admin",
     admin: true,
-    body: adminDashboardPage(stats, security, auditRows, analytics, guards),
+    body: adminDashboardPage(stats, security, auditRows, analytics, guards, {
+      licensesWrite: can(user, "licenses.write"),
+      productsWrite: can(user, "products.write"),
+      releasesRead: can(user, "products.read"),
+      securityRead: can(user, "security.read"),
+      settingsRead: can(user, "settings.read"),
+    }),
   });
 });
 
@@ -203,6 +211,10 @@ adminRoutes.get("/customers/:id", async (c) => {
       licenses.filter((license) => license.customer_email === data.user.email),
       servers,
       c.get("csrfToken") ?? "",
+      {
+        status: can(requireUser(c), "customers.write"),
+        role: can(requireUser(c), "settings.write"),
+      },
     ),
   });
 });
@@ -330,7 +342,9 @@ adminRoutes.post("/licenses", async (c) => {
     reason: "admin issued",
   });
   if (!issued) return c.redirect("/admin/licenses/new?err=invalid", 303);
-  await c.env.CACHE.put(`newlic:${issued.id}`, issued.rawKey, { expirationTtl: 600 });
+  await c.env.CACHE.put(`newlic:${issued.id}`, issued.rawKey, {
+    expirationTtl: NEW_LICENSE_KEY_TTL_SECONDS,
+  });
   await audit(c, "license.issue", "license", issued.id, null, { product: product.slug, org: org.orgId }, "admin issued");
   return c.redirect(`/admin/licenses/${issued.id}?ok=created`, 303);
 });
@@ -418,7 +432,7 @@ adminRoutes.get("/products", async (c) => {
   guard(c, "products.read");
   const products = await listProducts(c.env, { statuses: [], limit: 100 });
   return appPage(c, {
-    title: "สินค้า",
+    title: "ผลิตภัณฑ์",
     subtitle: "ผลิตภัณฑ์ แพ็กเกจ และสถานะการเผยแพร่",
     active: "/admin/products",
     admin: true,
@@ -455,10 +469,11 @@ function productInputFromForm(values: Record<string, string>) {
     category: formValue(values, "category", 40) || "security",
     status,
     featured: values["featured"] === "1",
-    priceCents: Math.max(0, Number.parseInt(formValue(values, "price_cents", 12) || "0", 10) || 0),
-    currency: (formValue(values, "currency", 3) || "THB").toUpperCase(),
+    // The platform is free-only: price and purchase fields are legacy schema columns.
+    priceCents: 0,
+    currency: "THB",
     docsUrl: formValue(values, "docs_url", 300) || null,
-    purchaseUrl: formValue(values, "purchase_url", 300) || null,
+    purchaseUrl: null,
     compatibility: JSON.stringify(compatibility),
     features: JSON.stringify(features),
     actorId: null as string | null,
@@ -514,9 +529,9 @@ adminRoutes.post("/products/:id/plans", async (c) => {
   const planId = await createPlan(c.env, productId, {
     code,
     name: formValue(values, "name", 80),
-    priceCents: Math.max(0, Number.parseInt(formValue(values, "price_cents", 12) || "0", 10) || 0),
-    currency: product.currency,
-    billingInterval: formValue(values, "billing_interval", 20) || "one_time",
+    priceCents: 0,
+    currency: "THB",
+    billingInterval: "one_time",
     entitlements: JSON.stringify(entitlements),
     activationLimit: Math.max(1, Math.min(1000, Number.parseInt(formValue(values, "activation_limit", 8) || "1", 10) || 1)),
     active: true,

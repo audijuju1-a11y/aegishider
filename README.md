@@ -18,9 +18,10 @@ It ships as six separate builds so each Paper line gets a matching jar:
 - Platform homepage / storefront: **https://aegishider-platform.audijuju1.workers.dev/**
 - Pages mirror of the platform homepage: **https://aegishider.pages.dev/**
 - Product page: **https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider**
+- Developer guide: **https://aegishider-platform.audijuju1.workers.dev/developers**
 
-The 4.0.4 jars are hardened with ProGuard 7.10 and string-constant encryption and are
-listed in [`docs/releases/Aegishider-4.0.4-SHA256SUMS`](docs/releases/Aegishider-4.0.4-SHA256SUMS); the platform also stores the
+The 4.0.5 jars are hardened with ProGuard 7.10 and string-constant encryption and are
+listed in [`docs/releases/Aegishider-4.0.5-SHA256SUMS`](docs/releases/Aegishider-4.0.5-SHA256SUMS); the platform also stores the
 SHA-256 on every published release record. The signed Sentinel pipeline can add Ed25519
 per-entry manifests when the release key is available; the current local build is
 SHA-256-verified only. Verify the SHA-256 before installing.
@@ -41,7 +42,7 @@ Protection is fail-closed until the server installation is activated on the plat
 - Plugin build and module documentation: [`aegishider-integrated/README.md`](aegishider-integrated/README.md)
 - Signed release pipeline: [`scripts/release.sh`](scripts/release.sh) (six builds, string encryption, ProGuard, signed manifests, `SHA256SUMS`)
 - Local hardened build: [`scripts/harden-local.sh`](scripts/harden-local.sh) (JDK 21/25 + Maven + ProGuard 7.10 + ASM; six obfuscated jars and `SHA256SUMS` without the Sentinel release key)
-- Unit tests: `mvn -B test` in `aegishider-integrated` (152 tests, 1 POSIX-only test skipped on Windows)
+- Unit tests: `mvn -B test` in `aegishider-integrated` (153 tests; 1 POSIX-only test is skipped on Windows)
 - Live-server harness and behavior tests: [`itest/`](itest/)
 - CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 

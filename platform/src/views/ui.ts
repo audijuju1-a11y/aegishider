@@ -1,9 +1,9 @@
 import { SafeHtml, html, raw, join, escapeHtml } from "../lib/html";
 import { t, statusLabel, type Lang } from "../lib/i18n";
 import { primaryMembership, type SessionUser } from "../auth/session";
+import { can, type Permission } from "../auth/guards";
 import { formatDateTime, timeAgo } from "../lib/time";
 import type { ProductView } from "../services/catalog";
-import { formatPrice } from "../services/catalog";
 
 const ICONS = [
   "download", "arrow", "menu", "sun", "moon", "check", "x", "copy", "chevron",
@@ -78,6 +78,7 @@ export function iconSprite(): SafeHtml {
 const PUBLIC_NAV: Array<{ href: string; label: string }> = [
   { href: "/", label: "หน้าแรก" },
   { href: "/plugins", label: "ผลิตภัณฑ์" },
+  { href: "/capabilities", label: "ความสามารถ" },
   { href: "/developers", label: "นักพัฒนา" },
   { href: "/docs", label: "เอกสาร" },
   { href: "/changelog", label: "อัปเดต" },
@@ -98,12 +99,19 @@ export interface LayoutOptions {
   noFooter?: boolean;
   /** Public origin (APP_URL) used for absolute social-preview URLs. */
   baseUrl?: string;
+  /** Optional page-specific structured data (JSON-LD). */
+  jsonLd?: unknown;
+}
+
+function jsonLdScript(data: unknown): SafeHtml {
+  const json = JSON.stringify(data).replace(/</g, "\\u003c");
+  return raw(`<script type="application/ld+json">${json}</script>`);
 }
 
 function brandMarkup(href: string): SafeHtml {
   return html`<a class="brand" href="${href}" aria-label="Aegishider Control Platform">
     <span class="brand-mark" aria-hidden="true">
-      <img src="/assets/img/logo-192.png" width="192" height="192" alt="" loading="eager" decoding="async">
+      <img src="/assets/img/logo-192.webp" width="192" height="192" alt="" loading="eager" decoding="async">
     </span>
     <span class="brand-text"><strong>Aegishider</strong><span class="brand-ver">CONTROL</span></span>
   </a>`;
@@ -118,6 +126,12 @@ function headerMarkup(opts: LayoutOptions): SafeHtml {
           const active = opts.path === item.href || (item.href !== "/" && opts.path.startsWith(`${item.href}/`));
           return html`<a href="${item.href}" ${active ? raw('aria-current="page"') : raw("")}>${item.label}</a>`;
         })}
+        ${opts.user
+          ? raw("")
+          : html`<div class="nav-auth">
+              <a href="/auth/login">${t(opts.lang, "nav.login")}</a>
+              <a class="nav-cta" href="/auth/register">เริ่มต้นฟรี</a>
+            </div>`}
       </nav>
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" id="themeToggle" type="button" aria-label="${t(opts.lang, "common.theme")}">
@@ -130,7 +144,7 @@ function headerMarkup(opts: LayoutOptions): SafeHtml {
                 <input type="hidden" name="_csrf" value="${opts.csrf}">
                 <button class="btn btn-ghost btn-sm" type="submit">${icon("logout")}<span class="sr-only">${t(opts.lang, "nav.logout")}</span></button>
               </form>`
-          : html`<a class="btn btn-ghost btn-sm" href="/auth/login">${t(opts.lang, "nav.login")}</a>
+          : html`<a class="btn btn-ghost btn-sm login-link" href="/auth/login">${t(opts.lang, "nav.login")}</a>
               <a class="btn btn-primary btn-sm header-cta" href="/auth/register">เริ่มต้นฟรี</a>`}
         <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="${t(opts.lang, "nav.openMenu")}">
           ${icon("menu")}
@@ -147,11 +161,19 @@ function footerMarkup(_lang: Lang): SafeHtml {
         <div class="footer-brand">
           ${brandMarkup("/")}
           <p>แพลตฟอร์มฟรีสำหรับจัดการไลเซนส์ปลั๊กอิน Minecraft — ตรวจสอบได้ทุกขั้นตอน ไม่มีระบบชำระเงิน และไม่เปิดเผยข้อมูลเซิร์ฟเวอร์ลูกค้าต่อสาธารณะ</p>
+          <p class="footer-about">
+            <a href="/about">เกี่ยวกับเรา</a>
+            <span>·</span>
+            <a href="https://github.com/audijuju1-a11y/aegishider" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <span>·</span>
+            <a href="/docs/security">ความปลอดภัย</a>
+          </p>
         </div>
         <div class="footer-col">
           <h3>ผลิตภัณฑ์</h3>
           <a href="/plugins">ผลิตภัณฑ์ทั้งหมด</a>
           <a href="/plugins/aegishider">Aegishider</a>
+          <a href="/capabilities">Aegishider — ความสามารถ</a>
           <a href="/pricing">ราคา</a>
           <a href="/changelog">บันทึกการอัปเดต</a>
         </div>
@@ -166,11 +188,14 @@ function footerMarkup(_lang: Lang): SafeHtml {
           <a href="/docs/test-evidence">ผลทดสอบ</a>
           <a href="/docs/security">ความปลอดภัย</a>
           <a href="/status">สถานะระบบ</a>
+          <a href="https://github.com/audijuju1-a11y/aegishider" target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
         <div class="footer-col">
           <h3>ช่วยเหลือ</h3>
           <a href="/support">ศูนย์ช่วยเหลือ</a>
           <a href="/contact">ติดต่อเรา</a>
+          <a href="/about">เกี่ยวกับเรา</a>
+          <a href="https://github.com/audijuju1-a11y/aegishider/issues" target="_blank" rel="noopener noreferrer">แจ้งปัญหาบน GitHub</a>
           <a href="/legal/terms">ข้อกำหนดการใช้งาน</a>
           <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a>
         </div>
@@ -187,7 +212,16 @@ function footerMarkup(_lang: Lang): SafeHtml {
 export function layout(opts: LayoutOptions): SafeHtml {
   const desc = opts.description ?? "แพลตฟอร์มจัดการไลเซนส์และติดตามเซิร์ฟเวอร์ปลั๊กอิน Minecraft";
   const origin = (opts.baseUrl ?? "").replace(/\/$/, "");
-  const ogImage = `${origin}/assets/img/logo-512.png`;
+  const ogImage = `${origin}/assets/img/og-card.png`;
+  const canonicalPath = opts.path === "/" ? "/" : opts.path.replace(/\/+$/, "");
+  const canonical = `${origin}${canonicalPath}`;
+  const genericJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Organization", name: "Aegishider", url: origin, logo: `${origin}/assets/img/logo-512.png` },
+      { "@type": "WebSite", name: "Aegishider Control Platform", url: origin },
+    ],
+  };
   return html`<!doctype html>
 <html lang="${opts.lang}" data-theme="dark" class="no-js">
 <head>
@@ -196,18 +230,27 @@ export function layout(opts: LayoutOptions): SafeHtml {
   <title>${opts.title} · Aegishider Control Platform</title>
   <meta name="description" content="${desc}">
   <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#05070a">
   ${opts.noIndex ? raw('<meta name="robots" content="noindex,nofollow">') : raw("")}
+  ${opts.noIndex ? raw("") : html`<link rel="canonical" href="${canonical}"><meta property="og:url" content="${canonical}">`}
   <meta property="og:title" content="${opts.title} · Aegishider">
   <meta property="og:description" content="${desc}">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Aegishider Control Platform">
+  <meta property="og:locale" content="th_TH">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/logo-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/logo-180.png">
+  <link rel="manifest" href="/site.webmanifest">
   <meta property="og:image" content="${ogImage}">
-  <meta property="og:image:width" content="512">
-  <meta property="og:image:height" content="512">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Aegishider Control Platform — ปลั๊กอิน Minecraft ฟรี พร้อมไลเซนส์ที่ตรวจสอบได้">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="${ogImage}">
+  ${opts.noIndex ? raw("") : jsonLdScript(genericJsonLd)}
+  ${opts.jsonLd ? jsonLdScript(opts.jsonLd) : raw("")}
   <script src="/assets/js/theme.js"></script>
+  <link rel="preload" href="/assets/fonts/anuphan-var-thai.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/platform.css">
   <link rel="stylesheet" href="/assets/css/premium.css">
@@ -249,7 +292,6 @@ const NOTICES: Record<string, { kind: "success" | "error" | "info"; text: string
   reset: { kind: "success", text: "รีเซ็ตการเปิดใช้งานแล้ว" },
   sent: { kind: "success", text: "ส่งข้อมูลเรียบร้อยแล้ว" },
   "logged-out": { kind: "info", text: "ออกจากระบบแล้ว" },
-  "check-email": { kind: "success", text: "หากอีเมลนี้มีในระบบ เราได้ส่งลิงก์เข้าใช้งานไปแล้ว" },
   "password-reset": { kind: "success", text: "ตั้งรหัสผ่านใหม่เรียบร้อย กรุณาเข้าสู่ระบบ" },
   "recovery-codes": { kind: "success", text: "รหัสกู้คืนพร้อมใช้งานแล้ว — บันทึกก่อนออกจากหน้า" },
   "recovery-saved": { kind: "info", text: "ซ่อนรหัสกู้คืนแล้ว — สร้างชุดใหม่ได้ทุกเมื่อ" },
@@ -260,10 +302,10 @@ const NOTICES: Record<string, { kind: "success" | "error" | "info"; text: string
   forbidden: { kind: "error", text: "คุณไม่มีสิทธิ์ทำรายการนี้" },
   "not-found": { kind: "error", text: "ไม่พบข้อมูลที่ต้องการ" },
   "rate-limited": { kind: "error", text: "ทำรายการบ่อยเกินไป กรุณารอสักครู่" },
-  email: { kind: "error", text: "ไม่สามารถส่งอีเมลได้ กรุณาติดต่อผู้ดูแลระบบ" },
+  "bad-password": { kind: "error", text: "รหัสผ่านปัจจุบันไม่ถูกต้อง" },
+  "password-required": { kind: "error", text: "ตั้งรหัสผ่านที่หน้าบัญชีก่อนทำรายการนี้" },
   config: { kind: "error", text: "ระบบยังไม่ได้ตั้งค่าสำหรับการทำรายการนี้" },
   replay: { kind: "error", text: "คำขอนี้ถูกใช้ไปแล้ว" },
-  "already-paid": { kind: "error", text: "รายการนี้ชำระเงินแล้ว" },
   "wrong-state": { kind: "error", text: "สถานะปัจจุบันไม่อนุญาตให้ทำรายการนี้" },
   "csrf": { kind: "error", text: "หน้าเว็บหมดอายุ กรุณารีเฟรชแล้วลองใหม่" },
 };
@@ -307,7 +349,7 @@ export function pagination(basePath: string, page: number, totalPages: number): 
   if (totalPages <= 1) return raw("");
   const joiner = basePath.includes("?") ? "&" : "?";
   return html`<div class="row" style="justify-content:space-between;margin-top:1rem">
-    <span class="mono" style="font-size:.58rem">หน้า ${page} / ${totalPages}</span>
+    <span class="mono" style="font-size:.72rem">หน้า ${page} / ${totalPages}</span>
     <div class="row">
       ${page > 1 ? html`<a class="btn btn-ghost btn-sm" href="${basePath}${joiner}page=${page - 1}">ก่อนหน้า</a>` : raw("")}
       ${page < totalPages ? html`<a class="btn btn-ghost btn-sm" href="${basePath}${joiner}page=${page + 1}">ถัดไป</a>` : raw("")}
@@ -317,6 +359,10 @@ export function pagination(basePath: string, page: number, totalPages: number): 
 
 export function csrfInput(token: string): SafeHtml {
   return html`<input type="hidden" name="_csrf" value="${token}">`;
+}
+
+export function passwordToggle(label = "แสดงรหัสผ่าน"): SafeHtml {
+  return html`<label class="check" style="font-size:.8rem"><input type="checkbox" data-toggle-password> ${label}</label>`;
 }
 
 export function stat(label: string, value: string | number, note?: string): SafeHtml {
@@ -336,7 +382,13 @@ export function detailList(items: Array<{ label: string; value: SafeHtml | strin
 export function productCard(product: ProductView, lang: Lang = "th"): SafeHtml {
   const status = product.status === "published" ? "published" : product.status === "coming_soon" ? "coming_soon" : "draft";
   const latest = product.latestRelease;
-  const price = formatPrice(product.price_cents, product.currency);
+  const minecraft = Array.isArray(product.compatibilityData.minecraft)
+    ? [...(product.compatibilityData.minecraft as string[])].sort((a, b) => a.localeCompare(b, "en", { numeric: true }))
+    : [];
+  const mcRange = minecraft.length > 1 ? `${minecraft[0]}–${minecraft[minecraft.length - 1]}` : minecraft[0] ?? "";
+  const latestBase = latest?.version.split("+")[0] ?? "";
+  const buildCount = product.releases.filter((release) => release.version.split("+")[0] === latestBase).length
+    || product.releases.length;
   return html`<article class="product-card">
     <div class="product-card__top">
       <div class="product-thumb">${product.name.slice(0, 2).toUpperCase()}</div>
@@ -348,11 +400,12 @@ export function productCard(product: ProductView, lang: Lang = "th"): SafeHtml {
     </div>
     <div class="product-card__body">
       <div class="product-meta">
-        ${(Array.isArray(product.compatibilityData.minecraft) ? (product.compatibilityData.minecraft as string[]) : []).slice(0, 3).map((version) => html`<span class="badge">MC ${version}</span>`)}
-        ${latest ? html`<span class="badge badge--info badge--version">v${latest.version}</span>` : raw("")}
+        ${mcRange ? html`<span class="badge">MC ${mcRange}</span>` : raw("")}
+        ${buildCount > 1 ? html`<span class="badge">${buildCount} บิลด์</span>` : raw("")}
+        ${latest ? html`<span class="badge badge--info badge--version">v${latest.version.split("+")[0]}</span>` : raw("")}
       </div>
       <div class="product-price">
-        <div><b>${price}</b><span>ฟรี 100% · ไม่มีระบบชำระเงิน</span></div>
+        <div><b>ฟรี</b><span>ฟรี 100% · ไม่มีระบบชำระเงิน</span></div>
         <a class="product-card__link" href="/plugins/${product.slug}">${t(lang, "common.viewDetails")} ${icon("arrow")}</a>
       </div>
     </div>
@@ -363,7 +416,7 @@ export function productCard(product: ProductView, lang: Lang = "th"): SafeHtml {
 /* App shell (portal + admin)                                                 */
 /* -------------------------------------------------------------------------- */
 
-export interface AppNavItem { href: string; label: string; icon: string; }
+export interface AppNavItem { href: string; label: string; icon: string; permission?: Permission; }
 
 export function appShell(opts: {
   user: SessionUser;
@@ -385,20 +438,22 @@ export function appShell(opts: {
     { href: "/app/support", label: "ช่วยเหลือ", icon: "terminal" },
   ];
   const adminNav: AppNavItem[] = [
-    { href: "/admin", label: "แดชบอร์ด", icon: "gauge" },
-    { href: "/admin/customers", label: "ลูกค้า", icon: "users" },
-    { href: "/admin/licenses", label: "ไลเซนส์", icon: "key" },
-    { href: "/admin/products", label: "สินค้า", icon: "box" },
-    { href: "/admin/releases", label: "รีลีส", icon: "package" },
-    { href: "/admin/servers", label: "เซิร์ฟเวอร์", icon: "server" },
-    { href: "/admin/content", label: "เนื้อหาเว็บ", icon: "edit" },
-    { href: "/admin/support", label: "ตั๋วช่วยเหลือ", icon: "terminal" },
-    { href: "/admin/security", label: "ศูนย์ความปลอดภัย", icon: "shield" },
-    { href: "/admin/audit", label: "บันทึกการตรวจสอบ", icon: "audit" },
-    { href: "/admin/telemetry", label: "Telemetry", icon: "activity" },
-    { href: "/admin/settings", label: "ตั้งค่า", icon: "settings" },
+    { href: "/admin", label: "แดชบอร์ด", icon: "gauge", permission: "customers.read" },
+    { href: "/admin/customers", label: "ลูกค้า", icon: "users", permission: "customers.read" },
+    { href: "/admin/licenses", label: "ไลเซนส์", icon: "key", permission: "licenses.read" },
+    { href: "/admin/products", label: "ผลิตภัณฑ์", icon: "box", permission: "products.read" },
+    { href: "/admin/releases", label: "รีลีส", icon: "package", permission: "products.read" },
+    { href: "/admin/servers", label: "เซิร์ฟเวอร์", icon: "server", permission: "servers.read" },
+    { href: "/admin/content", label: "เนื้อหาเว็บ", icon: "edit", permission: "settings.read" },
+    { href: "/admin/support", label: "ตั๋วช่วยเหลือ", icon: "terminal", permission: "support.read" },
+    { href: "/admin/security", label: "ศูนย์ความปลอดภัย", icon: "shield", permission: "security.read" },
+    { href: "/admin/audit", label: "บันทึกการตรวจสอบ", icon: "audit", permission: "audit.read" },
+    { href: "/admin/telemetry", label: "Telemetry", icon: "activity", permission: "telemetry.read" },
+    { href: "/admin/settings", label: "ตั้งค่า", icon: "settings", permission: "settings.read" },
   ];
-  const nav = opts.admin ? adminNav : customerNav;
+  const nav = (opts.admin ? adminNav : customerNav).filter(
+    (item) => !item.permission || can(opts.user, item.permission),
+  );
   return html`<div class="shell app-layout">
     <aside class="app-side">
       <div class="who">

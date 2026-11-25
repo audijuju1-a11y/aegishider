@@ -76,7 +76,7 @@ export const docs: DocPage[] = [
 
 ## ขั้นตอน
 
-1. ดาวน์โหลดไบล์ที่ตรงกับเวอร์ชันเซิร์ฟเวอร์ (1.21.1 – 26.3) จากหน้าผลิตภัณฑ์
+1. ดาวน์โหลดไฟล์ที่ตรงกับเวอร์ชันเซิร์ฟเวอร์ (1.21.1 – 26.3) จากหน้าผลิตภัณฑ์
 2. วางในโฟลเดอร์ \`plugins/\`
 3. ดาวน์โหลด PacketEvents 2.14.0 ขึ้นไป แล้ววางใน \`plugins/\` เช่นกัน
 4. รีสตาร์ทเซิร์ฟเวอร์
@@ -283,14 +283,14 @@ worlds:
 
 - Rate limiting ต่อ IP/อีเมลในเส้นทางสำคัญ
 - CSP, HSTS (โปรดักชัน), X-Content-Type-Options, Referrer-Policy
-- ไม่รับไฟล์อัปโหลดจากผู้ใช้
+- ผู้ใช้ทั่วไปอัปโหลดไฟล์ไม่ได้; ผู้ดูแลอัปโหลดรีลีส .jar ที่ตรวจชนิด/ขนาด/ส่วนหัวไฟล์
 - ไม่ fetch URL จากผู้ใช้ (กัน SSRF)
 - Audit trail สำหรับการกระทำของผู้ดูแล
 
 ## การรายงานช่องโหว่
 
-ส่งรายละเอียดมาที่ช่องทางสนับสนุน พร้อมขั้นตอนทำซ้ำ อย่าเปิดเผยต่อสาธารณะก่อนได้รับอนุญาต
-เราไม่มีโปรแกรมตอบแทนที่ประกาศไว้ — จะแจ้งเป็นรายกรณี
+ส่งรายละเอียดผ่านหน้า /contact พร้อมขั้นตอนทำซ้ำ หรือดูช่องทางใน /.well-known/security.txt
+อย่าเปิดเผยรายละเอียดต่อสาธารณะก่อนได้รับอนุญาต — เราไม่มีโปรแกรมตอบแทนที่ประกาศไว้ จะแจ้งเป็นรายกรณี
 `.trim(),
   },
   {
@@ -641,12 +641,12 @@ Payload คือ JSON canonical ที่มี \`license_id\`, \`installation_
 ## ตรวจบนเซิร์ฟเวอร์
 
 ~~~bash
-# Linux/macOS
+## Linux/macOS
 sha256sum -c Aegishider-4.0.5-SHA256SUMS
 ~~~
 
 ~~~powershell
-# Windows PowerShell
+## Windows PowerShell
 Get-FileHash .\Aegishider-4.0.5-mc1.21.5.jar -Algorithm SHA256
 ~~~
 
@@ -686,7 +686,7 @@ Get-FileHash .\Aegishider-4.0.5-mc1.21.5.jar -Algorithm SHA256
 |---|---|
 | คำสั่ง | \`vitest run\` (workerd) |
 | ไฟล์ | 7 |
-| เทสต์ | **46 ผ่าน / 46** |
+| เทสต์ | **51 ผ่าน / 51** |
 | ครอบคลุม | สมัคร→ไลเซนส์ฟรี, activation pairing, lease signature/replay, heartbeat, recovery codes/TOTP, redirect หลังสมัคร, rate limit ปิด TOTP |
 
 ## Plugin suite — รันจริง 2026-11-23

@@ -54,7 +54,7 @@ import { generateTotpSecret, otpauthUri, verifyTotp } from "../auth/totp";
 import { AppError, badRequest, forbidden } from "../lib/errors";
 import { verifyTurnstile } from "../auth/turnstile";
 import { enforceRateLimit } from "../lib/rate-limit";
-import { primaryMembership, revokeOtherSessions, revokeSession, listSessions } from "../auth/session";
+import { primaryMembership, revokeOtherSessions, revokeSession, listSessions, type SessionUser } from "../auth/session";
 import { errorPage } from "../views/marketing";
 import { ensureFreeLicenseForUser } from "../services/licensing";
 import {
@@ -69,13 +69,33 @@ export const portalRoutes = new Hono<AppEnv>();
 function failRedirect(c: Parameters<typeof appPage>[0], path: string, error: unknown): Response {
   if (error instanceof AppError) {
     const code =
-      error.status === 403 ? "forbidden"
-        : error.status === 409 ? "wrong-state"
-          : error.status === 429 ? "rate-limited"
-            : "invalid";
+      error.code === "bad_password" ? "bad-password"
+        : error.code === "password_required" ? "password-required"
+          : error.status === 403 ? "forbidden"
+            : error.status === 409 ? "wrong-state"
+              : error.status === 429 ? "rate-limited"
+                : "invalid";
     return c.redirect(`${path}?err=${code}`, 303);
   }
   throw error;
+}
+
+/**
+ * Security-sensitive changes (2FA enrolment, recovery-code rotation) must prove the
+ * password again, otherwise a stolen session can lock the real owner out.
+ */
+async function requireSecurityPassword(
+  c: Parameters<typeof appPage>[0],
+  user: SessionUser,
+  password: string,
+): Promise<void> {
+  const stored = await passwordHashForUser(c.env, user.id);
+  if (!stored) {
+    throw new AppError(400, "password_required", "ตั้งรหัสผ่านที่หน้าบัญชีก่อนทำรายการนี้");
+  }
+  if (!(await verifyPassword(password, stored))) {
+    throw new AppError(400, "bad_password", "รหัสผ่านไม่ถูกต้อง");
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -110,16 +130,16 @@ portalRoutes.get("/licenses", async (c) => {
   const user = requireUser(c);
   await ensureFreeLicenseForUser(c.env, user, "aegishider");
   const licenses = await listLicensesForUser(c.env, user.id);
-  // Raw keys are a one-time display and never shown to read-only members.
+  // Raw keys are a one-time display and never shown to read-only members. The list only
+  // checks availability; the detail page displays and consumes the key so the link is not
+  // a dead end (previously the list deleted it before the user could open it).
   const canSeeRawKeys = user.memberships.some((membership) => membership.role !== "read_only");
-  const rawKeys: Record<string, string> = {};
+  const rawKeyAvailable: Record<string, boolean> = {};
   if (canSeeRawKeys) {
     await Promise.all(
       licenses.map(async (license) => {
-        const rawKey = await c.env.CACHE.get(`newlic:${license.id}`);
-        if (rawKey) {
-          rawKeys[license.id] = rawKey;
-          await c.env.CACHE.delete(`newlic:${license.id}`);
+        if (await c.env.CACHE.get(`newlic:${license.id}`)) {
+          rawKeyAvailable[license.id] = true;
         }
       }),
     );
@@ -128,7 +148,7 @@ portalRoutes.get("/licenses", async (c) => {
     title: "ไลเซนส์",
     subtitle: "ไลเซนส์ฟรีทั้งหมดที่องค์กรของคุณถืออยู่",
     active: "/app/licenses",
-    body: licensesPage(licenses, c.get("csrfToken") ?? "", rawKeys),
+    body: licensesPage(licenses, c.get("csrfToken") ?? "", rawKeyAvailable),
   });
 });
 
@@ -362,6 +382,7 @@ portalRoutes.get("/account", async (c) => {
 portalRoutes.post("/account/password", async (c) => {
   const user = requireUser(c);
   const values = await readForm(c);
+  await enforceRateLimit(c.env, `pwchange:${user.id}:${await hashIp(c.env, clientIp(c))}`, 5, 900);
   const current = formValue(values, "current_password", 200);
   const next = formValue(values, "new_password", 200);
   const confirm = formValue(values, "confirm_password", 200);
@@ -386,11 +407,12 @@ portalRoutes.post("/account/password", async (c) => {
 
 portalRoutes.get("/security", async (c) => {
   const user = requireUser(c);
-  const [sessions, events, remaining, totpRow] = await Promise.all([
+  const [sessions, events, remaining, totpRow, passwordHash] = await Promise.all([
     listSessions(c.env, user.id),
     listSecurityEventsForUser(c.env, user.id),
     recoveryCodeCount(c.env, user.id),
     totpStateForUser(c.env, user.id),
+    passwordHashForUser(c.env, user.id),
   ]);
 
   // Codes stay readable for the short KV window so a refresh does not lose them; they
@@ -426,6 +448,7 @@ portalRoutes.get("/security", async (c) => {
     body: securityPage(sessions, c.get("sessionId") ?? "", events, c.get("csrfToken") ?? "", {
       codes,
       remaining,
+      hasPassword: Boolean(passwordHash),
       totpEnabled: Boolean(totpRow?.totp_enabled_at),
       totpPending,
     }),
@@ -434,7 +457,14 @@ portalRoutes.get("/security", async (c) => {
 
 portalRoutes.post("/security/recovery-codes", async (c) => {
   const user = requireUser(c);
-  await readForm(c);
+  const values = await readForm(c);
+  const ipHash = await hashIp(c.env, clientIp(c));
+  await enforceRateLimit(c.env, `recovery-regen:${user.id}:${ipHash}`, 5, 900);
+  try {
+    await requireSecurityPassword(c, user, formValue(values, "password", 200));
+  } catch (error) {
+    return failRedirect(c, "/app/security", error);
+  }
   const codes = await issueRecoveryCodes(c.env, user.id);
   await c.env.CACHE.put(`recovery-new:${user.id}`, JSON.stringify(codes), { expirationTtl: 900 });
   await recordSecurityEvent(c.env, {
@@ -455,7 +485,14 @@ portalRoutes.post("/security/recovery-codes/ack", async (c) => {
 
 portalRoutes.post("/security/totp/start", async (c) => {
   const user = requireUser(c);
-  await readForm(c);
+  const values = await readForm(c);
+  const ipHash = await hashIp(c.env, clientIp(c));
+  await enforceRateLimit(c.env, `totp-start:${user.id}:${ipHash}`, 5, 900);
+  try {
+    await requireSecurityPassword(c, user, formValue(values, "password", 200));
+  } catch (error) {
+    return failRedirect(c, "/app/security", error);
+  }
   const secret = generateTotpSecret();
   await c.env.CACHE.put(
     `totp-pending:${user.id}`,

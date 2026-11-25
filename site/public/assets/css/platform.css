@@ -4,20 +4,20 @@
    ========================================================================== */
 
 :root{
-  --bg:#07090c;
-  --bg-soft:#0a0e13;
-  --surface:#0e141b;
-  --surface-2:#131b24;
-  --surface-3:#19232e;
-  --line:rgba(255,255,255,.09);
-  --line-2:rgba(255,255,255,.15);
-  --text:#f1f5f9;
-  --text-2:#c5cfdb;
-  --muted:#8a97a7;
-  --muted-2:#61707f;
-  --accent:#e2bd6d;
-  --accent-hi:#f6e2ac;
-  --accent-2:#c9963c;
+  --bg:#0b0f14;
+  --bg-soft:#0f151c;
+  --surface:#121920;
+  --surface-2:#161f29;
+  --surface-3:#1c2733;
+  --line:rgba(255,255,255,.085);
+  --line-2:rgba(255,255,255,.14);
+  --text:#f2f5f9;
+  --text-2:#c3cedb;
+  --muted:#8492a2;
+  --muted-2:#7b8797;
+  --accent:#d6b36a;
+  --accent-hi:#f0dca6;
+  --accent-2:#a77b2d;
   --accent-ink:#1b1305;
   --ok:#7bd88f;
   --warn:#e5b969;
@@ -42,10 +42,10 @@
   --line-2:rgba(28,32,38,.2);
   --text:#1a2028;
   --text-2:#39434f;
-  --muted:#697483;
-  --muted-2:#8a94a1;
-  --accent:#96660f;
-  --accent-hi:#7d520a;
+  --muted:#5a6470;
+  --muted-2:#5f6a76;
+  --accent:#7d520a;
+  --accent-hi:#6b4607;
   --accent-2:#b9862f;
   --accent-ink:#fffdf8;
   --ok:#1f7a43;
@@ -63,9 +63,7 @@ body{
 }
 body::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:
-    radial-gradient(900px 600px at 78% -10%, rgba(201,150,60,.10), transparent 62%),
-    radial-gradient(700px 500px at 2% 6%, rgba(124,199,232,.045), transparent 60%);
+  background:radial-gradient(1000px 620px at 82% -14%, rgba(214,179,106,.075), transparent 62%);
 }
 :root[data-theme="light"] body::before{
   background:
@@ -424,3 +422,9 @@ hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
 .evidence-table td.bad{color:var(--danger);font-family:var(--mono);font-size:.7rem}
 .evidence-table td.good{color:var(--ok);font-family:var(--mono);font-size:.7rem}
 @media (max-width:640px){.evidence-table{font-size:.7rem}.evidence-table th,.evidence-table td{padding:.45rem .4rem}}
+
+/* ------------------------------------------------------------ code copy -- */
+.code-block-wrap{position:relative;margin:1rem 0}
+.code-block-wrap pre{margin:0;max-width:100%}
+.code-copy{position:absolute;top:.55rem;right:.55rem;z-index:2;font-size:.72rem;padding:.28rem .5rem;background:color-mix(in srgb,var(--surface-2) 88%,transparent);backdrop-filter:blur(4px)}
+@media (max-width:560px){.code-copy{position:static;margin-top:.4rem}}

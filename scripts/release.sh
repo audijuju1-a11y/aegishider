@@ -13,6 +13,12 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+# Single source of truth: never hardcode a release version in the pipeline.
+VERSION="$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' "$ROOT/aegishider-integrated/pom.xml" | head -1)"
+if [ -z "$VERSION" ]; then
+    echo "cannot read the plugin version from aegishider-integrated/pom.xml" >&2
+    exit 1
+fi
 MVN="$ROOT/.tools/apache-maven-3.9.9/bin/mvn"
 JDK21="$(ls -d "$ROOT"/.tools/jdk21/jdk-21* | head -1)"
 JDK25="$(ls -d "$ROOT"/.tools/jdk-25* | head -1)"
@@ -45,7 +51,7 @@ build() {
     (cd "$ROOT/aegishider-integrated" && \
         JAVA_HOME="$home" PATH="$home/bin:$ROOT/.tools/apache-maven-3.9.9/bin:$PATH" \
         "$MVN" -B -o -P"$profile" -Dmaven.test.skip=true clean package)
-    cp "$ROOT/aegishider-integrated/target/Aegishider-4.0.4-$suffix.jar" "$ROOT/dist/plain/"
+    cp "$ROOT/aegishider-integrated/target/Aegishider-${VERSION}-$suffix.jar" "$ROOT/dist/plain/"
 }
 
 paper_api_jar() {
@@ -58,12 +64,12 @@ obfuscate() {
     local suffix="$1" paper_api="$2"
     echo "== string-encrypt $suffix =="
     "$JDK21/bin/java" -cp "$ASM_WIN;$STRINGCRYPT_WIN" StringEncryptor \
-        "$(cygpath -m "$ROOT/dist/plain/Aegishider-4.0.4-$suffix.jar")" \
-        "$(cygpath -m "$ROOT/dist/pre/Aegishider-4.0.4-$suffix.jar")"
+        "$(cygpath -m "$ROOT/dist/plain/Aegishider-${VERSION}-$suffix.jar")" \
+        "$(cygpath -m "$ROOT/dist/pre/Aegishider-${VERSION}-$suffix.jar")"
     echo "== obfuscate $suffix =="
     "$SENTINEL_PY" -m sentinel_shield.cli jar obfuscate \
-        "$ROOT/dist/pre/Aegishider-4.0.4-$suffix.jar" \
-        --out "$ROOT/dist/obf/Aegishider-4.0.4-$suffix.jar" \
+        "$ROOT/dist/pre/Aegishider-${VERSION}-$suffix.jar" \
+        --out "$ROOT/dist/obf/Aegishider-${VERSION}-$suffix.jar" \
         --profile balanced \
         --proguard "$PROGUARD" \
         --jdk-home "$JDK21" \

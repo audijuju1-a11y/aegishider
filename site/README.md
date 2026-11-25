@@ -24,7 +24,18 @@ site/public/
 - ลิงก์ `/plugins`, `/docs`, `/auth`, `/app`, `/admin`, `/legal`, `/release`, `/api`
   ถูก redirect ไป Worker ผ่าน `_redirects`
 - ห้ามเพิ่มธีม/สคริปต์จากเว็บชุดเก่า (clockwork) — ไฟล์เหล่านั้นถูกลบแล้ว
-- อัปเดต snapshot เมื่อหน้าแรกของแพลตฟอร์มเปลี่ยน
+
+## อัปเดต snapshot
+
+หลัง deploy Worker แล้ว ให้รันคำสั่งนี้จากโฟลเดอร์ `site/` (ต้องเข้าถึง Worker ได้):
+
+```bash
+node scripts/build-snapshot.mjs
+```
+
+สคริปต์จะดึงหน้าแรกและหน้า 404 จาก Worker จริง, rewrite ลิงก์แอปไปที่ Worker,
+ปรับ canonical/OG/JSON-LD ให้ชี้ Pages และ copy `platform/public/assets` + `downloads`
++ `.well-known` มาไว้ใน Pages เพื่อให้ CSS/JS/ฟอนต์และ security.txt ตรงกับแพลตฟอร์มทุกครั้ง
 
 ## ตรวจสอบก่อน deploy
 

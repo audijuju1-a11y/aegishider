@@ -1,0 +1,23 @@
+# Static asset headers for the Worker. Worker-rendered pages set their own headers.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Resource-Policy: same-origin
+
+/assets/*
+  Cache-Control: public, max-age=300, must-revalidate
+
+/assets/fonts/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/img/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400
+
+/capabilities*
+  Content-Security-Policy: default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; manifest-src 'self'
+  Cache-Control: public, max-age=300
+  X-Robots-Tag: index, follow

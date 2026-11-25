@@ -6,18 +6,27 @@
   <title>ไม่พบหน้านี้ · Aegishider Control Platform</title>
   <meta name="description" content="แพลตฟอร์มจัดการไลเซนส์และติดตามเซิร์ฟเวอร์ปลั๊กอิน Minecraft">
   <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#05070a">
   <meta name="robots" content="noindex,nofollow">
+
   <meta property="og:title" content="ไม่พบหน้านี้ · Aegishider">
   <meta property="og:description" content="แพลตฟอร์มจัดการไลเซนส์และติดตามเซิร์ฟเวอร์ปลั๊กอิน Minecraft">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Aegishider Control Platform">
+  <meta property="og:locale" content="th_TH">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/logo-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/logo-180.png">
-  <meta property="og:image" content="https://aegishider.pages.dev/assets/img/logo-512.png">
-  <meta property="og:image:width" content="512">
-  <meta property="og:image:height" content="512">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:image" content="https://aegishider.pages.dev/assets/img/logo-512.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:image" content="https://aegishider.pages.dev/assets/img/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Aegishider Control Platform — ปลั๊กอิน Minecraft ฟรี พร้อมไลเซนส์ที่ตรวจสอบได้">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://aegishider.pages.dev/assets/img/og-card.png">
+
+
   <script src="/assets/js/theme.js"></script>
+  <link rel="preload" href="/assets/fonts/anuphan-var-thai.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/platform.css">
   <link rel="stylesheet" href="/assets/css/premium.css">
@@ -30,18 +39,23 @@
     <div class="shell header-inner">
       <a class="brand" href="/" aria-label="Aegishider Control Platform">
     <span class="brand-mark" aria-hidden="true">
-      <img src="/assets/img/logo-192.png" width="192" height="192" alt="" loading="eager" decoding="async">
+      <img src="/assets/img/logo-192.webp" width="192" height="192" alt="" loading="eager" decoding="async">
     </span>
     <span class="brand-text"><strong>Aegishider</strong><span class="brand-ver">CONTROL</span></span>
   </a>
       <nav class="site-nav" id="siteNav" aria-label="เมนูหลัก">
-        <a href="/" >หน้าแรก</a><a href="https://aegishider-platform.audijuju1.workers.dev/plugins" >ผลิตภัณฑ์</a><a href="https://aegishider-platform.audijuju1.workers.dev/developers" >นักพัฒนา</a><a href="https://aegishider-platform.audijuju1.workers.dev/docs" >เอกสาร</a><a href="https://aegishider-platform.audijuju1.workers.dev/changelog" >อัปเดต</a><a href="https://aegishider-platform.audijuju1.workers.dev/status" >สถานะ</a><a href="https://aegishider-platform.audijuju1.workers.dev/support" >ช่วยเหลือ</a>
+        <a href="/" >หน้าแรก</a><a href="https://aegishider-platform.audijuju1.workers.dev/plugins" >ผลิตภัณฑ์</a><a href="https://aegishider-platform.audijuju1.workers.dev/capabilities" >ความสามารถ</a><a href="https://aegishider-platform.audijuju1.workers.dev/developers" >นักพัฒนา</a><a href="https://aegishider-platform.audijuju1.workers.dev/docs" >เอกสาร</a><a href="https://aegishider-platform.audijuju1.workers.dev/changelog" >อัปเดต</a><a href="https://aegishider-platform.audijuju1.workers.dev/status" >สถานะ</a><a href="https://aegishider-platform.audijuju1.workers.dev/support" >ช่วยเหลือ</a>
+        <div class="nav-auth">
+              <a href="https://aegishider-platform.audijuju1.workers.dev/auth/login">เข้าสู่ระบบ</a>
+              <a class="nav-cta" href="https://aegishider-platform.audijuju1.workers.dev/auth/register">เริ่มต้นฟรี</a>
+            </div>
       </nav>
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" id="themeToggle" type="button" aria-label="ธีม">
           <svg class="ico " aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
         </button>
-        <a class="btn btn-primary btn-sm" href="https://aegishider-platform.audijuju1.workers.dev/auth/login">เข้าสู่ระบบ</a>
+        <a class="btn btn-ghost btn-sm login-link" href="https://aegishider-platform.audijuju1.workers.dev/auth/login">เข้าสู่ระบบ</a>
+              <a class="btn btn-primary btn-sm header-cta" href="https://aegishider-platform.audijuju1.workers.dev/auth/register">เริ่มต้นฟรี</a>
         <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="เปิดเมนู">
           <svg class="ico " aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
         </button>
@@ -49,7 +63,7 @@
     </div>
   </header>
   <main id="main">
-    
+
     <section class="section">
     <div class="shell narrow" style="text-align:center;padding-block:3rem">
       <p class="eyebrow" style="justify-content:center">ERROR</p>
@@ -68,32 +82,46 @@
         <div class="footer-brand">
           <a class="brand" href="/" aria-label="Aegishider Control Platform">
     <span class="brand-mark" aria-hidden="true">
-      <img src="/assets/img/logo-192.png" width="192" height="192" alt="" loading="eager" decoding="async">
+      <img src="/assets/img/logo-192.webp" width="192" height="192" alt="" loading="eager" decoding="async">
     </span>
     <span class="brand-text"><strong>Aegishider</strong><span class="brand-ver">CONTROL</span></span>
   </a>
           <p>แพลตฟอร์มฟรีสำหรับจัดการไลเซนส์ปลั๊กอิน Minecraft — ตรวจสอบได้ทุกขั้นตอน ไม่มีระบบชำระเงิน และไม่เปิดเผยข้อมูลเซิร์ฟเวอร์ลูกค้าต่อสาธารณะ</p>
+          <p class="footer-about">
+            <a href="https://aegishider-platform.audijuju1.workers.dev/about">เกี่ยวกับเรา</a>
+            <span>·</span>
+            <a href="https://github.com/audijuju1-a11y/aegishider" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <span>·</span>
+            <a href="https://aegishider-platform.audijuju1.workers.dev/docs/security">ความปลอดภัย</a>
+          </p>
         </div>
         <div class="footer-col">
           <h3>ผลิตภัณฑ์</h3>
           <a href="https://aegishider-platform.audijuju1.workers.dev/plugins">ผลิตภัณฑ์ทั้งหมด</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/plugins/aegishider">Aegishider</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/capabilities">Aegishider — ความสามารถ</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/pricing">ราคา</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/changelog">บันทึกการอัปเดต</a>
         </div>
         <div class="footer-col">
           <h3>นักพัฒนา</h3>
-          <a href="https://aegishider-platform.audijuju1.workers.dev/developers">นักพัฒนา</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/developers">Developer API</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/docs">เอกสาร</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/docs/api">API</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/docs/licensing">ไลเซนส์</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/docs/compatibility">ความเข้ากันได้</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/docs/release-verification">ตรวจสอบรีลีส</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/docs/test-evidence">ผลทดสอบ</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/docs/security">ความปลอดภัย</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/status">สถานะระบบ</a>
+          <a href="https://github.com/audijuju1-a11y/aegishider" target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
         <div class="footer-col">
           <h3>ช่วยเหลือ</h3>
           <a href="https://aegishider-platform.audijuju1.workers.dev/support">ศูนย์ช่วยเหลือ</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/contact">ติดต่อเรา</a>
+          <a href="https://aegishider-platform.audijuju1.workers.dev/about">เกี่ยวกับเรา</a>
+          <a href="https://github.com/audijuju1-a11y/aegishider/issues" target="_blank" rel="noopener noreferrer">แจ้งปัญหาบน GitHub</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/legal/terms">ข้อกำหนดการใช้งาน</a>
           <a href="https://aegishider-platform.audijuju1.workers.dev/legal/privacy">นโยบายความเป็นส่วนตัว</a>
         </div>

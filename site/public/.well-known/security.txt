@@ -1,0 +1,5 @@
+Contact: https://aegishider-platform.audijuju1.workers.dev/contact
+Policy: https://aegishider-platform.audijuju1.workers.dev/docs/security
+Preferred-Languages: th, en
+Canonical: https://aegishider-platform.audijuju1.workers.dev/.well-known/security.txt
+Expires: 2027-11-24T00:00:00.000Z

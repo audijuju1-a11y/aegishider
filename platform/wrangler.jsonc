@@ -12,7 +12,7 @@
       "/api/*", "/app/*", "/admin/*", "/auth/*", "/release/*",
       "/", "/plugins", "/plugins/*", "/developers", "/pricing", "/docs", "/docs/*",
       "/changelog", "/changelog/*", "/support", "/contact", "/status",
-      "/about", "/legal", "/legal/*"
+      "/about", "/legal", "/legal/*", "/sitemap.xml", "/favicon.ico", "/site.webmanifest", "/.well-known/security.txt"
     ]
   },
   "observability": {

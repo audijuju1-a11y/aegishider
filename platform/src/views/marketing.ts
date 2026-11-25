@@ -62,6 +62,29 @@ function releaseNotes(notes: string): SafeHtml {
   return html`<div class="prose" style="font-size:.82rem">${renderMarkdown(notes)}</div>`;
 }
 
+function minecraftList(release: ReleaseRow): string[] {
+  return jsonArray<string>(release.supported_minecraft);
+}
+
+function javaList(release: ReleaseRow): string[] {
+  return jsonArray<string>(release.supported_java);
+}
+
+function mcRange(release: ReleaseRow): string {
+  const versions = minecraftList(release);
+  if (versions.length === 0) return "—";
+  return versions.length === 1 ? versions[0]! : `${versions[0]}–${versions[versions.length - 1]}`;
+}
+
+function formatBytes(value: number | null | undefined): string {
+  if (!value || value <= 0) return "—";
+  return value >= 1024 * 1024 ? `${(value / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(value / 1024)} KB`;
+}
+
+function compareMinecraft(a: ReleaseRow, b: ReleaseRow): number {
+  return (minecraftList(a)[0] ?? "").localeCompare(minecraftList(b)[0] ?? "", "en", { numeric: true });
+}
+
 /* -------------------------------------------------------------------------- */
 /* Home                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -80,7 +103,7 @@ export function marketingHome(
   <section class="hero">
     <div class="shell hero-grid">
       <div>
-        <img class="hero-logo" src="/assets/img/logo-192.png" width="192" height="192" alt="Aegishider logo" decoding="async">
+        <img class="hero-logo" src="/assets/img/logo-192.webp" width="192" height="192" alt="Aegishider logo" decoding="async" fetchpriority="high">
         <p class="eyebrow">${content.heroEyebrow}</p>
         <h1>${content.heroTitle}<br><em>${content.heroTitleAccent}</em></h1>
         <p class="hero-lead">${content.heroLead}</p>
@@ -88,6 +111,7 @@ export function marketingHome(
           <a class="btn btn-primary btn-lg" href="/plugins">${content.primaryCta} ${icon("arrow")}</a>
           <a class="btn btn-ghost btn-lg" href="/docs/getting-started">${content.secondaryCta}</a>
         </div>
+        <p class="hero-account">ยังไม่มีบัญชี? <a href="/auth/register">สมัครฟรีและรับไลเซนส์ทันที</a></p>
         <p class="hero-note">แพลตฟอร์มคลาวด์ที่ตรวจสอบได้ — ไม่มีเซิร์ฟเวอร์ให้ดูแลเอง</p>
         <div class="hero-stats">
           <div class="hero-stat"><b>6</b><span>Paper builds</span></div>
@@ -260,6 +284,21 @@ export function productDetail(
   const servers = Array.isArray(compatibility.servers) ? (compatibility.servers as string[]) : [];
   const java = Array.isArray(compatibility.java) ? (compatibility.java as string[]) : [];
   const requires = Array.isArray(compatibility.requires) ? (compatibility.requires as string[]) : [];
+  // The latest version family is the set of builds shipped with the newest base version.
+  // Older release lines stay available below but are not the primary download.
+  const latestBase = latest?.version.split("+")[0] ?? "";
+  let builds = product.releases
+    .filter((release) => release.artifact_url && release.version.split("+")[0] === latestBase)
+    .sort(compareMinecraft);
+  if (builds.length === 0) {
+    builds = product.releases.filter((release) => release.artifact_url).sort(compareMinecraft);
+  }
+  const recommended = builds.find((release) => minecraftList(release).includes("1.21.11"))
+    ?? builds[builds.length - 1]
+    ?? null;
+  const previous = product.releases.filter(
+    (release) => release.artifact_url && !builds.some((build) => build.id === release.id),
+  );
 
   return html`<section class="section">
     <div class="shell">
@@ -271,7 +310,7 @@ export function productDetail(
               <div class="product-thumb" style="margin:0">${product.name.slice(0, 2).toUpperCase()}</div>
               <div>
                 <h1 style="font-size:clamp(1.9rem,3.5vw,2.6rem);line-height:1.2">${product.name}</h1>
-                <div class="row" style="margin-top:.4rem">${badge(product.status, options.lang)}${latest ? html`<span class="badge badge--info badge--version">v${latest.version}</span>` : raw("")}</div>
+                <div class="row" style="margin-top:.4rem">${badge(product.status, options.lang)}${latest ? html`<span class="badge badge--info badge--version">v${latest.version.split("+")[0]}</span>` : raw("")}<a class="btn btn-soft btn-sm" href="#downloads">${icon("download")} ไปที่ดาวน์โหลด</a><a class="btn btn-ghost btn-sm" href="/capabilities">${icon("layers")} ความสามารถทั้งหมด</a></div>
               </div>
             </div>
           </div>
@@ -279,29 +318,56 @@ export function productDetail(
           <div class="prose" style="margin-top:1.2rem">${paragraphs(product.description)}</div>
 
           ${latest
-            ? html`<div class="download-card card" style="margin-top:1.2rem">
-                <div class="spread" style="align-items:flex-start">
+            ? html`<div class="download-card card" id="downloads" style="margin-top:1.2rem">
+                <div class="spread" style="align-items:flex-start;gap:1rem">
                   <div>
-                    <p class="eyebrow">LATEST RELEASE</p>
-                    <h2 style="font-size:1.3rem;margin-top:.3rem">v${latest.version}</h2>
-                    <p class="muted" style="font-size:.8rem;margin-top:.3rem">${formatDate(latest.released_at, options.lang)} · ฟรี 100%</p>
+                    <p class="eyebrow">BUILD หลัก · แนะนำ</p>
+                    <h2 style="font-size:1.3rem;margin-top:.3rem" data-build-version>v${(recommended ?? latest).version.split("+")[0]}</h2>
+                    <p class="muted" style="font-size:.8rem;margin-top:.3rem"><span data-build-date>${formatDate((recommended ?? latest).released_at, options.lang)}</span> · ฟรี 100%</p>
                   </div>
-                  ${latest.artifact_url
-                    ? html`<a class="btn btn-primary" href="${latest.artifact_url}" download>${icon("download")} ดาวน์โหลดไจาร์</a>`
+                  ${recommended?.artifact_url
+                    ? html`<a class="btn btn-primary" data-build-download href="${recommended.artifact_url}" download>${icon("download")} ดาวน์โหลดไจาร์</a>`
                     : html`<span class="badge">ยังไม่มีไฟล์</span>`}
                 </div>
+                ${builds.length > 1
+                  ? html`<div style="display:grid;gap:.4rem;margin-top:1rem">
+                      <label for="buildSelect" style="font-size:.78rem;color:var(--text-2);font-weight:500">เลือกบิลด์ตาม Paper / Minecraft</label>
+                      <select class="select" id="buildSelect" data-build-select aria-describedby="buildHelp">
+                        ${builds.map((release) => html`<option value="${release.id}" ${release.id === recommended?.id ? raw("selected") : raw("")}
+                          data-url="${release.artifact_url ?? ""}"
+                          data-version="${release.version.split("+")[0]}"
+                          data-date="${formatDate(release.released_at, options.lang)}"
+                          data-range="${mcRange(release)}"
+                          data-java="${javaList(release).join(", ") || "—"}"
+                          data-size="${formatBytes(release.artifact_size_bytes)}"
+                          data-sha="${release.artifact_sha256 ?? ""}">${release.version} · Paper ${mcRange(release)} · Java ${javaList(release).join("/") || "—"}</option>`)}
+                      </select>
+                      <p id="buildHelp" class="muted" style="font-size:.75rem">ปุ่มดาวน์โหลด วันที่ และ SHA-256 จะเปลี่ยนตามบิลด์ที่เลือก</p>
+                    </div>`
+                  : raw("")}
                 <div class="detail-list" style="margin-top:1rem">
-                  <div><dt>Minecraft</dt><dd>${minecraft.join(", ") || "—"}</dd></div>
-                  <div><dt>Java</dt><dd>${java.join(", ") || "—"}</dd></div>
+                  <div><dt>Paper / Minecraft</dt><dd data-build-range>${recommended ? mcRange(recommended) : minecraft.join(", ") || "—"}</dd></div>
+                  <div><dt>Java</dt><dd data-build-java>${recommended ? javaList(recommended).join(", ") || "—" : java.join(", ") || "—"}</dd></div>
+                  <div><dt>ขนาดไฟล์</dt><dd data-build-size>${recommended ? formatBytes(recommended.artifact_size_bytes) : "—"}</dd></div>
                   <div><dt>ต้องมีเพิ่ม</dt><dd>${requires.join(", ") || "—"}</dd></div>
                 </div>
-                ${latest.artifact_sha256 ? html`<p class="mono" style="font-size:.54rem;word-break:break-all;margin-top:.7rem">SHA-256 ${latest.artifact_sha256}</p>` : raw("")}
+                <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.8rem">
+                  <span class="mono" style="font-size:.72rem">SHA-256</span>
+                  <code data-build-sha style="font-size:.72rem;word-break:break-all">${recommended?.artifact_sha256 ?? "—"}</code>
+                  ${builds.some((release) => release.artifact_sha256)
+                    ? html`<button class="btn btn-ghost btn-sm" type="button" data-build-copy data-copy="${recommended?.artifact_sha256 ?? ""}" ${recommended?.artifact_sha256 ? raw("") : raw("hidden")}>${icon("copy")} คัดลอก</button>`
+                    : raw("")}
+                </div>
+                <p class="muted" style="font-size:.75rem;margin-top:.6rem"><a href="/docs/release-verification">วิธีตรวจสอบ SHA-256 และไฟล์ก่อนติดตั้ง</a></p>
               </div>`
             : raw("")}
 
           ${product.featuresList.length > 0
             ? html`<div style="margin-top:2rem">
-                <h2 style="font-size:1.2rem;margin-bottom:.8rem">ความสามารถหลัก</h2>
+                <div class="spread" style="align-items:center;margin-bottom:.8rem">
+                  <h2 style="font-size:1.2rem;margin:0">ความสามารถหลัก</h2>
+                  <a class="btn btn-ghost btn-sm" href="/capabilities">ดูทั้งหมด ${icon("arrow")}</a>
+                </div>
                 <div class="grid-2">
                   ${product.featuresList.map((feature) => html`<article class="feature-card">
                     <div class="feature-icon">${icon("check")}</div>
@@ -322,14 +388,14 @@ export function productDetail(
                 <li>เข้าสู่ระบบ/สมัครฟรี แล้วไปที่ <a href="/app/activations">การเปิดใช้งาน</a> ใส่รหัส</li>
                 <li>รัน <code>/aegishider license refresh</code> แล้วตรวจ <code>/aegishider status</code> ว่า protection=ACTIVE</li>
               </ol>
-              <p class="mono" style="margin-top:.8rem;font-size:.58rem;color:var(--muted-2)">DEFAULT enforcement=enforce · ฟรี 100% · เปลี่ยนเป็น warn หรือปิดได้ใน platform.yml</p>
+              <p class="mono" style="margin-top:.8rem;font-size:.72rem;color:var(--muted-2)">DEFAULT enforcement=enforce · ฟรี 100% · เปลี่ยนเป็น warn หรือปิดได้ใน platform.yml</p>
             </div>
           </div>
 
           <details class="card evidence-card" id="evidence" style="margin-top:2rem">
-            <summary><span>ผลทดสอบเชิงเทคนิค · A–H</span><span class="muted" style="font-size:.7rem">เปิดเพื่อดูตาราง</span></summary>
+            <summary><span>ผลทดสอบเชิงเทคนิค · A–H</span><span class="muted" style="font-size:.75rem">เปิดเพื่อดูตาราง</span></summary>
             <div class="card-body">
-              <p class="muted" style="margin-bottom:1rem;max-width:72ch">ไคลเอนต์จำลองเชื่อมต่อเซิร์ฟเวอร์ทดสอบและถอดรหัส chunk/block entity — ตารางคือผลจริงบนไบล์ที่ obfuscate แล้ว ไม่มีข้อมูลเซิร์ฟเวอร์ลูกค้า</p>
+              <p class="muted" style="margin-bottom:1rem;max-width:72ch">ไคลเอนต์จำลองเชื่อมต่อเซิร์ฟเวอร์ทดสอบและถอดรหัส chunk/block entity — ตารางคือผลจริงบนไฟล์ที่ผ่าน obfuscation แล้ว ไม่มีข้อมูลเซิร์ฟเวอร์ลูกค้า</p>
               <div class="table-wrap">
                 <table class="evidence-table">
                   <thead><tr><th>สถานการณ์</th><th>BaseHider 3.0.0</th><th>Aegishider 4.0.5</th></tr></thead>
@@ -345,7 +411,7 @@ export function productDetail(
                   </tbody>
                 </table>
               </div>
-              <p class="mono" style="margin-top:.8rem;font-size:.54rem;letter-spacing:.03em;color:var(--muted-2)">PAPER 1.21.1–26.3 (6 BUILDS) · PACKETEVENTS 2.14.0 · 153 UNIT TESTS · LIVE BOT CHECK</p>
+              <p class="mono" style="margin-top:.8rem;font-size:.72rem;letter-spacing:.03em;color:var(--muted-2)">PAPER 1.21.1–26.3 (6 BUILDS) · PACKETEVENTS 2.14.0 · 153 UNIT TESTS · LIVE BOT CHECK</p>
             </div>
           </details>
 
@@ -369,25 +435,54 @@ export function productDetail(
                   ${latest.artifact_url
                     ? html`<div class="row" style="margin-top:.9rem">
                         <a class="btn btn-soft btn-sm" href="${latest.artifact_url}" download>${icon("download")} ดาวน์โหลดไจาร์</a>
-                        ${latest.artifact_sha256 ? html`<span class="mono" style="font-size:.52rem;word-break:break-all">SHA-256 ${latest.artifact_sha256}</span>` : raw("")}
+                        ${latest.artifact_sha256 ? html`<span class="mono" style="font-size:.72rem;word-break:break-all">SHA-256 ${latest.artifact_sha256}</span>` : raw("")}
                       </div>`
                     : raw("")}
                 </div>
               </div>`
             : raw("")}
 
-          ${product.releases.length > 1
-            ? html`<div style="margin-top:1rem">
-                <h2 style="font-size:1.1rem;margin-bottom:.6rem">ไบล์ตามเวอร์ชัน</h2>
-                <div class="timeline">
-                  ${product.releases.map((release) => html`<div class="timeline-item" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
+          ${builds.length > 0
+            ? html`<div class="card" style="margin-top:1rem">
+                <div class="card-head"><h3>บิลด์ ${latestBase || "ล่าสุด"} ทั้งหมด</h3><span class="mono" style="font-size:.72rem">${builds.length} บิลด์</span></div>
+                <div class="card-body" style="padding:0">
+                  <div class="table-wrap" style="border:0">
+                    <table class="table">
+                      <thead><tr><th>บิลด์</th><th>Paper / MC</th><th>Java</th><th>ขนาด</th><th>SHA-256</th><th></th></tr></thead>
+                      <tbody>${builds.map((release) => html`<tr>
+                        <td>
+                          <b>v${release.version}</b>
+                          ${release.id === recommended?.id ? html`<span class="badge badge--info">แนะนำ</span>` : raw("")}
+                          <div class="muted" style="font-size:.75rem">${formatDate(release.released_at, options.lang)}${release.channel !== "stable" ? ` · ${release.channel}` : ""}</div>
+                        </td>
+                        <td>${minecraftList(release).map((version) => html`<span class="badge">MC ${version}</span>`)}</td>
+                        <td class="muted">${javaList(release).join(", ") || "—"}</td>
+                        <td class="muted">${formatBytes(release.artifact_size_bytes)}</td>
+                        <td>${release.artifact_sha256
+                          ? html`<code style="font-size:.72rem">${release.artifact_sha256.slice(0, 12)}…</code><button class="btn btn-ghost btn-sm" type="button" data-copy="${release.artifact_sha256}">คัดลอก</button>`
+                          : html`<span class="muted">—</span>`}</td>
+                        <td>${release.artifact_url
+                          ? html`<a class="btn btn-soft btn-sm" href="${release.artifact_url}" download>${icon("download")} ดาวน์โหลด</a>`
+                          : html`<span class="badge">ยังไม่มีไฟล์</span>`}</td>
+                      </tr>`)}</tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>`
+            : raw("")}
+
+          ${previous.length > 0
+            ? html`<details class="card card-pad" style="margin-top:1rem">
+                <summary style="cursor:pointer;font-size:.9rem"><b>รีลีสก่อนหน้า (${previous.length})</b></summary>
+                <div class="timeline" style="margin-top:1rem">
+                  ${previous.slice(0, 30).map((release) => html`<div class="timeline-item" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
                     <div>
                       <time>${formatDate(release.released_at, options.lang)}</time>
                       <b>v${release.version}</b>
                       ${release.channel !== "stable" ? html`<span class="badge">${release.channel}</span>` : raw("")}
                       <div style="margin-top:.35rem;display:flex;flex-wrap:wrap;gap:.25rem">
-                        ${jsonArray<string>(release.supported_minecraft).map((version) => html`<span class="badge">MC ${version}</span>`)}
-                        ${jsonArray<string>(release.supported_java).map((version) => html`<span class="badge">Java ${version}</span>`)}
+                        ${minecraftList(release).map((version) => html`<span class="badge">MC ${version}</span>`)}
+                        ${javaList(release).map((version) => html`<span class="badge">Java ${version}</span>`)}
                       </div>
                     </div>
                     ${release.artifact_url
@@ -395,7 +490,7 @@ export function productDetail(
                       : raw("")}
                   </div>`)}
                 </div>
-              </div>`
+              </details>`
             : raw("")}
         </div>
 
@@ -425,7 +520,7 @@ export function productDetail(
                       <input type="hidden" name="product_slug" value="${product.slug}">
                       ${options.authed
                         ? html`<button class="btn btn-primary btn-block" type="submit">${icon("key")} รับไลเซนส์ฟรี</button>
-                               <p class="muted" style="font-size:.68rem;line-height:1.6">ระบบจะสร้างรหัสยาว 240 บิตให้ทันที และเก็บเฉพาะ hash ในฐานข้อมูล</p>`
+                               <p class="muted" style="font-size:.75rem;line-height:1.6">ระบบจะสร้างรหัสยาว 240 บิตให้ทันที และเก็บเฉพาะ hash ในฐานข้อมูล</p>`
                         : html`<a class="btn btn-primary btn-block" href="/auth/register?next=${encodeURIComponent(`/plugins/${product.slug}`)}">สมัครฟรีเพื่อรับไลเซนส์</a>`}
                     </form>`}
             </div>
@@ -434,6 +529,7 @@ export function productDetail(
           <div class="card card-pad">
             <p class="mono" style="margin-bottom:.6rem">ลิงก์ที่เกี่ยวข้อง</p>
             <div class="stack" style="gap:.45rem">
+              <a class="text-2" style="font-size:.84rem" href="/capabilities">ความสามารถทั้งหมด ${icon("arrow")}</a>
               <a class="text-2" style="font-size:.84rem" href="/docs/aegishider">เอกสารการติดตั้ง ${icon("arrow")}</a>
               <a class="text-2" style="font-size:.84rem" href="/changelog/${product.slug}">บันทึกการอัปเดต ${icon("arrow")}</a>
               <a class="text-2" style="font-size:.84rem" href="/support">ขอความช่วยเหลือ ${icon("arrow")}</a>
@@ -449,13 +545,14 @@ export function productDetail(
 /* Pricing / changelog / status                                               */
 /* -------------------------------------------------------------------------- */
 
-export function pricingPage(products: ProductView[]): SafeHtml {
+export function pricingPage(products: ProductView[], note = ""): SafeHtml {
   return html`<section class="section">
     <div class="shell">
       <nav class="breadcrumb" aria-label="breadcrumb"><a href="/">หน้าแรก</a><span>/</span><span>ฟรี 100%</span></nav>
       <p class="eyebrow">FREE</p>
       <h1 style="font-size:clamp(1.9rem,3.5vw,2.8rem)">ฟรี 100%</h1>
       <p class="muted" style="margin-top:.6rem;max-width:64ch">ไม่มีระบบชำระเงิน ไม่มีกระเป๋าเงิน และไม่มีค่าบริการแอบแฝง — สมัครบัญชีแล้วรับไลเซนส์ได้ทันที</p>
+      ${note ? html`<p class="mono" style="margin-top:.5rem;font-size:.72rem;color:var(--muted-2)">${note}</p>` : raw("")}
       <div class="stack" style="margin-top:2rem;gap:1.5rem">
         ${products.map((product) => html`<div class="card">
           <div class="card-head">
@@ -467,7 +564,7 @@ export function pricingPage(products: ProductView[]): SafeHtml {
               <div class="plan">
                 <h3>Free</h3>
                 <div class="price">ฟรี</div>
-                <p class="muted" style="font-size:.7rem">ใช้ได้ 5 เซิร์ฟเวอร์พร้อมกัน · ไม่มีวันหมดอายุ</p>
+                <p class="muted" style="font-size:.75rem">ใช้ได้ 5 เซิร์ฟเวอร์พร้อมกัน · ไม่มีวันหมดอายุ</p>
                 <ul>
                   <li>ป้องกันหีบและไอเท็มเต็มรูปแบบ</li>
                   <li>Telemetry และแดชบอร์ดเชิงลึก</li>
@@ -502,7 +599,7 @@ export function changelogPage(
         ${releases.length === 0 ? emptyState("ยังไม่มีรีลีสที่เผยแพร่") : releases.map((release) => html`<article class="card">
           <div class="card-head">
             <div class="row"><h3>${release.product_name} · v${release.version}</h3>${badge(release.channel === "stable" ? "published" : release.channel, lang)}</div>
-            <span class="mono" style="font-size:.55rem">${formatDate(release.released_at, lang)}</span>
+            <span class="mono" style="font-size:.72rem">${formatDate(release.released_at, lang)}</span>
           </div>
           <div class="card-body">
             ${releaseNotes(release.notes)}
@@ -548,7 +645,7 @@ export function statusPage(report: StatusReport, lang: Lang): SafeHtml {
         </div>
       </div>
 
-      <p class="muted" style="font-size:.7rem;margin-top:1rem">ตรวจสอบเมื่อ ${formatDateTime(report.generatedAt, lang)} · <a href="/support">แจ้งปัญหา</a></p>
+      <p class="muted" style="font-size:.75rem;margin-top:1rem">ตรวจสอบเมื่อ ${formatDateTime(report.generatedAt, lang)} · <a href="/api/v1/status">status JSON</a> · <a href="/support">แจ้งปัญหา</a> · <a href="/.well-known/security.txt">security.txt</a></p>
     </div>
   </section>`;
 }
@@ -564,13 +661,17 @@ export function docsIndex(_lang: Lang): SafeHtml {
       <p class="eyebrow">DOCUMENTATION</p>
       <h1 style="font-size:clamp(1.9rem,3.5vw,2.8rem)">เอกสารการใช้งาน</h1>
       <p class="muted" style="margin-top:.6rem;max-width:64ch">คู่มือสำหรับลูกค้า นักพัฒนา และผู้ดูแลระบบ — เขียนจากสิ่งที่ระบบทำจริง</p>
-      <div class="grid-2" style="margin-top:2rem">
-        ${docsByCategory().map((group) => html`<div class="card card-pad">
+      <div class="search-bar" style="margin-top:1.5rem;max-width:520px">
+        <input class="input" type="search" placeholder="ค้นหาเอกสาร…" aria-label="ค้นหาเอกสาร" data-doc-search>
+      </div>
+      <div class="grid-2" style="margin-top:1.5rem">
+        ${docsByCategory().map((group) => html`<div class="card card-pad" data-doc-group>
           <h2 style="font-size:1rem;margin-bottom:.7rem">${group.category}</h2>
           <div class="stack" style="gap:.5rem">
-            ${group.pages.map((page) => html`<a href="/docs/${page.slug}" class="card card-pad" style="padding:.8rem .9rem;display:block">
+            ${group.pages.map((page) => html`<a href="/docs/${page.slug}" class="card card-pad" style="padding:.8rem .9rem;display:block"
+              data-doc-item data-search="${group.category} ${page.title} ${page.summary}">
               <b style="font-size:.88rem">${page.title}</b>
-              <span class="muted" style="display:block;font-size:.74rem;margin-top:.2rem">${page.summary}</span>
+              <span class="muted" style="display:block;font-size:.75rem;margin-top:.2rem">${page.summary}</span>
             </a>`)}
           </div>
         </div>`)}
@@ -590,7 +691,7 @@ export function docPage(doc: DocPage, _lang: Lang): SafeHtml {
       </nav>
       <article>
         <div class="prose">${renderMarkdown(doc.markdown)}</div>
-        <p class="mono" style="margin-top:1.5rem;font-size:.55rem">อัปเดต ${doc.updated} · Aegishider Control Platform</p>
+        <p class="mono" style="margin-top:1.5rem;font-size:.72rem">อัปเดต ${doc.updated} · Aegishider Control Platform</p>
       </article>
     </div>
   </section>`;
@@ -637,6 +738,15 @@ export function supportPage(options: { siteKey: string; csrf: string; authed: bo
             <p class="muted" style="font-size:.8rem;line-height:1.75;margin-top:.35rem">${item.a}</p>
           </div>`)}
         </div>
+        <div class="card card-pad" style="margin-top:1.2rem">
+          <b style="font-size:.9rem">ช่องทางสาธารณะ</b>
+          <p class="muted" style="font-size:.82rem;line-height:1.75;margin-top:.35rem">
+            ปัญหาทั่วไปและข้อเสนอแนะแจ้งได้ที่
+            <a href="https://github.com/audijuju1-a11y/aegishider/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>
+            ส่วนเรื่องบัญชีหรือไลเซนส์ใช้แบบฟอร์มติดต่อหรือตั๋วในพอร์ทัล ·
+            แพลตฟอร์มฟรีไม่มี SLA แต่ทีมงานอ่านทุกข้อความและตอบกลับโดยเร็วที่สุด
+          </p>
+        </div>
         <div class="row" style="margin-top:1.2rem">
           ${options.authed
             ? html`<a class="btn btn-primary" href="/app/support">เปิดตั๋วใหม่</a>`
@@ -666,7 +776,7 @@ export function supportPage(options: { siteKey: string; csrf: string; authed: bo
             <div class="field"><label for="message">รายละเอียด</label><textarea class="textarea" id="message" name="message" required maxlength="5000" placeholder="อธิบายสิ่งที่เกิดขึ้น พร้อมเวอร์ชันและข้อความผิดพลาด (ไม่ต้องแนบข้อมูลส่วนตัว)"></textarea></div>
             ${turnstileWidget(options.siteKey, "contact")}
             <button class="btn btn-primary" type="submit">${icon("mail")} ส่งข้อความ</button>
-            <p class="muted" style="font-size:.68rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
+            <p class="muted" style="font-size:.75rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
           </form>
         </div>
       </div>
@@ -681,13 +791,14 @@ export function contactPage(options: { siteKey: string; csrf: string; lang: Lang
       <p class="eyebrow">CONTACT</p>
       <h1 style="font-size:clamp(1.9rem,3.5vw,2.6rem)">ติดต่อเรา</h1>
       <p class="muted" style="margin-top:.6rem;line-height:1.8">สอบถามการใช้งาน ปัญหาเทคนิค หรือเรื่องความปลอดภัย — เราอ่านทุกข้อความ</p>
+      <p class="muted" style="margin-top:.4rem;font-size:.82rem">ปัญหาทั่วไปแจ้งได้ที่ <a href="https://github.com/audijuju1-a11y/aegishider/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a> · เรื่องบัญชี/ไลเซนส์ใช้แบบฟอร์มด้านล่าง</p>
       <div class="card" style="margin-top:1.5rem">
         <div class="card-body">
           <form class="form" method="post" action="/contact" data-lock>
             ${csrfInput(options.csrf)}
             <div class="field-row">
-              <div class="field"><label for="name">ชื่อ</label><input class="input" id="name" name="name" required maxlength="120"></div>
-              <div class="field"><label for="email">อีเมล</label><input class="input" id="email" name="email" type="email" required maxlength="200"></div>
+              <div class="field"><label for="name">ชื่อ</label><input class="input" id="name" name="name" required maxlength="120" autocomplete="name"></div>
+              <div class="field"><label for="email">อีเมล</label><input class="input" id="email" name="email" type="email" required maxlength="200" autocomplete="email"></div>
             </div>
             <div class="field"><label for="topic">หัวข้อ</label>
               <select class="select" id="topic" name="topic">
@@ -701,7 +812,7 @@ export function contactPage(options: { siteKey: string; csrf: string; lang: Lang
             <div class="field"><label for="message">รายละเอียด</label><textarea class="textarea" id="message" name="message" required maxlength="5000"></textarea></div>
             ${turnstileWidget(options.siteKey, "contact")}
             <button class="btn btn-primary" type="submit">${icon("mail")} ส่งข้อความ</button>
-            <p class="muted" style="font-size:.68rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
+            <p class="muted" style="font-size:.75rem">ใช้ข้อมูลนี้เพื่อตอบกลับเท่านั้น · <a href="/legal/privacy">นโยบายความเป็นส่วนตัว</a></p>
           </form>
         </div>
       </div>
@@ -724,8 +835,12 @@ export function aboutPage(_lang: Lang): SafeHtml {
           <li>ค่าเริ่มต้นคือปฏิเสธ (fail-closed)</li>
           <li>ทุกการกระทำของผู้ดูแลมี audit trail</li>
         </ul>
+        <h2>ทำไมฟรี</h2>
+        <p>แพลตฟอร์มนี้ไม่มีระบบชำระเงิน ไม่มีโฆษณา และไม่ขายข้อมูล ต้นทุนการให้บริการถูกออกแบบให้เบาพอที่จะดูแลต่อได้โดยไม่ต้องเก็บค่าไลเซนส์ — ทุกบัญชีจึงได้รับไลเซนส์ฟรีและตรวจสอบได้เท่ากัน</p>
+        <h2>ซอร์สโค้ดและชุมชน</h2>
+        <p>โค้ดของโปรเจกต์เผยแพร่บน <a href="https://github.com/audijuju1-a11y/aegishider" target="_blank" rel="noopener noreferrer">GitHub</a> เพื่อการตรวจสอบและรายงานปัญหา (source-available ภายใต้สัญญาอนุญาตของเจ้าของ ไม่ใช่โอเพนซอร์สทั่วไป) — ดูหลักฐานการทดสอบได้ที่ <a href="/docs/test-evidence">ผลทดสอบ</a> และนโยบายความปลอดภัยที่ <a href="/docs/security">ความปลอดภัย</a></p>
         <h2>ติดต่อ</h2>
-        <p>ใช้หน้า <a href="/contact">ติดต่อเรา</a> หรือเปิดตั๋วผ่านพอร์ทัล</p>
+        <p>ใช้หน้า <a href="/contact">ติดต่อเรา</a>, เปิดตั๋วผ่านพอร์ทัล หรือแจ้งปัญหาสาธารณะที่ <a href="https://github.com/audijuju1-a11y/aegishider/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a></p>
       </div>
     </div>
   </section>`;
@@ -755,18 +870,42 @@ export function legalPage(kind: "terms" | "privacy", _lang: Lang): SafeHtml {
 
 แพลตฟอร์มนี้ไม่มีระบบชำระเงิน ทุกฟีเจอร์และไลเซนส์เปิดให้เจ้าของเซิร์ฟเวอร์ใช้ฟรี 100%
 
-## 4. ข้อจำกัดความรับผิด
+## 4. การใช้งานที่ยอมรับได้
 
-บริการให้ “ตามสภาพที่เป็นอยู่” เราไม่รับประกันว่าปลั๊กอินจะเหมาะกับทุกเซิร์ฟเวอร์ และไม่รับผิดต่อความเสียหายทางอ้อม
+- ห้ามใช้บริการเพื่อละเมิดกฎหมาย หลอกลวง หรือรบกวนผู้อื่น
+- ห้ามพยายามเดา ขโมย หรือแบ่งปันรหัสไลเซนส์/รหัสกู้คืนของผู้อื่น
+- ห้ามดัดแปลงหรือ reverse engineer เพื่อหลบเลี่ยงการตรวจไลเซนส์
+- ห้ามเชื่อมเซิร์ฟเวอร์ที่คุณไม่มีสิทธิ์ดูแล
+- เราอาจระงับบัญชีหรือไลเซนส์ที่ละเมิดข้อกำหนดเหล่านี้
 
-## 5. การเปลี่ยนแปลง
+## 5. ความพร้อมใช้งาน
 
-เราอาจปรับปรุงข้อกำหนดและจะแจ้งการเปลี่ยนแปลงที่มีนัยสำคัญผ่านหน้าเว็บ
+บริการให้ “ตามสภาพที่เป็นอยู่” และอาจหยุดชั่วคราวเพื่อบำรุงรักษาหรือแก้เหตุขัดข้อง แพลตฟอร์มฟรีไม่มี SLA หรือการรับประกันเวลาพร้อมใช้งาน
+
+## 6. ข้อจำกัดความรับผิด
+
+เราไม่รับประกันว่าปลั๊กอินจะเหมาะกับทุกเซิร์ฟเวอร์ และไม่รับผิดต่อความเสียหายทางอ้อม ความเสียหายจากข้อมูลสูญหาย หรือการหยุดให้บริการ
+
+## 7. การเปลี่ยนแปลงและการสิ้นสุด
+
+เราอาจปรับปรุงข้อกำหนดและจะแจ้งการเปลี่ยนแปลงที่มีนัยสำคัญผ่านหน้าเว็บ คุณสามารถหยุดใช้บริการได้ทุกเมื่อ และขอลบบัญชีได้ผ่านช่องทางติดต่อ
+
+## 8. กฎหมายที่ใช้บังคับ
+
+ข้อกำหนดนี้อยู่ภายใต้กฎหมายแห่งราชอาณาจักรไทย
+
+## 9. ติดต่อ
+
+ใช้หน้า ติดต่อเรา หรือแจ้งปัญหาสาธารณะที่ GitHub Issues
 `
     : `
 # นโยบายความเป็นส่วนตัว
 
 อัปเดตล่าสุด: พฤศจิกายน 2026
+
+## ผู้ควบคุมข้อมูล
+
+ทีม Aegishider (AudiSMP) — ติดต่อผ่านหน้า ติดต่อเรา หรือ GitHub Issues
 
 ## ข้อมูลที่เราเก็บ
 
@@ -781,9 +920,19 @@ export function legalPage(kind: "terms" | "privacy", _lang: Lang): SafeHtml {
 - แชท, inventory, พิกัดโลก
 - ไฟล์คอนฟิกหรือข้อมูลส่วนตัวบนเซิร์ฟเวอร์
 
-## วัตถุประสงค์
+## คุกกี้และที่จัดเก็บในเบราว์เซอร์
 
-ใช้เพื่อให้บริการ ตรวจสอบไลเซนส์ ปรับปรุงเสถียรภาพ และตอบสนองต่อเหตุการณ์ความปลอดภัย
+| รายการ | วัตถุประสงค์ | อายุ |
+|---|---|---|
+| bh_session | รักษาเซสชันหลังเข้าสู่ระบบ (HttpOnly, SameSite=Lax) | 14 วัน (ค่าเริ่มต้น) |
+| bh_csrf | ป้องกันคำขอปลอมแปลง (CSRF) | 30 วัน |
+| bh-theme | จำธีมสว่าง/มืดใน localStorage | จนกว่าจะล้างข้อมูลเบราว์เซอร์ |
+
+แพลตฟอร์มไม่มีโฆษณาและไม่มี analytics ของบุคคลที่สาม ฟอร์มยืนยันตัวตนอาจใช้บริการตรวจบอทภายนอกเพื่อประเมินความเสี่ยง โดยไม่ใช้เพื่อการโฆษณา
+
+## วัตถุประสงค์และฐานการประมวลผล
+
+ใช้เพื่อให้บริการ ตรวจสอบไลเซนส์ ปรับปรุงเสถียรภาพ และตอบสนองต่อเหตุการณ์ความปลอดภัย บนฐานความจำเป็นในการให้บริการ ประโยชน์โดยชอบธรรมในการรักษาความปลอดภัย และความยินยอมเมื่อกฎหมายกำหนด
 
 ## การเปิดเผยข้อมูล
 
@@ -791,16 +940,20 @@ export function legalPage(kind: "terms" | "privacy", _lang: Lang): SafeHtml {
 
 ## การเก็บรักษา
 
-ข้อมูล telemetry แบบ raw เก็บตามนโยบาย retention (เริ่มต้น 90 วัน) ข้อมูลบัญชีเก็บเท่าที่จำเป็น
+ข้อมูล telemetry และบันทึกความปลอดภัยเก็บตามนโยบาย retention (เริ่มต้น 90 วัน) ข้อมูลบัญชีเก็บจนกว่าจะถูกลบหรือร้องขอ ลบ
 
 ## สิทธิ์ของคุณ
 
-ขอเข้าถึง แก้ไข หรือลบข้อมูลบัญชีได้ผ่านช่องทางติดต่อ
+ขอเข้าถึง แก้ไข ลบ หรือถอนความยินยอมได้ผ่านช่องทางติดต่อ เราจะตอบกลับภายในเวลาที่เหมาะสมตามกฎหมายที่ใช้บังคับ
+
+## การเปลี่ยนแปลง
+
+เราจะแจ้งการเปลี่ยนแปลงที่มีนัยสำคัญผ่านหน้าเว็บหรือพอร์ทัล
 `;
   return html`<section class="section">
     <div class="shell narrow">
       <div class="prose">${renderMarkdown(body)}</div>
-      <p class="mono" style="margin-top:2rem;font-size:.55rem">${title} · Aegishider Control Platform</p>
+      <p class="mono" style="margin-top:2rem;font-size:.72rem">${title} · Aegishider Control Platform</p>
     </div>
   </section>`;
 }

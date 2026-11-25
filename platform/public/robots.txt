@@ -5,3 +5,5 @@ Disallow: /app/
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
+
+Sitemap: https://aegishider-platform.audijuju1.workers.dev/sitemap.xml

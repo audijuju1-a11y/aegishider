@@ -1,0 +1,65 @@
+Aegishider Proprietary License
+==============================
+
+Copyright (c) 2026 AudiSMP. All rights reserved.
+
+This repository and its contents (the "Software") are proprietary. The source code is
+published for transparency and security review. No open-source license is granted.
+
+1. LIMITED LICENSE
+
+   Subject to this License, AudiSMP grants you a personal, non-exclusive, non-transferable,
+   revocable license to:
+
+   a. run the compiled Aegishider plugin ("Plugin") on Minecraft servers that you own or
+      operate, including commercial and community servers; and
+   b. read the source code for the purpose of auditing, evaluating and reporting security
+      or correctness issues.
+
+2. RESTRICTIONS
+
+   You may not:
+
+   a. copy, redistribute, sublicense, sell, rent, lease or otherwise make the Software or
+      any compiled build available to third parties, except for the official releases
+      published by AudiSMP;
+   b. modify, translate, reverse engineer, decompile or disassemble the Software, except to
+      the extent permitted by applicable law or for security research disclosed responsibly
+      to AudiSMP;
+   c. remove, obscure or alter any copyright, license or attribution notice;
+   d. use the Software to build a competing product or service, or to provide hosting,
+      licensing or telemetry services for third parties;
+   e. use the Software in violation of Minecraft's End User License Agreement, Mojang's
+      brand guidelines or applicable law.
+
+3. THIRD-PARTY COMPONENTS
+
+   The Plugin bundles FastUtil (Apache License 2.0) and requires PacketEvents (GPL-3.0) as a
+   separate plugin. Those components remain under their own licenses. Data files, fonts and
+   images included in the repository remain the property of their respective owners.
+
+4. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+   PURPOSE, TITLE AND NON-INFRINGEMENT. YOU USE THE SOFTWARE AT YOUR OWN RISK. THE PLUGIN IS
+   A SECURITY HARDENING TOOL AND DOES NOT GUARANTEE THAT EVERY CHEAT OR DATA LEAK IS PREVENTED.
+
+5. LIMITATION OF LIABILITY
+
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, AUDISMP SHALL NOT BE LIABLE FOR ANY INDIRECT,
+   INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF DATA, REVENUE
+   OR PROFITS, ARISING FROM OR RELATED TO THE SOFTWARE.
+
+6. TERMINATION
+
+   This License terminates automatically if you breach any of its terms. On termination you
+   must stop using the Software and delete all copies. Sections 2, 4, 5 and 7 survive.
+
+7. GENERAL
+
+   This License is governed by the laws of Thailand, without regard to conflict-of-law rules.
+   If any provision is held unenforceable, the remaining provisions stay in effect. This is
+   the entire agreement regarding the Software.
+
+Contact: audi@audismp.dev
